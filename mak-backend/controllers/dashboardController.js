@@ -1,5 +1,5 @@
 const Bill = require("../models/bill");
-const Medicine = require("../models/Medicine");
+const Medicine = require("../models/medicine");
 
 // 📊 DASHBOARD DATA
 exports.getDashboard = async (req, res) => {
