@@ -1,5 +1,5 @@
 const Purchase = require("../models/purchase");
-const Medicine = require("../models/Medicine");
+const Medicine = require("../models/medicine");
 
 // ➕ ADD PURCHASE
 exports.addPurchase = async (req, res) => {

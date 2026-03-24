@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Bill = require("../models/bill");
-const Medicine = require("../models/Medicine");
+const Medicine = require("../models/medicine");
 
 /* ================= CREATE BILL ================= */
 

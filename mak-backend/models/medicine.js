@@ -13,4 +13,7 @@ const medicineSchema = new mongoose.Schema({
   stock: Number
 }, { timestamps: true });
 
-module.exports = mongoose.model("Medicine", medicineSchema);
+/* ✅ FIX: Prevent OverwriteModelError */
+module.exports =
+  mongoose.models.Medicine ||
+  mongoose.model("Medicine", medicineSchema);

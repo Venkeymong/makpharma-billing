@@ -9,4 +9,7 @@ const customerSchema = new mongoose.Schema({
   gst: String
 }, { timestamps: true });
 
-module.exports = mongoose.model("Customer", customerSchema);
+/* ✅ FIX: Prevent OverwriteModelError */
+module.exports =
+  mongoose.models.Customer ||
+  mongoose.model("Customer", customerSchema);

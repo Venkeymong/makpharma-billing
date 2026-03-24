@@ -19,4 +19,7 @@ const purchaseSchema = new mongoose.Schema({
   billFile: String
 }, { timestamps: true });
 
-module.exports = mongoose.model("Purchase", purchaseSchema);
+/* ✅ FIX: Prevent OverwriteModelError */
+module.exports =
+  mongoose.models.Purchase ||
+  mongoose.model("Purchase", purchaseSchema);
