@@ -1,0 +1,148 @@
+<div class="invoice-wrapper" *ngIf="invoice">
+
+  <!-- ================= HEADER ================= -->
+  <div class="invoice-header">
+
+    <div class="company">
+      <h1>MAK PHARMA</h1>
+      <p>GST Billing System</p>
+      <p>Chennai, Tamil Nadu</p>
+      <p><strong>GSTIN:</strong> 33ABCDE1234F1Z5</p>
+    </div>
+
+    <div class="invoice-meta">
+      <p><strong>Invoice No :</strong> {{invoice.invoiceNumber || '-'}}</p>
+      <p><strong>Date :</strong> {{invoice.date | date:'mediumDate'}}</p>
+      <p><strong>Payment :</strong> {{invoice.payment}}</p>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ================= CUSTOMER ================= -->
+  <div class="customer-box">
+
+    <h3>Customer Details</h3>
+
+    <div class="customer-grid">
+
+      <div>
+        <p><strong>Name :</strong> {{invoice.customer?.name}}</p>
+        <p><strong>Phone :</strong> {{invoice.customer?.phone || '-'}}</p>
+      </div>
+
+      <div>
+        <p><strong>State :</strong> {{invoice.customer?.state}}</p>
+        <p *ngIf="invoice.customer?.gst">
+          <strong>GST :</strong> {{invoice.customer?.gst}}
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ================= TABLE ================= -->
+  <table class="invoice-table">
+
+    <thead>
+      <tr>
+        <th>S.No</th>
+        <th>Medicine</th>
+        <th>HSN</th>
+        <th>Qty</th>
+        <th>Rate</th>
+        <th>GST%</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+
+    <tbody>
+
+      <tr *ngFor="let item of invoice.items; let i = index">
+        <td>{{i+1}}</td>
+        <td class="name">{{item.name}}</td>
+        <td>{{item.hsn || '-'}}</td>
+        <td>{{item.qty}}</td>
+        <td>₹{{item.price}}</td>
+        <td>{{item.gst}}%</td>
+        <td>₹{{item.total}}</td>
+      </tr>
+
+    </tbody>
+
+  </table>
+
+  <!-- ================= TOTALS ================= -->
+  <div class="totals">
+
+    <div class="totals-box">
+
+      <div class="row">
+        <span>Subtotal</span>
+        <span>₹{{invoice.subtotal || 0}}</span>
+      </div>
+
+      <!-- 🔥 GST SECTION FIX -->
+      <div class="row" *ngIf="invoice.cgst !== undefined">
+        <span>CGST</span>
+        <span>₹{{invoice.cgst || 0}}</span>
+      </div>
+
+      <div class="row" *ngIf="invoice.sgst !== undefined">
+        <span>SGST</span>
+        <span>₹{{invoice.sgst || 0}}</span>
+      </div>
+
+      <div class="row" *ngIf="invoice.igst !== undefined">
+        <span>IGST</span>
+        <span>₹{{invoice.igst || 0}}</span>
+      </div>
+
+      <div class="grand">
+        <span>Grand Total</span>
+        <span>₹{{invoice.total}}</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ================= FOOTER (CENTERED PRINT) ================= -->
+  <div class="invoice-footer">
+
+    <div class="footer-center">
+      <p>Thank you for choosing MAK Pharma</p>
+      <p>All medicines once sold will not be taken back.</p>
+    </div>
+
+    <div class="signature">
+      <p>Authorized Signature</p>
+    </div>
+
+  </div>
+
+  <!-- ================= ACTIONS ================= -->
+  <div class="invoice-actions no-print">
+
+    <button class="btn back" routerLink="/invoices">
+      Back
+    </button>
+
+    <button class="btn print" (click)="print()">
+      🧾 Print Invoice
+    </button>
+
+  </div>
+
+</div>
+
+
+<!-- NO INVOICE -->
+<div *ngIf="!invoice" class="no-invoice">
+  <h2>No Invoice Found</h2>
+  <button routerLink="/invoices">Back to Invoices</button>
+</div>

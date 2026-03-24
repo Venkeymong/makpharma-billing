@@ -1,0 +1,74 @@
+<div class="login-page">
+
+  <!-- ❄️ BACKGROUND SNOW (CANVAS ONLY - CLEAN) -->
+  <div class="snow-wrapper">
+    <canvas id="snowCanvas"></canvas>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="login-container">
+
+    <div class="login-card">
+
+      <!-- HEADER -->
+      <div class="login-header text-center">
+        <h2>MAK Pharma</h2>
+        <p>Billing Management System</p>
+      </div>
+
+      <!-- FORM -->
+      <form (ngSubmit)="login()">
+
+        <!-- USERNAME -->
+        <div class="form-group">
+          <label>Username</label>
+
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Enter username"
+            [(ngModel)]="username"
+            name="username"
+            required
+          />
+        </div>
+
+        <!-- PASSWORD -->
+        <div class="form-group mt-3">
+          <label>Password</label>
+
+          <input
+            type="password"
+            class="form-control"
+            placeholder="Enter password"
+            [(ngModel)]="password"
+            name="password"
+            required
+          />
+        </div>
+
+        <!-- ERROR -->
+        <div class="text-danger mt-2" *ngIf="error">
+          {{ error }}
+        </div>
+
+        <!-- FORGOT -->
+        <div class="form-footer">
+          <a class="forgot">Forgot Password?</a>
+        </div>
+
+        <!-- BUTTON -->
+        <button
+          class="login-btn"
+          type="submit"
+        >
+          {{ loading ? 'Logging in...' : 'Login' }}
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+
+</div>

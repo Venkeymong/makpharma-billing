@@ -1,0 +1,267 @@
+<div class="dashboard">
+
+  <!-- ================= ALERT ================= -->
+  <div *ngIf="showAlert" class="alert-popup">
+    ⚠️ Low Stock Medicines Available!
+  </div>
+
+
+  <!-- ================= HEADER ================= -->
+  <div class="dashboard-header">
+
+    <div class="header-left">
+      <h2 class="dashboard-title">Dashboard</h2>
+      <p class="dashboard-subtitle">
+        Welcome back 👋 — Manage your pharmacy efficiently
+      </p>
+    </div>
+
+  </div>
+
+
+  <!-- ================= KPI CARDS ================= -->
+  <div class="cards">
+
+    <div class="card blue">
+      <h3>Total Medicines</h3>
+      <p>{{ totalMedicines }}</p>
+      <span class="card-label">Inventory Count</span>
+    </div>
+
+    <div class="card red">
+      <h3>Low Stock</h3>
+      <p>{{ lowStock }}</p>
+      <span class="card-label">Immediate Action</span>
+    </div>
+
+    <div class="card orange">
+      <h3>Expiry Soon</h3>
+      <p>{{ expirySoon }}</p>
+      <span class="card-label">Within 30 Days</span>
+    </div>
+
+    <div class="card green">
+      <h3>Total Revenue</h3>
+      <p>₹{{ totalSales }}</p>
+      <span class="card-label">Overall Business</span>
+    </div>
+
+    <div class="card purple">
+      <h3>Today's Sales</h3>
+      <p>₹{{ todaySales }}</p>
+      <span class="card-label">Daily Performance</span>
+    </div>
+
+    <div class="card teal">
+      <h3>Inventory Value</h3>
+      <p>₹{{ inventoryValue }}</p>
+      <span class="card-label">Stock Worth</span>
+    </div>
+
+    <div class="card dark">
+      <h3>Invoices Today</h3>
+      <p>{{ todayInvoices }}</p>
+      <span class="card-label">Transactions</span>
+    </div>
+
+    <div class="card gold">
+      <h3>Avg Daily Sales</h3>
+      <p>₹{{ averageDailySales }}</p>
+      <span class="card-label">Sales Trend</span>
+    </div>
+
+  </div>
+
+
+  <!-- ================= ANALYTICS ================= -->
+  <div class="section">
+
+    <div class="section-header">
+      <h3>📊 Analytics Overview</h3>
+    </div>
+
+    <!-- ROW 1 -->
+    <div class="charts">
+
+      <div class="chart-box">
+        <div class="box-header">Monthly Revenue</div>
+        <canvas id="salesChart"></canvas>
+      </div>
+
+      <div class="chart-box">
+        <div class="box-header">Stock Distribution</div>
+        <canvas id="stockChart"></canvas>
+      </div>
+
+    </div>
+
+    <!-- ROW 2 -->
+    <div class="charts">
+
+      <div class="chart-box">
+        <div class="box-header">Top Selling Medicines</div>
+        <canvas id="topMedicineChart"></canvas>
+      </div>
+
+      <div class="chart-box">
+        <div class="box-header">Business Performance</div>
+        <canvas id="performanceChart"></canvas>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= ALERTS ================= -->
+  <div class="section">
+
+    <div class="section-header">
+      <h3>⚠️ Alerts & Monitoring</h3>
+    </div>
+
+    <div class="alerts">
+
+      <!-- LOW STOCK -->
+      <div class="alert-box">
+
+        <div class="box-header">Low Stock Medicines</div>
+
+        <table class="recent-table">
+
+          <thead>
+            <tr>
+              <th>Medicine</th>
+              <th>Stock</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            <tr *ngIf="!medicines.length">
+              <td colspan="2">
+                <div class="skeleton"></div>
+              </td>
+            </tr>
+
+            <tr *ngFor="let m of lowStockList">
+              <td>{{ m.name }}</td>
+              <td class="stock-count">{{ m.stock }}</td>
+            </tr>
+
+            <tr *ngIf="medicines.length && lowStockList.length === 0">
+              <td colspan="2" class="empty-state">
+                ✅ All medicines are sufficiently stocked
+              </td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+      <!-- EXPIRY -->
+      <div class="alert-box">
+
+        <div class="box-header">Expiry Alerts</div>
+
+        <table class="recent-table">
+
+          <thead>
+            <tr>
+              <th>Medicine</th>
+              <th>Expiry</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            <tr *ngIf="!medicines.length">
+              <td colspan="2">
+                <div class="skeleton"></div>
+              </td>
+            </tr>
+
+            <tr *ngFor="let m of expirySoonList">
+              <td>{{ m.name }}</td>
+              <td class="expiry-date">{{ m.expiry }}</td>
+            </tr>
+
+            <tr *ngIf="medicines.length && expirySoonList.length === 0">
+              <td colspan="2" class="empty-state">
+                🎉 No medicines nearing expiry
+              </td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= INVENTORY ================= -->
+  <div class="section">
+
+    <div class="section-header">
+      <h3>📦 Inventory Overview</h3>
+    </div>
+
+    <div class="recent">
+
+      <div class="box-header">Medicine Inventory</div>
+
+      <table class="recent-table">
+
+        <thead>
+          <tr>
+            <th>Medicine</th>
+            <th>Stock</th>
+            <th>Expiry</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngIf="!medicines.length">
+            <td colspan="4">
+              <div class="skeleton"></div>
+            </td>
+          </tr>
+
+          <tr *ngFor="let m of medicines">
+
+            <td>{{ m.name }}</td>
+            <td>{{ m.stock }}</td>
+            <td>{{ m.expiry }}</td>
+
+            <td>
+              <span *ngIf="m.stock < 10" class="status low">Low Stock</span>
+
+              <span *ngIf="m.stock >= 10 && !isExpiringSoon(m.expiry)" class="status ok">
+                Normal
+              </span>
+
+              <span *ngIf="isExpiringSoon(m.expiry)" class="status expiry">
+                Expiring Soon
+              </span>
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

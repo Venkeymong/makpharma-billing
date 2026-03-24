@@ -1,0 +1,285 @@
+/* ================================
+GLOBAL PAGE (Glass Background)
+================================ */
+
+.dashboard{
+  padding:30px;
+  min-height:100vh;
+  font-family:'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(135deg,#1e293b,#0f172a);
+  color:#e2e8f0;
+}
+
+
+/* ================================
+HEADER
+================================ */
+
+.dashboard-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:25px;
+}
+
+.dashboard-title{
+  font-size:26px;
+  font-weight:600;
+
+  background: linear-gradient(90deg,#38bdf8,#6366f1);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.dashboard-subtitle{
+  font-size:13px;
+  color:#cbd5f5;
+}
+
+
+/* ================================
+CARDS GRID
+================================ */
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:20px;
+  margin-bottom:25px;
+}
+
+
+/* ================================
+GLASS CARD
+================================ */
+
+.card,
+.chart-box,
+.alert-box,
+.recent{
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(18px);
+
+  padding:20px;
+  border-radius:16px;
+
+  border:1px solid rgba(255,255,255,0.1);
+
+  box-shadow:0 8px 30px rgba(0,0,0,0.4);
+}
+
+
+/* ================================
+CARD
+================================ */
+
+.card{
+  transition:0.3s;
+  position:relative;
+  overflow:hidden;
+}
+
+.card:hover{
+  transform:translateY(-4px);
+}
+
+.card h3{
+  font-size:13px;
+  color:#cbd5f5;
+  margin-bottom:6px;
+}
+
+.card p{
+  font-size:22px;
+  font-weight:600;
+  color:#fff;
+}
+
+.card-label{
+  font-size:11px;
+  color:#94a3b8;
+}
+
+
+/* LEFT BORDER COLORS */
+
+.card::before{
+  content:'';
+  position:absolute;
+  left:0;
+  top:0;
+  width:4px;
+  height:100%;
+}
+
+.card.blue::before{background:#6366f1;}
+.card.red::before{background:#ef4444;}
+.card.orange::before{background:#f59e0b;}
+.card.green::before{background:#22c55e;}
+.card.purple::before{background:#a855f7;}
+.card.teal::before{background:#06b6d4;}
+.card.dark::before{background:#64748b;}
+.card.gold::before{background:#fbbf24;}
+
+
+/* ================================
+SECTION
+================================ */
+
+.section{
+  margin-bottom:25px;
+}
+
+.section-header h3{
+  font-size:14px;
+  margin-bottom:10px;
+  color:#cbd5f5;
+}
+
+
+/* ================================
+CHARTS
+================================ */
+
+.charts{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:20px;
+  margin-bottom:20px;
+}
+
+.chart-box{
+  height:260px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+.chart-box canvas{
+  width:100% !important;
+  height:200px !important;
+}
+
+.box-header{
+  font-size:13px;
+  margin-bottom:6px;
+  color:#cbd5f5;
+}
+
+
+/* ================================
+ALERT BOX
+================================ */
+
+.alert-box{
+  padding:20px;
+}
+
+
+/* ================================
+TABLE
+================================ */
+
+.recent{
+  padding:20px;
+}
+
+.recent-table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+.recent-table thead{
+  background:rgba(255,255,255,0.05);
+}
+
+.recent-table th{
+  padding:12px;
+  text-align:left;
+  font-weight:600;
+  color:#93c5fd;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+
+.recent-table td{
+  padding:12px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  color:#e2e8f0;
+}
+
+.recent-table tr:hover{
+  background:rgba(255,255,255,0.05);
+}
+
+
+/* ================================
+STATUS
+================================ */
+
+.status{
+  padding:5px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:600;
+  color:white;
+}
+
+.status.low{ background:#ef4444; }
+.status.ok{ background:#22c55e; }
+.status.expiry{ background:#f59e0b; }
+
+
+/* ================================
+ALERT POPUP
+================================ */
+
+.alert-popup{
+  position:fixed;
+  top:20px;
+  right:20px;
+  background:#ef4444;
+  color:#fff;
+  padding:12px 18px;
+  border-radius:10px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.5);
+}
+
+
+/* ================================
+SCROLLBAR
+================================ */
+
+::-webkit-scrollbar{
+  width:8px;
+}
+
+::-webkit-scrollbar-track{
+  background:#0f172a;
+}
+
+::-webkit-scrollbar-thumb{
+  background:#6366f1;
+  border-radius:10px;
+}
+
+
+/* ================================
+RESPONSIVE
+================================ */
+
+@media (max-width:1000px){
+  .cards{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .charts{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width:600px){
+  .cards{
+    grid-template-columns:1fr;
+  }
+}

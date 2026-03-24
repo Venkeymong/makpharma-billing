@@ -1,0 +1,230 @@
+<div class="reports-page">
+
+<!-- ================= TITLE ================= -->
+
+<h2 class="page-title">
+Sales & Analytics Reports
+</h2>
+
+<!-- ================= FILTER ================= -->
+
+<div class="report-controls">
+
+<select [(ngModel)]="reportType">
+<option value="daily">Daily Sales</option>
+<option value="weekly">Weekly Sales</option>
+<option value="monthly">Monthly Sales</option>
+<option value="custom">Custom Range</option>
+</select>
+
+<div *ngIf="reportType === 'custom'" class="custom-range">
+<input type="date" [(ngModel)]="startDate">
+<input type="date" [(ngModel)]="endDate">
+</div>
+
+<button class="btn-generate" (click)="generateReport()">
+Generate Report
+</button>
+
+<button class="btn-download" (click)="downloadCSV()">
+Download Sales CSV
+</button>
+
+</div>
+
+<!-- ================= KPI ================= -->
+
+<div class="report-cards">
+
+<div class="report-card">
+<h4>Total Revenue</h4>
+<p>₹{{totalSales | number:'1.0-2'}}</p>
+</div>
+
+<div class="report-card">
+<h4>Total Orders</h4>
+<p>{{totalOrders}}</p>
+</div>
+
+<div class="report-card">
+<h4>Average Order Value</h4>
+<p>₹{{avgOrderValue | number:'1.0-2'}}</p>
+</div>
+
+</div>
+
+<!-- ================= CHARTS ================= -->
+
+<div class="charts-section">
+
+<div class="chart-box">
+
+<div class="chart-header">
+<h3>Sales Chart</h3>
+<button class="btn-small" (click)="downloadCSV()">Download</button>
+</div>
+
+<canvas id="salesChart"></canvas>
+
+</div>
+
+<div class="chart-box">
+
+<div class="chart-header">
+<h3>Top Selling Medicines</h3>
+<button class="btn-small" (click)="downloadStockCSV()">Download</button>
+</div>
+
+<canvas id="medicineChart"></canvas>
+
+</div>
+
+</div>
+
+<!-- ================= LOW STOCK ================= -->
+
+<div class="report-block">
+
+<div class="block-header">
+<h3>Low Stock Medicines</h3>
+<button class="btn-small" (click)="downloadLowStockCSV()">Download</button>
+</div>
+
+<table class="report-table">
+
+<thead>
+<tr>
+<th>Medicine</th>
+<th>Stock</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr *ngFor="let med of lowStock">
+<td>{{med.name}}</td>
+<td class="low-stock">{{med.stock}}</td>
+</tr>
+
+<tr *ngIf="lowStock.length === 0">
+<td colspan="2" class="no-data">No low stock medicines</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+<!-- ================= EXPIRY ================= -->
+
+<div class="report-block">
+
+<div class="block-header">
+<h3>Expiring Medicines (30 Days)</h3>
+<button class="btn-small" (click)="downloadExpirySoonCSV()">Download</button>
+</div>
+
+<table class="report-table">
+
+<thead>
+<tr>
+<th>Medicine</th>
+<th>Expiry Date</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr *ngFor="let med of expirySoon">
+<td>{{med.name}}</td>
+<td>{{med.expiry | date}}</td>
+</tr>
+
+<tr *ngIf="expirySoon.length === 0">
+<td colspan="2" class="no-data">No medicines expiring soon</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+<!-- ================= EXPIRED ================= -->
+
+<div class="report-block">
+
+<div class="block-header">
+<h3>Expired Medicines</h3>
+<button class="btn-small" (click)="downloadExpiredCSV()">Download</button>
+</div>
+
+<table class="report-table">
+
+<thead>
+<tr>
+<th>Medicine</th>
+<th>Expiry Date</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr *ngFor="let med of expired">
+<td>{{med.name}}</td>
+<td class="expired">{{med.expiry | date}}</td>
+</tr>
+
+<tr *ngIf="expired.length === 0">
+<td colspan="2" class="no-data">No expired medicines</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+<!-- ================= INVOICE REPORT ================= -->
+
+<div class="report-block">
+
+<div class="block-header">
+<h3>Invoice Sales Report</h3>
+<button class="btn-small" (click)="downloadCSV()">Download</button>
+</div>
+
+<table class="report-table">
+
+<thead>
+<tr>
+<th>Invoice</th>
+<th>Customer</th>
+<th>Date</th>
+<th>Total</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr *ngFor="let inv of filteredInvoices">
+
+<td>{{inv.invoiceNumber}}</td>
+<td>{{inv.customer?.name || 'Walk-in Customer'}}</td>
+<td>{{inv.date | date:'short'}}</td>
+<td class="amount">₹{{inv.total}}</td>
+
+</tr>
+
+<tr *ngIf="filteredInvoices.length === 0">
+<td colspan="4" class="no-data">No invoices found</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>

@@ -1,0 +1,145 @@
+<div class="invoice-page">
+
+  <!-- ================= HEADER ================= -->
+  <div class="header">
+
+    <div>
+      <h2>Invoice Management</h2>
+      <p class="sub">Manage and track all billing invoices</p>
+    </div>
+
+    <div class="sales-summary">
+      ₹{{ getTotalSales() | number:'1.0-2' }}
+      <span>Total Sales</span>
+    </div>
+
+  </div>
+
+  <!-- ================= SEARCH ================= -->
+  <div class="controls">
+
+    <input
+      type="text"
+      placeholder="Search by invoice or customer..."
+      [(ngModel)]="searchText"
+      (input)="onSearchChange()"
+      class="search"
+    />
+
+  </div>
+
+  <!-- ================= TABLE ================= -->
+  <div class="table-container">
+
+    <table class="invoice-table">
+
+      <thead>
+        <tr>
+          <th>Invoice No</th>
+          <th>Customer</th>
+          <th>Date</th>
+          <th>Total</th>
+          <th>Payment</th>
+          <th class="center">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let inv of paginatedInvoices">
+
+          <!-- Invoice -->
+          <td class="invoice-no">
+            {{ inv.invoiceNumber || 'N/A' }}
+          </td>
+
+          <!-- Customer -->
+          <td>
+            <div class="customer">
+              <span class="name">{{ inv.customer?.name }}</span>
+              <small class="phone">{{ inv.customer?.phone }}</small>
+            </div>
+          </td>
+
+          <!-- Date -->
+          <td>
+            {{ inv.date | date:'mediumDate' }}
+          </td>
+
+          <!-- Total -->
+          <td class="amount">
+            ₹{{ inv.total | number:'1.0-2' }}
+          </td>
+
+          <!-- Payment -->
+          <td>
+            <span class="payment">{{ inv.payment }}</span>
+          </td>
+
+          <!-- Actions -->
+          <td class="actions">
+
+            <button class="btn view" (click)="viewInvoice(inv)">
+              View
+            </button>
+
+            <button class="btn print" (click)="printInvoice(inv)">
+              Print
+            </button>
+
+            <button class="btn edit" (click)="editInvoice(inv)">
+              Edit
+            </button>
+
+            <button class="btn delete" (click)="deleteInvoice(inv)">
+              Delete
+            </button>
+
+          </td>
+
+        </tr>
+
+        <!-- EMPTY STATE -->
+        <tr *ngIf="paginatedInvoices.length === 0">
+          <td colspan="6" class="no-data">
+            No invoices found
+          </td>
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+  <!-- ================= PAGINATION ================= -->
+  <div class="pagination" *ngIf="totalPages > 1">
+
+    <!-- PREV -->
+    <button
+      class="page-btn"
+      [disabled]="currentPage === 1"
+      (click)="changePage(currentPage - 1)">
+      ← Prev
+    </button>
+
+    <!-- PAGE NUMBERS -->
+    <button
+      *ngFor="let page of [].constructor(totalPages); let i = index"
+      class="page-btn"
+      [class.active]="currentPage === i + 1"
+      (click)="changePage(i + 1)">
+      {{ i + 1 }}
+    </button>
+
+    <!-- NEXT -->
+    <button
+      class="page-btn"
+      [disabled]="currentPage === totalPages"
+      (click)="changePage(currentPage + 1)">
+      Next →
+    </button>
+
+  </div>
+
+</div>

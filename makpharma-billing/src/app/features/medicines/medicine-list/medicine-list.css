@@ -1,0 +1,273 @@
+/* =========================================
+MEDICINE PAGE - CLEAN FINAL VERSION
+========================================= */
+
+/* GLOBAL */
+
+.medicine-page{
+  padding:28px;
+  min-height:100vh;
+  font-family:'Segoe UI', Roboto, sans-serif;
+
+  background:linear-gradient(135deg,#1e293b,#0f172a);
+  color:#e2e8f0;
+}
+
+
+/* =========================================
+HEADER
+========================================= */
+
+.medicine-page .d-flex{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:25px;
+}
+
+.medicine-page h3{
+  font-size:26px;
+  font-weight:600;
+
+  color:#60a5fa; /* clean SaaS blue */
+  letter-spacing:0.3px;
+}
+.medicine-page .d-flex > div{
+  display:flex;
+  gap:12px;
+}
+
+
+/* =========================================
+SEARCH
+========================================= */
+
+.medicine-page input[type="text"]{
+  width:400px;
+  height:42px;
+  padding:10px 14px;
+
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.1);
+
+  background:rgba(255,255,255,0.05);
+  color:#fff;
+
+  outline:none;
+}
+
+
+/* =========================================
+BUTTONS
+========================================= */
+
+.btn{
+  padding:10px 18px;
+  border:none;
+  border-radius:12px;
+  font-size:14px;
+  cursor:pointer;
+  transition:.25s;
+}
+
+.btn-primary{ background:#6366f1; color:#fff; }
+.btn-success{ background:#22c55e; color:#fff; }
+.btn-danger{ background:#ef4444; color:#fff; }
+.btn-secondary{ background:#475569; color:#fff; }
+
+.btn:hover{
+  transform:translateY(-2px);
+}
+
+.btn-sm{
+  padding:6px 12px;
+  font-size:12px;
+}
+
+
+/* =========================================
+CARD
+========================================= */
+
+.card{
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(18px);
+
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,0.1);
+
+  box-shadow:0 8px 30px rgba(0,0,0,0.4);
+
+  margin-bottom:25px;
+}
+
+.card-header{
+  padding:16px 20px;
+  font-size:16px;
+  font-weight:600;
+
+  background:linear-gradient(90deg,#2563eb,#4f46e5);
+  color:#fff;
+  border-radius:16px 16px 0 0;
+}
+
+.card-body{
+  padding:25px;
+}
+
+
+/* =========================================
+FORM GRID (FIXED)
+========================================= */
+
+.row.g-3{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
+  gap:20px;
+}
+
+/* REMOVE BOOTSTRAP WIDTH LIMIT */
+
+.col-md-1,
+.col-md-2,
+.col-md-3,
+.col-md-4,
+.col-md-6{
+  width:100%;
+}
+
+
+/* =========================================
+FORM
+========================================= */
+
+label{
+  font-size:12px;
+  margin-bottom:6px;
+  color:#cbd5f5; /* 🔥 FIXED (no gradient issues) */
+}
+
+.form-control{
+  width:100%;
+  height:45px;
+  padding:10px 14px;
+
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.1);
+
+  background:rgba(255,255,255,0.05);
+  color:#fff;
+
+  font-size:14px;
+}
+
+.form-control::placeholder{
+  color:#94a3b8;
+}
+
+.form-control:focus{
+  outline:none;
+  border:1px solid #6366f1;
+  box-shadow:0 0 12px rgba(99,102,241,0.4);
+}
+
+
+/* =========================================
+TABLE
+========================================= */
+
+.table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+/* REMOVE WHITE */
+
+.table,
+.table thead,
+.table tbody,
+.table tr,
+.table th,
+.table td{
+  background:transparent !important;
+}
+
+.table thead{
+  background:rgba(255,255,255,0.05);
+}
+
+.table th{
+  padding:14px;
+  font-size:13px;
+  color:#93c5fd;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+
+.table td{
+  padding:14px;
+  font-size:13px;
+  color:#e2e8f0;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+
+.table tr:hover{
+  background:rgba(255,255,255,0.05);
+}
+
+
+/* =========================================
+ACTION BUTTONS
+========================================= */
+
+.table td:last-child{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+
+/* =========================================
+PAGINATION
+========================================= */
+
+.pagination-glass{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  padding:15px;
+}
+
+.pagination-glass button{
+  background:rgba(255,255,255,0.08);
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  padding:8px 12px;
+  cursor:pointer;
+}
+
+.pagination-glass button:hover{
+  background:#6366f1;
+}
+
+.pagination-glass .active{
+  background:#6366f1;
+}
+
+
+/* =========================================
+RESPONSIVE
+========================================= */
+
+@media (max-width:600px){
+
+  .medicine-page{
+    padding:16px;
+  }
+
+  .medicine-page input[type="text"]{
+    width:100%;
+  }
+
+}

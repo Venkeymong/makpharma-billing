@@ -1,0 +1,33 @@
+<div class="navbar">
+
+  <div class="navbar-left">
+
+    <button class="menu-toggle" (click)="toggleSidebar()">
+      <span class="menu-icon">☰</span>
+    </button>
+
+    <div class="title">
+      MAK Pharma Billing System
+    </div>
+
+  </div>
+
+  <div class="navbar-right">
+
+    <div class="notification">
+      <i class="bi bi-bell"></i>
+      <span class="notification-dot"></span>
+    </div>
+
+    <div class="user-box">
+      <i class="bi bi-person-circle"></i>
+      <span>{{ user?.username || 'admin' }}</span>
+    </div>
+
+    <button class="logout-btn" (click)="logout()">
+      Logout
+    </button>
+
+  </div>
+
+</div>

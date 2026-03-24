@@ -1,0 +1,181 @@
+/* =========================================
+SIDEBAR - UPGRADED (NO LOGIC CHANGE)
+========================================= */
+
+.sidebar{
+  width:240px;
+  height:100vh;
+
+  background:linear-gradient(180deg,#0f172a,#1e293b);
+  color:#e2e8f0;
+
+  position:fixed;
+  left:0;
+  top:0;
+
+  display:flex;
+  flex-direction:column;
+
+  transition:width .3s ease;
+  z-index:1000;
+
+  border-right:1px solid rgba(255,255,255,0.08);
+}
+
+
+/* COLLAPSED SIDEBAR */
+
+.main-layout.sidebar-collapsed .sidebar{
+  width:70px;
+}
+
+
+/* =========================================
+HEADER
+========================================= */
+
+.sidebar-header{
+  text-align:center;
+  padding:20px 10px;
+
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+
+/* SAFE GRADIENT TITLE */
+
+.sidebar-header h2{
+  font-size:20px;
+  font-weight:700;
+
+  background:linear-gradient(90deg,#38bdf8,#6366f1);
+
+  -webkit-background-clip:text;
+  background-clip:text;
+
+  -webkit-text-fill-color:transparent;
+  color:transparent;
+
+  display:inline-block; /* 🔥 IMPORTANT */
+}
+
+.sidebar-header p{
+  font-size:12px;
+  color:#94a3b8;
+  margin-top:4px;
+}
+
+
+/* =========================================
+MENU
+========================================= */
+
+.sidebar-menu{
+  list-style:none;
+  padding:10px 0;
+  margin:0;
+  flex:1;
+
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.sidebar-menu a{
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  padding:12px 18px;
+
+  color:#cbd5f5;
+  text-decoration:none;
+
+  border-radius:10px;
+  margin:0 8px;
+
+  transition:all .25s ease;
+}
+
+
+/* ICON */
+
+.icon{
+  font-size:18px;
+  width:22px;
+  text-align:center;
+}
+
+
+/* HOVER */
+
+.sidebar-menu a:hover{
+  background:rgba(255,255,255,0.05);
+  color:#fff;
+}
+
+
+/* ACTIVE */
+
+.sidebar-menu a.active{
+  background:linear-gradient(90deg,#6366f1,#4f46e5);
+  color:#fff;
+  box-shadow:0 4px 12px rgba(99,102,241,0.4);
+}
+
+
+/* =========================================
+TEXT
+========================================= */
+
+.menu-text{
+  font-weight:500;
+}
+
+
+/* =========================================
+COLLAPSE TEXT (NO CHANGE)
+========================================= */
+
+.main-layout.sidebar-collapsed .sidebar-header h2,
+.main-layout.sidebar-collapsed .sidebar-header p{
+  display:none;
+}
+
+.main-layout.sidebar-collapsed .sidebar-menu .menu-text{
+  display:none;
+}
+
+.main-layout.sidebar-collapsed .sidebar-menu a{
+  justify-content:center;
+}
+
+
+/* =========================================
+SCROLL
+========================================= */
+
+.sidebar{
+  overflow-y:auto;
+}
+
+.sidebar::-webkit-scrollbar{
+  width:6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb{
+  background:#6366f1;
+  border-radius:10px;
+}
+
+
+/* =========================================
+RESPONSIVE
+========================================= */
+
+@media (max-width:768px){
+
+  .sidebar{
+    width:200px;
+  }
+
+}

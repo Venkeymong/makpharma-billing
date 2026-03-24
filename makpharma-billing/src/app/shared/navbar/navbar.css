@@ -1,0 +1,191 @@
+/* =========================================
+NAVBAR - DARK GLASS (UNIQUE SaaS UI)
+========================================= */
+
+/* BASE */
+
+.navbar{
+  height:65px;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:0 25px;
+
+  font-family:'Segoe UI',sans-serif;
+
+  /* 🔥 DARK GLASS */
+  background:rgba(15,23,42,0.7);
+  backdrop-filter:blur(18px);
+
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 8px 25px rgba(0,0,0,0.4);
+}
+
+
+/* =========================================
+LEFT SIDE
+========================================= */
+
+.navbar-left{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+
+/* =========================================
+TOGGLE BUTTON
+========================================= */
+
+.menu-toggle{
+  width:40px;
+  height:40px;
+
+  border:none;
+  border-radius:10px;
+
+  cursor:pointer;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:18px;
+
+  /* GLASS BUTTON */
+  background:rgba(255,255,255,0.08);
+  color:#e2e8f0;
+
+  transition:.25s ease;
+}
+
+.menu-toggle:hover{
+  background:#6366f1;
+  transform:scale(1.05);
+}
+
+
+/* =========================================
+TITLE
+========================================= */
+
+/* WORKING GRADIENT TITLE */
+
+.title{
+  font-size:18px;
+  font-weight:700;
+  letter-spacing:.3px;
+
+  display:inline-block; /* 🔥 IMPORTANT */
+
+  background:linear-gradient(90deg,#38bdf8,#6366f1);
+
+  -webkit-background-clip:text;
+  background-clip:text;
+
+  -webkit-text-fill-color:transparent;
+  color:transparent;
+}
+
+
+/* =========================================
+RIGHT SIDE
+========================================= */
+
+.navbar-right{
+  display:flex;
+  align-items:center;
+  gap:18px;
+}
+
+
+/* =========================================
+NOTIFICATION (ENHANCED)
+========================================= */
+
+.notification{
+  position:relative;
+  font-size:18px;
+  cursor:pointer;
+  color:#cbd5f5;
+}
+
+.notification:hover{
+  color:#fff;
+}
+
+.notification-dot{
+  position:absolute;
+  top:-3px;
+  right:-3px;
+
+  width:8px;
+  height:8px;
+
+  background:#ef4444;
+  border-radius:50%;
+
+  box-shadow:0 0 6px #ef4444;
+}
+
+
+/* =========================================
+USER BOX
+========================================= */
+
+.user-box{
+  display:flex;
+  align-items:center;
+  gap:6px;
+
+  padding:6px 10px;
+
+  border-radius:10px;
+
+  background:rgba(255,255,255,0.05);
+  color:#e2e8f0;
+}
+
+.user-box i{
+  font-size:18px;
+}
+
+
+/* =========================================
+LOGOUT BUTTON
+========================================= */
+
+.logout-btn{
+  border:none;
+
+  padding:7px 14px;
+  border-radius:10px;
+
+  font-size:13px;
+  cursor:pointer;
+
+  background:linear-gradient(135deg,#ef4444,#dc2626);
+  color:#fff;
+
+  transition:.25s;
+}
+
+.logout-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 15px rgba(239,68,68,0.4);
+}
+
+
+/* =========================================
+RESPONSIVE
+========================================= */
+
+@media (max-width:768px){
+
+  .title{
+    display:none;
+  }
+
+}

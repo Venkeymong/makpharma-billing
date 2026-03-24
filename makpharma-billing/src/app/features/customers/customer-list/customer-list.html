@@ -1,0 +1,193 @@
+<div class="customer-page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h2>Customers</h2>
+
+    <div>
+      <button class="btn btn-success" (click)="openForm()">
+        Add Customer
+      </button>
+
+      <button class="btn btn-primary" (click)="downloadAllCustomers()">
+        Download All
+      </button>
+    </div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-box">
+    <input
+      type="text"
+      placeholder="Search customer..."
+      [(ngModel)]="searchText"
+    />
+  </div>
+
+  <!-- FORM -->
+  <div *ngIf="showForm" class="customer-form">
+
+    <h3>{{editIndex === null ? 'Add Customer' : 'Edit Customer'}}</h3>
+
+    <div class="form-grid">
+
+      <!-- NAME -->
+      <div class="form-group">
+        <input type="text" [(ngModel)]="customer.name" required placeholder=" ">
+        <label>Customer Name</label>
+      </div>
+
+      <!-- PHONE -->
+      <div class="form-group">
+        <input type="text" [(ngModel)]="customer.phone" required placeholder=" ">
+        <label>Phone Number</label>
+      </div>
+
+      <!-- EMAIL -->
+      <div class="form-group">
+        <input type="email" [(ngModel)]="customer.email" placeholder=" ">
+        <label>Email</label>
+      </div>
+
+      <!-- ADDRESS -->
+      <div class="form-group">
+        <input type="text" [(ngModel)]="customer.address" placeholder=" ">
+        <label>Address</label>
+      </div>
+
+      <!-- STATE -->
+      <div class="form-group">
+        <select [(ngModel)]="customer.state" required>
+          <option value="" disabled selected hidden></option>
+          <option>Andhra Pradesh</option>
+          <option>Arunachal Pradesh</option>
+          <option>Assam</option>
+          <option>Bihar</option>
+          <option>Chhattisgarh</option>
+          <option>Goa</option>
+          <option>Gujarat</option>
+          <option>Haryana</option>
+          <option>Himachal Pradesh</option>
+          <option>Jharkhand</option>
+          <option>Karnataka</option>
+          <option>Kerala</option>
+          <option>Madhya Pradesh</option>
+          <option>Maharashtra</option>
+          <option>Manipur</option>
+          <option>Meghalaya</option>
+          <option>Mizoram</option>
+          <option>Nagaland</option>
+          <option>Odisha</option>
+          <option>Punjab</option>
+          <option>Rajasthan</option>
+          <option>Sikkim</option>
+          <option>Tamil Nadu</option>
+          <option>Telangana</option>
+          <option>Tripura</option>
+          <option>Uttar Pradesh</option>
+          <option>Uttarakhand</option>
+          <option>West Bengal</option>
+        </select>
+        <label>State</label>
+      </div>
+
+      <!-- GST -->
+      <div class="form-group">
+        <input type="text" [(ngModel)]="customer.gst" placeholder=" ">
+        <label>GST Number</label>
+      </div>
+
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" (click)="saveCustomer()">
+        {{editIndex === null ? 'Save Customer' : 'Update Customer'}}
+      </button>
+
+      <button class="btn btn-danger" (click)="resetForm()">
+        Cancel
+      </button>
+    </div>
+
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-container">
+
+    <table class="customer-table">
+
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Address</th>
+          <th>State</th>
+          <th>GST</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let c of paginatedCustomers; let i = index">
+
+          <td>{{c.name}}</td>
+          <td>{{c.phone}}</td>
+          <td>{{c.email}}</td>
+          <td>{{c.address}}</td>
+          <td>{{c.state}}</td>
+          <td>{{c.gst || '-'}}</td>
+
+          <td>
+
+            <button class="btn btn-primary btn-sm" (click)="editCustomer(i)">
+              Edit
+            </button>
+
+            <button class="btn btn-danger btn-sm" (click)="deleteCustomer(i)">
+              Delete
+            </button>
+
+            <button class="btn btn-success btn-sm" (click)="downloadCustomer(c)">
+              Download
+            </button>
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+  <!-- PAGINATION -->
+  <div class="pagination">
+
+    <button 
+      class="btn"
+      [disabled]="currentPage === 1"
+      (click)="changePage(currentPage - 1)">
+      Prev
+    </button>
+
+    <button 
+      *ngFor="let page of [].constructor(totalPages); let i = index"
+      class="btn"
+      [class.active]="currentPage === i+1"
+      (click)="changePage(i+1)">
+      {{i+1}}
+    </button>
+
+    <button 
+      class="btn"
+      [disabled]="currentPage === totalPages"
+      (click)="changePage(currentPage + 1)">
+      Next
+    </button>
+
+  </div>
+
+</div>

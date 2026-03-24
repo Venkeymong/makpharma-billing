@@ -1,0 +1,219 @@
+<div class="billing-page">
+
+  <!-- ================= HEADER ================= -->
+  <div class="header">
+
+    <div>
+      <h2>🧾 Billing POS</h2>
+      <p class="sub">Create and manage invoices easily</p>
+    </div>
+
+    <div class="invoice-box">
+      <div><strong>Invoice:</strong> {{invoiceNumber}}</div>
+      <div><strong>Date:</strong> {{currentDate | date:'mediumDate'}}</div>
+    </div>
+
+  </div>
+
+  <!-- ================= CUSTOMER ================= -->
+  <div class="customer-section">
+
+    <input
+      type="text"
+      placeholder="🔍 Search customer by name / phone"
+      [(ngModel)]="customerSearch"
+      (input)="searchCustomer()"
+    />
+
+    <ul *ngIf="filteredCustomers.length" class="dropdown">
+      <li *ngFor="let c of filteredCustomers" (click)="selectCustomer(c)">
+        {{c.name}} - {{c.phone}}
+      </li>
+    </ul>
+
+    <button class="add-btn" (click)="addCustomer()">
+      + Add Customer
+    </button>
+
+  </div>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main-container">
+
+    <!-- ===== MEDICINES ===== -->
+    <div class="med-section">
+
+      <h3>💊 Medicines</h3>
+
+      <input
+        type="text"
+        placeholder="Search medicine..."
+        [(ngModel)]="searchText"
+        (input)="searchMedicine()"
+      />
+
+      <div *ngIf="filteredMedicines.length === 0" class="empty">
+        No medicines found
+      </div>
+
+      <div class="med-grid">
+
+        <div
+          class="med-card"
+          *ngFor="let med of filteredMedicines"
+          (click)="addToCart(med)"
+        >
+          <h4>{{med.name}}</h4>
+          <p>₹{{med.sellingPrice || med.price}}</p>
+          <span>Stock: {{med.stock}}</span>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ===== BILL CART ===== -->
+    <div class="cart-section">
+
+      <h3>🛒 Bill Cart</h3>
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Description</th>
+            <th>Rate</th>
+            <th>Qty</th>
+            <th>GST</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let item of cart; let i = index">
+
+            <td>{{i + 1}}</td>
+            <td class="left">{{item.name}}</td>
+            <td>₹{{item.price}}</td>
+
+            <td class="qty">
+              <button (click)="decreaseQty(item)">-</button>
+              <span>{{item.qty}}</span>
+              <button (click)="increaseQty(item)">+</button>
+            </td>
+
+            <td>{{item.gst}}%</td>
+
+            <td>₹{{item.price * item.qty | number:'1.2-2'}}</td>
+
+          </tr>
+
+          <tr *ngIf="cart.length === 0">
+            <td colspan="6" class="empty">No items added</td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+      <!-- ================= DISCOUNT ================= -->
+      <div class="discount">
+
+        <label><strong>Discount</strong></label>
+
+        <select [(ngModel)]="discountType" (change)="updateTotals()">
+          <option value="amount">₹</option>
+          <option value="percent">%</option>
+        </select>
+
+        <input
+          type="number"
+          placeholder="Enter discount"
+          [(ngModel)]="discountValue"
+          (input)="updateTotals()"
+        />
+
+      </div>
+
+      <!-- ================= SUMMARY ================= -->
+      <div class="summary">
+
+        <div>
+          <span>Subtotal</span>
+          <span>₹{{subtotal | number:'1.2-2'}}</span>
+        </div>
+
+        <div>
+          <span>Discount</span>
+          <span>- ₹{{discountTotal | number:'1.2-2'}}</span>
+        </div>
+
+        <div *ngIf="customer.state=='Tamil Nadu'">
+          <span>CGST</span>
+          <span>₹{{cgstTotal | number:'1.2-2'}}</span>
+        </div>
+
+        <div *ngIf="customer.state=='Tamil Nadu'">
+          <span>SGST</span>
+          <span>₹{{sgstTotal | number:'1.2-2'}}</span>
+        </div>
+
+        <div *ngIf="customer.state!='Tamil Nadu'">
+          <span>IGST</span>
+          <span>₹{{igstTotal | number:'1.2-2'}}</span>
+        </div>
+
+        <div>
+          <span>Round Off</span>
+          <span>₹{{roundOff | number:'1.2-2'}}</span>
+        </div>
+
+        <div class="total">
+          <span>Grand Total</span>
+          <span>₹{{grandTotal | number:'1.2-2'}}</span>
+        </div>
+
+      </div>
+
+      <!-- ================= PAYMENT ================= -->
+      <div class="payment-box">
+
+        <label><strong>Payment Mode</strong></label>
+
+        <div class="payment-options">
+
+          <label class="payment-card">
+            <input type="radio" [(ngModel)]="paymentMethod" value="Cash" />
+            💵 Cash
+          </label>
+
+          <label class="payment-card">
+            <input type="radio" [(ngModel)]="paymentMethod" value="UPI" />
+            📱 UPI
+          </label>
+
+          <label class="payment-card">
+            <input type="radio" [(ngModel)]="paymentMethod" value="Card" />
+            💳 Card
+          </label>
+
+        </div>
+
+      </div>
+
+      <!-- ================= ACTION ================= -->
+      <div class="actions">
+
+        <button class="print" (click)="printBill()">
+          🧾 Generate & Print Bill
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
