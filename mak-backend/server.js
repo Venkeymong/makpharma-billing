@@ -24,6 +24,12 @@ connectDB();
    ⚙️ MIDDLEWARE
 ====================================================== */
 
+// 🔥 CACHE CONTROL (VERY IMPORTANT FIX)
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  next();
+});
+
 // CORS (allow frontend)
 app.use(cors({
   origin: "*", // later change to your Angular URL
@@ -50,7 +56,6 @@ app.use("/api/customers", customerRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/auth", authRoutes);
-
 
 /* ======================================================
    ❌ ERROR HANDLER (GLOBAL)

@@ -1,58 +1,81 @@
-// middleware/auth.js
-
 const jwt = require('jsonwebtoken');
 
 const authMiddleware = (req, res, next) => {
-
   try {
 
-    /* ================= GET HEADER ================= */
+    /* ======================================================
+       🔐 GET AUTH HEADER
+    ====================================================== */
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
       return res.status(401).json({
-        message: 'No token provided'
+        success: false,
+        message: 'Access denied. No token provided.'
       });
     }
 
-    /* ================= EXTRACT TOKEN ================= */
-    const parts = authHeader.split(' ');
+    /* ======================================================
+       🔍 VALIDATE FORMAT (Bearer TOKEN)
+    ====================================================== */
+    const [scheme, token] = authHeader.split(' ');
 
-    if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    if (scheme !== 'Bearer' || !token) {
       return res.status(401).json({
-        message: 'Invalid token format'
+        success: false,
+        message: 'Invalid token format. Use Bearer token.'
       });
     }
 
-    const token = parts[1];
-
-    /* ================= VERIFY TOKEN ================= */
+    /* ======================================================
+       ✅ VERIFY TOKEN
+    ====================================================== */
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    /* ================= DEBUG (REMOVE LATER) ================= */
-    console.log('Decoded Token:', decoded);
-
-    /* ================= ATTACH USER ================= */
+    /* ======================================================
+       👤 ATTACH USER DATA
+    ====================================================== */
     req.user = {
       id: decoded.id,
       username: decoded.username,
-      role: decoded.role || 'admin' // 🔥 fallback safety
+      role: decoded.role || 'admin' // fallback role
     };
 
-    /* ================= NEXT ================= */
+    /* ======================================================
+       🚀 NEXT
+    ====================================================== */
     next();
 
   } catch (error) {
 
-    console.error('Auth Middleware Error:', error);
+    console.error('🔴 Auth Error:', error.message);
 
-    /* ================= TOKEN ERROR ================= */
-    return res.status(401).json({
-      message: 'Unauthorized access'
+    /* ======================================================
+       ⚠️ HANDLE TOKEN ERRORS
+    ====================================================== */
+
+    // Token expired
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token expired. Please login again.'
+      });
+    }
+
+    // Invalid token
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token.'
+      });
+    }
+
+    // Generic error
+    return res.status(500).json({
+      success: false,
+      message: 'Authentication failed.'
     });
-
   }
-
 };
 
 module.exports = authMiddleware;
