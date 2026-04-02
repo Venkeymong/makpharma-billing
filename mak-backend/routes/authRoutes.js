@@ -16,17 +16,19 @@ router.post("/login", login);
 
 
 /* ======================================================
-   🧪 DEBUG ROUTES (VERY IMPORTANT)
+   🧪 DEBUG ROUTES (CRITICAL)
 ====================================================== */
 
-// 👉 Check if auth routes are loaded
+// ✅ Check GET route
 router.get("/check", (req, res) => {
+  console.log("🔥 CHECK ROUTE HIT");
   res.send("🔥 AUTH ROUTE WORKING");
 });
 
-// 👉 Check POST route existence
+// ✅ Check POST route (important for debugging)
 router.post("/ping", (req, res) => {
-  res.json({ message: "🔥 POST ROUTE WORKING" });
+  console.log("🔥 PING ROUTE HIT");
+  res.json({ message: "PING OK" });
 });
 
 
@@ -36,6 +38,8 @@ router.post("/ping", (req, res) => {
 
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
+    console.log("👤 PROFILE FETCH HIT");
+
     const user = await User.findById(req.user.id).select("-password");
 
     if (!user) {
@@ -45,7 +49,7 @@ router.get("/profile", authMiddleware, async (req, res) => {
     res.json(user);
 
   } catch (err) {
-    console.error("PROFILE ERROR:", err);
+    console.error("❌ PROFILE ERROR:", err);
     res.status(500).json({ message: "Failed to fetch profile" });
   }
 });
@@ -53,6 +57,7 @@ router.get("/profile", authMiddleware, async (req, res) => {
 
 router.put("/profile", authMiddleware, async (req, res) => {
   try {
+    console.log("👤 PROFILE UPDATE HIT");
 
     const updated = await User.findByIdAndUpdate(
       req.user.id,
@@ -63,7 +68,7 @@ router.put("/profile", authMiddleware, async (req, res) => {
     res.json(updated);
 
   } catch (err) {
-    console.error("PROFILE UPDATE ERROR:", err);
+    console.error("❌ PROFILE UPDATE ERROR:", err);
     res.status(500).json({ message: "Failed to update profile" });
   }
 });
@@ -78,6 +83,7 @@ router.post("/send-otp", async (req, res) => {
   try {
 
     console.log("🔥 SEND OTP HIT");
+    console.log("📩 Email:", req.body.email);
 
     const { email } = req.body;
 
@@ -117,6 +123,10 @@ router.post("/verify-otp", async (req, res) => {
 
     const { email, otp } = req.body;
 
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email & OTP required" });
+    }
+
     const user = await User.findOne({ email });
 
     if (!user || user.resetOtp != otp) {
@@ -143,6 +153,10 @@ router.post("/reset-password", async (req, res) => {
     console.log("🔥 RESET PASSWORD HIT");
 
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email & password required" });
+    }
 
     const user = await User.findOne({ email });
 
