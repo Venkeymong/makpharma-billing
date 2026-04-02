@@ -6,22 +6,41 @@ const User = require("../models/user");
 
 async function createUsers() {
   try {
-
     await mongoose.connect(process.env.MONGO_URI);
     console.log("MongoDB Connected ✅");
 
     const users = [
-      { username: "ArunKumar", password: "Arun1552" },
-      { username: "Venkatesh", password: "kalaiV@999" },
-      { username: "Dharanesh", password: "raja@123"}
+      {
+        username: "ArunKumar",
+        email: "venkeymong444@gmail.com",
+        password: "Arun1552"
+      },
+      {
+        username: "Venkatesh",
+        email: "venkeymong444@gmail.com",
+        password: "kalaiV@999"
+      },
+      {
+        username: "Dharanesh",
+        email: "venkeymong444@gmail.com",
+        password: "raja@123"
+      }
     ];
 
     for (const u of users) {
 
-      const existing = await User.findOne({ username: u.username });
+      const email = u.email.toLowerCase();
+
+      // 🔥 CHECK BOTH USERNAME + EMAIL
+      const existing = await User.findOne({
+        $or: [
+          { username: u.username },
+          { email: email }
+        ]
+      });
 
       if (existing) {
-        console.log(`⚠️ ${u.username} already exists`);
+        console.log(`⚠️ User already exists: ${u.username} / ${email}`);
         continue;
       }
 
@@ -29,12 +48,14 @@ async function createUsers() {
 
       await User.create({
         username: u.username,
+        email: email,
         password: hashed
       });
 
-      console.log(`✅ ${u.username} created`);
+      console.log(`✅ ${u.username} created with email ${email}`);
     }
 
+    console.log("🎉 User creation process completed");
     process.exit();
 
   } catch (err) {

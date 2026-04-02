@@ -39,6 +39,11 @@ router.post("/ping", (req, res) => {
   res.json({ message: "PING OK (POST)" });
 });
 
+router.get("/all-users", async (req, res) => {
+  const users = await User.find();
+  res.json(users);
+});
+
 
 /* ======================================================
    👤 PROFILE
