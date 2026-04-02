@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SalesService {
 
-  private baseUrl = 'http://localhost:5000/api/bills';
+  private baseUrl = 'https://makpharma-billing-final.onrender.com/api/bills';
 
   private invoicesSubject = new BehaviorSubject<any[]>([]);
   invoices$ = this.invoicesSubject.asObservable();
@@ -16,25 +16,33 @@ export class SalesService {
     this.loadInvoices();
   }
 
+  /* ================= HELPER (TOKEN) ================= */
+
+  private getHeaders() {
+    const token = localStorage.getItem('token');
+
+    return {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      })
+    };
+  }
+
   /* ========================================
      LOAD INVOICES FROM BACKEND
   ======================================== */
 
   loadInvoices(): void {
 
-    this.http.get<any[]>(this.baseUrl).subscribe({
+    this.http.get<any[]>(this.baseUrl, this.getHeaders()).subscribe({
 
       next: (data) => {
 
         const formatted = (data || []).map((b: any) => ({
 
-          /* ================= CORE ================= */
-
           _id: b._id,
 
           invoiceNumber: b.invoiceNumber || 'MISSING-INVOICE',
-
-          /* ================= CUSTOMER ================= */
 
           customer: {
             name: b.customerName || 'Walk-in',
@@ -43,26 +51,16 @@ export class SalesService {
             gst: b.customerGST || ''
           },
 
-          /* ================= DATE ================= */
-
           date: b.date ? new Date(b.date) : new Date(),
-
-          /* ================= TOTALS ================= */
 
           subtotal: b.subtotal || 0,
           total: b.totalAmount || 0,
-
-          /* ================= GST ================= */
 
           cgst: b.cgst || 0,
           sgst: b.sgst || 0,
           igst: b.igst || 0,
 
-          /* ================= PAYMENT ================= */
-
           payment: b.paymentMethod || 'Cash',
-
-          /* ================= ITEMS ================= */
 
           items: (b.items || []).map((item: any) => ({
             name: item.medicine,
@@ -103,22 +101,14 @@ export class SalesService {
 
     const billData = {
 
-      /* ================= CORE ================= */
-
       invoiceNumber: invoice.invoiceNumber,
-
-      /* ================= CUSTOMER ================= */
 
       customerName: invoice.customer?.name,
       customerPhone: invoice.customer?.phone,
       customerState: invoice.customer?.state,
       customerGST: invoice.customer?.gst,
 
-      /* ================= DATE ================= */
-
       date: invoice.date,
-
-      /* ================= ITEMS ================= */
 
       items: (invoice.items || []).map((item: any) => ({
         medicine: item.name,
@@ -129,20 +119,16 @@ export class SalesService {
         total: item.qty * item.price
       })),
 
-      /* ================= TOTALS ================= */
-
       subtotal: invoice.subtotal,
       cgst: invoice.cgstTotal,
       sgst: invoice.sgstTotal,
       igst: invoice.igstTotal,
       totalAmount: invoice.total,
 
-      /* ================= PAYMENT ================= */
-
-      paymentMethod: invoice.paymentMethod || "Cash"  // ✅ FIXED
+      paymentMethod: invoice.paymentMethod || "Cash"
     };
 
-    this.http.post(this.baseUrl + '/add', billData).subscribe({
+    this.http.post(this.baseUrl + '/add', billData, this.getHeaders()).subscribe({
 
       next: () => {
         console.log("✅ Invoice saved:", billData.invoiceNumber);
@@ -162,26 +148,26 @@ export class SalesService {
 
   deleteInvoice(id: string): void {
 
-  console.log("🗑️ Deleting ID:", id); // DEBUG
+    console.log("🗑️ Deleting ID:", id);
 
-  if (!id) {
-    console.error("❌ Invalid ID");
-    return;
-  }
-
-  this.http.delete(`${this.baseUrl}/${id}`).subscribe({
-
-    next: () => {
-      console.log("✅ Invoice deleted");
-      this.loadInvoices();
-    },
-
-    error: (err) => {
-      console.error("❌ Delete Error:", err);
+    if (!id) {
+      console.error("❌ Invalid ID");
+      return;
     }
 
-  });
-}
+    this.http.delete(`${this.baseUrl}/${id}`, this.getHeaders()).subscribe({
+
+      next: () => {
+        console.log("✅ Invoice deleted");
+        this.loadInvoices();
+      },
+
+      error: (err) => {
+        console.error("❌ Delete Error:", err);
+      }
+
+    });
+  }
 
   /* ========================================
      GET LAST INVOICE

@@ -1,16 +1,13 @@
-// ✅ CLEAN + ERROR FREE VERSION (NO LOGIC CHANGE)
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MedicineService } from '../../../services/medicine';
+import { AuthService } from '../../../services/auth';
 
 /* ================= MODELS ================= */
 
 export interface Medicine {
   name: string;
-  generic: string;
-  manufacturer: string;
   hsn: string;
   batch: string;
   expiry: string;
@@ -24,6 +21,7 @@ export interface PurchaseItem {
   medicine: string;
   hsn: string;
   batch: string;
+  expiry: string;
   qty: number;
   price: number;
   gst: number;
@@ -48,230 +46,75 @@ export interface PurchaseOrder {
   templateUrl: './medicine-list.html',
   styleUrl: './medicine-list.css'
 })
-
 export class MedicineList implements OnInit {
 
+  constructor(
+    private medicineService: MedicineService,
+    public auth: AuthService
+  ) {}
+
+  /* ================= STATE ================= */
+
   searchText = '';
-
-  showForm = false;
   showPurchaseForm = false;
-  showBillView = false;
-
-  editIndex: number | null = null;
-  editPurchaseIndex: number | null = null;
-
-  /* ===== MEDICINE PAGINATION ===== */
-
-  currentPage = 1;
-  itemsPerPage = 15;
-  totalPages = 1;
-  pages: number[] = [];
-
-  /* ===== PURCHASE PAGINATION ===== */
-
-  purchaseCurrentPage = 1;
-  purchaseItemsPerPage = 15;
-  purchaseTotalPages = 1;
-  purchasePages: number[] = [];
-  paginatedPurchaseOrders: PurchaseOrder[] = [];
 
   medicines: Medicine[] = [];
   filteredMedicines: Medicine[] = [];
   paginatedMedicines: Medicine[] = [];
 
   purchaseOrders: PurchaseOrder[] = [];
+  paginatedPurchaseOrders: PurchaseOrder[] = [];
 
-  medicine: Medicine = this.createEmptyMedicine();
-
-  purchase = {
-    supplier: '',
-    invoice: '',
-    date: ''
-  };
+  purchase = { supplier: '', invoice: '', date: '' };
 
   purchaseItems: PurchaseItem[] = [];
   item: PurchaseItem = this.createEmptyItem();
 
   uploadedBill: string | null = null;
 
-  constructor(private medicineService: MedicineService) {}
+  /* 🔐 AUTH MODAL STATE */
 
-  /* ================= INIT ================= */
-
-ngOnInit(): void {
-
-  this.medicineService.medicines$.subscribe({
-    next: (data) => {
-      this.medicines = data;
-      this.applyFilter();
-    },
-    error: (err: any) => console.error(err)
-  });
-
-  this.loadPurchaseOrders();
-}
-
-  /* ================= LOAD ================= */
-
-  loadMedicines(): void {
-    this.medicines = this.medicineService.getMedicines() || [];
-    this.applyFilter();
-  }
-
-  loadPurchaseOrders(): void {
-    this.purchaseOrders =
-      JSON.parse(localStorage.getItem('purchaseOrders') || '[]');
-
-    this.updatePurchasePagination();
-  }
-
-  savePurchaseOrders(): void {
-    localStorage.setItem('purchaseOrders', JSON.stringify(this.purchaseOrders));
-  }
+  showAuthModal = false;
+  authAction: string | null = null;
+  selectedIndex: number | null = null;
+  adminPasswordInput = '';
 
   /* ================= PAGINATION ================= */
 
-  updatePagination(): void {
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalPages = 1;
+  pages: number[] = [];
 
-    this.totalPages = Math.ceil(this.filteredMedicines.length / this.itemsPerPage);
+  purchaseCurrentPage = 1;
+  purchaseItemsPerPage = 10;
+  purchaseTotalPages = 1;
+  purchasePages: number[] = [];
 
-    this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  /* ================= INIT ================= */
 
-    this.setPage(this.currentPage);
-  }
+  ngOnInit(): void {
+    this.medicineService.medicines$.subscribe(data => {
+      this.medicines = data;
+      this.applyFilter();
+    });
 
-  setPage(page: number): void {
-
-    if (page < 1 || page > this.totalPages) return;
-
-    this.currentPage = page;
-
-    const start = (page - 1) * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-
-    this.paginatedMedicines = this.filteredMedicines.slice(start, end);
-  }
-
-  changePage(page: number): void {
-    this.setPage(page);
-  }
-
-  /* ===== PURCHASE PAGINATION ===== */
-
-  updatePurchasePagination(): void {
-
-    this.purchaseTotalPages = Math.ceil(
-      this.purchaseOrders.length / this.purchaseItemsPerPage
-    );
-
-    this.purchasePages = Array.from(
-      { length: this.purchaseTotalPages },
-      (_, i) => i + 1
-    );
-
-    this.setPurchasePage(this.purchaseCurrentPage);
-  }
-
-  setPurchasePage(page: number): void {
-
-    if (page < 1 || page > this.purchaseTotalPages) return;
-
-    this.purchaseCurrentPage = page;
-
-    const start = (page - 1) * this.purchaseItemsPerPage;
-    const end = start + this.purchaseItemsPerPage;
-
-    this.paginatedPurchaseOrders =
-      this.purchaseOrders.slice(start, end);
-  }
-
-  changePurchasePage(page: number): void {
-    this.setPurchasePage(page);
+    this.loadPurchaseOrders();
   }
 
   /* ================= FACTORY ================= */
-
-  createEmptyMedicine(): Medicine {
-    return {
-      name: '',
-      generic: '',
-      manufacturer: '',
-      hsn: '',
-      batch: '',
-      expiry: '',
-      mrp: 0,
-      sellingPrice: 0,
-      gst: 0,
-      stock: 0
-    };
-  }
 
   createEmptyItem(): PurchaseItem {
     return {
       medicine: '',
       hsn: '',
       batch: '',
+      expiry: '',
       qty: 0,
       price: 0,
       gst: 0,
       total: 0
     };
-  }
-
-  /* ================= MEDICINE ================= */
-
-  openForm(): void {
-    this.resetForm();
-    this.showForm = true;
-  }
-saveMedicine(): void {
-
-  if (!this.medicine.name.trim()) {
-    alert("Medicine name is required");
-    return;
-  }
-
-  const data = { ...this.medicine };
-
-  if (this.editIndex === null) {
-
-    this.medicineService.addMedicine(data); // ✅ NO subscribe
-
-  } else {
-
-    this.medicineService.updateMedicine(this.editIndex, data);
-
-  }
-
-  this.resetForm();
-}
-
-  editMedicine(index: number): void {
-
-    const med = this.paginatedMedicines[index];
-    const originalIndex = this.medicines.indexOf(med);
-
-    this.editIndex = originalIndex;
-    this.medicine = { ...med };
-    this.showForm = true;
-  }
-
- deleteMedicine(index: number): void {
-
-  const med = this.paginatedMedicines[index];
-  const originalIndex = this.medicines.indexOf(med);
-
-  if (confirm(`Delete ${med.name}?`)) {
-
-    this.medicineService.deleteMedicine(originalIndex);
-
-  }
-}
-
-  resetForm(): void {
-    this.medicine = this.createEmptyMedicine();
-    this.editIndex = null;
-    this.showForm = false;
   }
 
   /* ================= PURCHASE ================= */
@@ -284,11 +127,9 @@ saveMedicine(): void {
     }
 
     const gstAmount = (this.item.price * this.item.gst) / 100;
-
     const total = (this.item.price + gstAmount) * this.item.qty;
 
     this.purchaseItems.push({ ...this.item, total });
-
     this.item = this.createEmptyItem();
   }
 
@@ -303,8 +144,7 @@ saveMedicine(): void {
       return;
     }
 
-    const totalAmount = this.purchaseItems
-      .reduce((sum, i) => sum + i.total, 0);
+    const totalAmount = this.purchaseItems.reduce((sum, i) => sum + i.total, 0);
 
     const order: PurchaseOrder = {
       ...this.purchase,
@@ -313,8 +153,43 @@ saveMedicine(): void {
       billFile: this.uploadedBill || undefined
     };
 
-    this.purchaseOrders.push(order);
+    this.purchaseItems.forEach(item => {
 
+      const index = this.medicines.findIndex(m =>
+        m.name.toLowerCase() === item.medicine.toLowerCase() &&
+        m.batch === item.batch
+      );
+
+      if (index !== -1) {
+
+        const existing = this.medicines[index];
+
+        existing.stock += item.qty;
+        existing.hsn = item.hsn;
+        existing.gst = item.gst;
+        existing.sellingPrice = item.price;
+        existing.expiry = item.expiry;
+
+        this.medicineService.updateMedicine(index, existing);
+
+      } else {
+
+        const newMed: Medicine = {
+          name: item.medicine,
+          hsn: item.hsn,
+          batch: item.batch,
+          expiry: item.expiry,
+          mrp: item.price,
+          sellingPrice: item.price,
+          gst: item.gst,
+          stock: item.qty
+        };
+
+        this.medicineService.addMedicine(newMed);
+      }
+    });
+
+    this.purchaseOrders.push(order);
     this.savePurchaseOrders();
     this.resetPurchaseForm();
     this.updatePurchasePagination();
@@ -326,68 +201,42 @@ saveMedicine(): void {
     this.uploadedBill = null;
     this.showPurchaseForm = false;
   }
-  /* ================= PURCHASE EDIT ================= */
 
-editPurchase(index: number): void {
+  /* ================= STORAGE ================= */
 
-  const order = this.purchaseOrders[index];
-
-  this.purchase = {
-    supplier: order.supplier,
-    invoice: order.invoice,
-    date: order.date
-  };
-
-  this.purchaseItems = [...order.items];
-
-  this.editPurchaseIndex = index;
-
-  this.showPurchaseForm = true;
-}
-
-
-/* ================= PURCHASE DELETE ================= */
-
-deletePurchase(index: number): void {
-
-  if (!confirm("Delete this purchase order?")) return;
-
-  this.purchaseOrders.splice(index, 1);
-
-  this.savePurchaseOrders();
-
-  this.updatePurchasePagination();
-}
-
-  /* ================= FILE ================= */
-
-  uploadBill(event: any): void {
-
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      this.uploadedBill = reader.result as string;
-    };
-
-    reader.readAsDataURL(file);
+  loadPurchaseOrders(): void {
+    this.purchaseOrders = JSON.parse(localStorage.getItem('purchaseOrders') || '[]');
+    this.updatePurchasePagination();
   }
 
-  viewBill(order: PurchaseOrder): void {
-    if (!order.billFile) return;
-    window.open(order.billFile, '_blank');
+  savePurchaseOrders(): void {
+    localStorage.setItem('purchaseOrders', JSON.stringify(this.purchaseOrders));
   }
 
-  downloadBill(order: PurchaseOrder): void {
+  /* ================= PAGINATION ================= */
 
-    if (!order.billFile) return;
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredMedicines.length / this.itemsPerPage);
+    this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    this.setPage(1);
+  }
 
-    const link = document.createElement('a');
-    link.href = order.billFile;
-    link.download = 'purchase-bill';
-    link.click();
+  setPage(page: number): void {
+    this.currentPage = page;
+    const start = (page - 1) * this.itemsPerPage;
+    this.paginatedMedicines = this.filteredMedicines.slice(start, start + this.itemsPerPage);
+  }
+
+  updatePurchasePagination(): void {
+    this.purchaseTotalPages = Math.ceil(this.purchaseOrders.length / this.purchaseItemsPerPage);
+    this.purchasePages = Array.from({ length: this.purchaseTotalPages }, (_, i) => i + 1);
+    this.setPurchasePage(1);
+  }
+
+  setPurchasePage(page: number): void {
+    this.purchaseCurrentPage = page;
+    const start = (page - 1) * this.purchaseItemsPerPage;
+    this.paginatedPurchaseOrders = this.purchaseOrders.slice(start, start + this.purchaseItemsPerPage);
   }
 
   /* ================= SEARCH ================= */
@@ -397,18 +246,12 @@ deletePurchase(index: number): void {
   }
 
   applyFilter(): void {
-
     const text = this.searchText.toLowerCase();
 
-    this.filteredMedicines = !text
-      ? [...this.medicines]
-      : this.medicines.filter(m =>
-          m.name.toLowerCase().includes(text) ||
-          m.generic.toLowerCase().includes(text) ||
-          m.manufacturer.toLowerCase().includes(text)
-        );
+    this.filteredMedicines = this.medicines.filter(m =>
+      m.name.toLowerCase().includes(text)
+    );
 
-    this.currentPage = 1;
     this.updatePagination();
   }
 
@@ -419,18 +262,90 @@ deletePurchase(index: number): void {
   }
 
   isExpiringSoon(date: string): boolean {
-
     if (!date) return false;
-
-    const diff =
-      new Date(date).getTime() - new Date().getTime();
-
+    const diff = new Date(date).getTime() - Date.now();
     const days = diff / (1000 * 3600 * 24);
-
     return days > 0 && days <= 30;
   }
 
-  trackByIndex(index: number): number {
-    return index;
+  /* ================= AUTH MODAL ================= */
+
+  openAuthModal(action: string, index: number): void {
+
+    const user = this.auth.getUser();
+
+    if (!user || user.role !== 'admin') {
+      alert("Only admin allowed!");
+      return;
+    }
+
+    this.authAction = action;
+    this.selectedIndex = index;
+    this.adminPasswordInput = '';
+    this.showAuthModal = true;
+  }
+
+  verifyAdmin(): void {
+
+    if(!this.auth.verifyActionPassword(this.adminPasswordInput)){
+  alert("Wrong system password!");
+  return;
+}
+
+    switch (this.authAction) {
+
+      case 'deletePurchase':
+        this.purchaseOrders.splice(this.selectedIndex!, 1);
+        this.savePurchaseOrders();
+        this.updatePurchasePagination();
+        break;
+
+      case 'deleteMedicine':
+        const med = this.paginatedMedicines[this.selectedIndex!];
+        const originalIndex = this.medicines.indexOf(med);
+        this.medicineService.deleteMedicine(originalIndex);
+        break;
+
+      case 'editPurchase':
+        const order = this.purchaseOrders[this.selectedIndex!];
+        this.purchase = { supplier: order.supplier, invoice: order.invoice, date: order.date };
+        this.purchaseItems = [...order.items];
+        this.showPurchaseForm = true;
+        break;
+
+      case 'editMedicine':
+        const m = this.paginatedMedicines[this.selectedIndex!];
+        this.item = {
+          medicine: m.name,
+          hsn: m.hsn,
+          batch: m.batch,
+          expiry: m.expiry,
+          qty: 1,
+          price: m.sellingPrice,
+          gst: m.gst,
+          total: 0
+        };
+        this.showPurchaseForm = true;
+        break;
+    }
+
+    this.closeAuthModal();
+  }
+
+  closeAuthModal(): void {
+    this.showAuthModal = false;
+  }
+
+  /* ================= FILE ================= */
+
+  uploadBill(event: any): void {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.uploadedBill = reader.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 }

@@ -1,0 +1,165 @@
+<!-- ================= HEADER ================= -->
+
+<div class="profile-header">
+  <h2 class="page-title">Profile</h2>
+  <button class="close-btn" (click)="goBack()">✖</button>
+</div>
+
+
+<div class="profile-container">
+
+  <!-- =========================================
+  PROFILE CARD
+  ========================================= -->
+
+  <div class="profile-card">
+
+    <h2>My Profile</h2>
+
+    <!-- PHOTO SECTION -->
+    <div class="photo-section">
+
+      <div class="photo-wrapper">
+
+        <img *ngIf="profile.photo; else avatar"
+             [src]="profile.photo"
+             class="profile-img">
+
+        <!-- AVATAR FALLBACK -->
+        <ng-template #avatar>
+          <div class="avatar">
+            {{ profile.username?.charAt(0) || 'U' }}
+          </div>
+        </ng-template>
+
+        <!-- UPLOAD (EDIT MODE ONLY) -->
+        <label class="upload-icon" *ngIf="isEditMode">
+          📷
+          <input type="file" (change)="onPhotoChange($event)" hidden>
+        </label>
+
+      </div>
+
+    </div>
+
+
+    <!-- FORM GRID -->
+    <div class="form-grid">
+
+      <div>
+        <label>Username</label>
+        <input [(ngModel)]="profile.username" disabled>
+      </div>
+
+      <div>
+        <label>Age</label>
+        <input type="number"
+               [(ngModel)]="profile.age"
+               [disabled]="!isEditMode">
+      </div>
+
+      <div>
+        <label>Phone</label>
+        <input type="text"
+               [(ngModel)]="profile.phone"
+               [disabled]="!isEditMode">
+      </div>
+
+      <div>
+        <label>Email</label>
+        <input type="email"
+               [(ngModel)]="profile.email"
+               [disabled]="!isEditMode">
+      </div>
+
+    </div>
+
+
+    <!-- ACTION BUTTONS -->
+
+    <div class="action-buttons">
+
+      <!-- VIEW MODE -->
+      <button *ngIf="!isEditMode"
+              class="btn-primary"
+              (click)="enableEdit()">
+        ✏️ Edit Profile
+      </button>
+
+      <!-- EDIT MODE -->
+      <div *ngIf="isEditMode" class="edit-actions">
+
+        <button class="btn-save" (click)="saveProfile()">
+          ✅ Save
+        </button>
+
+        <button class="btn-cancel" (click)="cancelEdit()">
+          ❌ Cancel
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================
+  SECURITY CARD
+  ========================================= -->
+
+  <div class="profile-card">
+
+    <h2>Security Settings</h2>
+
+    <!-- ADMIN VERIFICATION -->
+
+    <div *ngIf="!isVerified">
+
+      <label>Admin Password</label>
+
+      <input type="password"
+             [(ngModel)]="adminPassword"
+             placeholder="Enter admin password">
+
+      <button class="btn-primary" (click)="verifyAdmin()">
+        🔐 Verify Admin
+      </button>
+
+    </div>
+
+
+    <!-- SYSTEM PASSWORD SECTION -->
+
+    <div *ngIf="isVerified">
+
+      <label>System Password</label>
+
+      <input type="password"
+             [(ngModel)]="systemPassword"
+             (input)="checkStrength()"
+             placeholder="Create system password">
+
+      <label>Confirm Password</label>
+
+      <input type="password"
+             [(ngModel)]="confirmPassword"
+             placeholder="Re-enter password">
+
+      <!-- PASSWORD STRENGTH -->
+
+      <div class="strength" [ngClass]="strengthClass">
+        {{ passwordStrength }}
+      </div>
+
+      <!-- SAVE BUTTON -->
+
+      <button class="btn-save" (click)="saveSystemPassword()">
+        🔒 Save System Password
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

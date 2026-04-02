@@ -1,71 +1,186 @@
 <div class="login-page">
 
-  <!-- ❄️ BACKGROUND SNOW (CANVAS ONLY - CLEAN) -->
+  <!-- ❄️ BACKGROUND -->
   <div class="snow-wrapper">
     <canvas id="snowCanvas"></canvas>
   </div>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN -->
   <div class="login-container">
 
     <div class="login-card">
 
       <!-- HEADER -->
       <div class="login-header text-center">
-        <h2>MAK Pharma</h2>
+        <h2 class="page-title">MAK Pharma</h2>
         <p>Billing Management System</p>
       </div>
 
       <!-- FORM -->
-      <form (ngSubmit)="login()">
+      <form (ngSubmit)="login()" autocomplete="off">
 
         <!-- USERNAME -->
         <div class="form-group">
           <label>Username</label>
-
-          <input
-            type="text"
-            class="form-control"
-            placeholder="Enter username"
-            [(ngModel)]="username"
-            name="username"
-            required
-          />
+          <div class="input-box">
+            <span class="icon">👤</span>
+            <input
+              type="text"
+              [(ngModel)]="username"
+              name="username"
+              placeholder="Enter username"
+              required
+            />
+          </div>
         </div>
 
         <!-- PASSWORD -->
         <div class="form-group mt-3">
           <label>Password</label>
-
-          <input
-            type="password"
-            class="form-control"
-            placeholder="Enter password"
-            [(ngModel)]="password"
-            name="password"
-            required
-          />
+          <div class="input-box">
+            <span class="icon">🔒</span>
+            <input
+              type="password"
+              [(ngModel)]="password"
+              name="password"
+              placeholder="Enter password"
+              required
+            />
+          </div>
         </div>
 
         <!-- ERROR -->
-        <div class="text-danger mt-2" *ngIf="error">
-          {{ error }}
+        <div class="error" *ngIf="error">
+          ⚠️ {{ error }}
         </div>
 
-        <!-- FORGOT -->
+        <!-- FOOTER -->
         <div class="form-footer">
-          <a class="forgot">Forgot Password?</a>
+          <a class="forgot" (click)="openForgot()">Forgot Password?</a>
         </div>
 
         <!-- BUTTON -->
         <button
           class="login-btn"
           type="submit"
+          [disabled]="loading"
         >
-          {{ loading ? 'Logging in...' : 'Login' }}
+          <span *ngIf="!loading">🚀 Login</span>
+          <span *ngIf="loading">⏳ Logging in...</span>
         </button>
 
       </form>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- 🔥 FORGOT PASSWORD MODAL -->
+
+<div class="forgot-overlay" *ngIf="showForgot">
+
+  <div class="forgot-card">
+
+    <!-- HEADER -->
+    <div class="modal-header">
+      <h3>🔐 Reset Password</h3>
+      <button class="close-btn" (click)="closeForgot()">✖</button>
+    </div>
+
+    <!-- STEP INDICATOR -->
+    <div class="step-indicator">
+      <span [class.active]="step >= 1">1</span>
+      <span [class.active]="step >= 2">2</span>
+      <span [class.active]="step >= 3">3</span>
+    </div>
+
+    <!-- STEP 1: EMAIL -->
+    <div *ngIf="step === 1" class="step-box">
+
+      <p class="step-title">Enter your registered email</p>
+
+      <div class="input-box">
+        <span class="icon">📧</span>
+        <input
+          type="email"
+          [(ngModel)]="email"
+          placeholder="Enter your email"
+        />
+      </div>
+
+      <button
+        class="primary-btn"
+        (click)="sendOtp()"
+        [disabled]="otpLoading"
+      >
+        {{ otpLoading ? 'Sending OTP...' : 'Send OTP' }}
+      </button>
+
+    </div>
+
+    <!-- STEP 2: OTP -->
+    <div *ngIf="step === 2" class="step-box">
+
+      <p class="step-title">Enter OTP sent to your email</p>
+
+      <div class="input-box">
+        <span class="icon">🔑</span>
+        <input
+          type="text"
+          maxlength="6"
+          [(ngModel)]="otp"
+          placeholder="Enter 6-digit OTP"
+        />
+      </div>
+
+      <button
+        class="primary-btn"
+        (click)="verifyOtp()"
+        [disabled]="verifyLoading"
+      >
+        {{ verifyLoading ? 'Verifying...' : 'Verify OTP' }}
+      </button>
+
+      <!-- TIMER -->
+      <p class="timer" *ngIf="!canResend">
+        ⏳ Resend in {{ timer }}s
+      </p>
+
+      <!-- RESEND -->
+      <button
+        class="link-btn"
+        *ngIf="canResend"
+        (click)="resendOtp()"
+      >
+        🔁 Resend OTP
+      </button>
+
+    </div>
+
+    <!-- STEP 3: NEW PASSWORD -->
+    <div *ngIf="step === 3" class="step-box">
+
+      <p class="step-title">Create a new password</p>
+
+      <div class="input-box">
+        <span class="icon">🔒</span>
+        <input
+          type="password"
+          [(ngModel)]="newPassword"
+          placeholder="Enter new password"
+        />
+      </div>
+
+      <button
+        class="primary-btn success"
+        (click)="resetPassword()"
+        [disabled]="resetLoading"
+      >
+        {{ resetLoading ? 'Updating...' : 'Reset Password' }}
+      </button>
 
     </div>
 

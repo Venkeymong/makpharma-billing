@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MedicineService {
 
-  private baseUrl = 'http://localhost:5000/api/medicines';
+  private baseUrl = 'https://makpharma-billing-final.onrender.com/api/medicines';
 
   private medicinesSubject = new BehaviorSubject<any[]>([]);
   medicines$ = this.medicinesSubject.asObservable();
@@ -16,14 +16,26 @@ export class MedicineService {
     this.loadMedicines();
   }
 
+  /* ================= HELPER (TOKEN) ================= */
+
+  private getHeaders() {
+    const token = localStorage.getItem('token');
+
+    return {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      })
+    };
+  }
+
   /* ================= LOAD FROM BACKEND ================= */
 
   loadMedicines() {
-    this.http.get<any[]>(this.baseUrl).subscribe({
+    this.http.get<any[]>(this.baseUrl, this.getHeaders()).subscribe({
       next: (data) => {
         this.medicinesSubject.next(data);
       },
-      error: (err) => console.error(err)
+      error: (err) => console.error('Load Medicines Error:', err)
     });
   }
 
@@ -42,8 +54,11 @@ export class MedicineService {
   /* ================= ADD ================= */
 
   addMedicine(med: any) {
-    this.http.post(this.baseUrl + '/add', med).subscribe(() => {
-      this.loadMedicines(); // refresh
+    this.http.post(this.baseUrl + '/add', med, this.getHeaders()).subscribe({
+      next: () => {
+        this.loadMedicines();
+      },
+      error: (err) => console.error('Add Medicine Error:', err)
     });
   }
 
@@ -55,8 +70,11 @@ export class MedicineService {
 
     if (!id) return;
 
-    this.http.put(`${this.baseUrl}/${id}`, med).subscribe(() => {
-      this.loadMedicines();
+    this.http.put(`${this.baseUrl}/${id}`, med, this.getHeaders()).subscribe({
+      next: () => {
+        this.loadMedicines();
+      },
+      error: (err) => console.error('Update Medicine Error:', err)
     });
   }
 
@@ -68,30 +86,31 @@ export class MedicineService {
 
     if (!id) return;
 
-    this.http.delete(`${this.baseUrl}/${id}`).subscribe(() => {
-      this.loadMedicines();
+    this.http.delete(`${this.baseUrl}/${id}`, this.getHeaders()).subscribe({
+      next: () => {
+        this.loadMedicines();
+      },
+      error: (err) => console.error('Delete Medicine Error:', err)
     });
   }
 
   /* ================= STOCK ================= */
 
- reduceStock(name: string, qty: number) {
+  reduceStock(name: string, qty: number) {
 
-  const medicines = this.medicinesSubject.value;
+    const medicines = this.medicinesSubject.value;
 
-  const updated = medicines.map(med => {
-    if (med.name === name) {
+    const updated = medicines.map(med => {
+      if (med.name === name) {
+        return {
+          ...med,
+          stock: med.stock - qty
+        };
+      }
+      return med;
+    });
 
-      return {
-        ...med,
-        stock: med.stock - qty   // ✅ ONLY reduce sold qty
-      };
-
-    }
-    return med;
-  });
-
-  this.medicinesSubject.next(updated);
-}
+    this.medicinesSubject.next(updated);
+  }
 
 }

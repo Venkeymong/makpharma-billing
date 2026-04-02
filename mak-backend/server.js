@@ -4,15 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 
-// Routes
-const medicineRoutes = require("./routes/medicineRoutes");
-const purchaseRoutes = require("./routes/purchaseRoutes");
-const billRoutes = require("./routes/billRoutes");
-const customerRoutes = require("./routes/customerRoutes");
-const dashboardRoutes = require("./routes/dashboardRoutes");
-const reportRoutes = require("./routes/reportRoutes");
-const authRoutes = require("./routes/authRoutes");
-
+/* ================= CREATE APP ================= */
 const app = express();
 
 /* ======================================================
@@ -24,20 +16,41 @@ connectDB();
    ⚙️ MIDDLEWARE
 ====================================================== */
 
-// 🔥 CACHE CONTROL (VERY IMPORTANT FIX)
-app.use((req, res, next) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-  next();
-});
-
-// CORS (allow frontend)
+// ✅ CORS
 app.use(cors({
-  origin: "*", // later change to your Angular URL
+  origin: "*",
   credentials: true
 }));
 
-// JSON parser
+// ✅ JSON parser
 app.use(express.json());
+
+// ✅ CACHE CONTROL (important)
+app.use((req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
+
+/* ======================================================
+   🔥 DEBUG ROUTES (VERY IMPORTANT)
+====================================================== */
+
+// 👉 ROOT TEST
+app.get("/test", (req, res) => {
+  res.send("🔥 SERVER WORKING");
+});
+
+/* ======================================================
+   📦 ROUTES IMPORT (AFTER APP INIT)
+====================================================== */
+
+const medicineRoutes = require("./routes/medicineRoutes");
+const purchaseRoutes = require("./routes/purchaseRoutes");
+const billRoutes = require("./routes/billRoutes");
+const customerRoutes = require("./routes/customerRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
+const reportRoutes = require("./routes/reportRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 /* ======================================================
    📌 ROUTES
@@ -57,13 +70,18 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/auth", authRoutes);
 
+// 👉 AUTH DEBUG
+app.get("/api/auth/check", (req, res) => {
+  res.send("🔥 AUTH ROUTE WORKING");
+});
+
 /* ======================================================
-   ❌ ERROR HANDLER (GLOBAL)
+   ❌ ERROR HANDLER
 ====================================================== */
 app.use((err, req, res, next) => {
-  console.error("🔥 Error:", err.stack);
+  console.error("🔥 ERROR:", err.stack);
   res.status(500).json({
-    message: "Something went wrong",
+    message: "Internal Server Error",
     error: err.message
   });
 });
@@ -75,5 +93,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });

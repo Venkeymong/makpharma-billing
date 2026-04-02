@@ -53,6 +53,12 @@ import('./features/invoices/invoice-list/invoice-list')
 },
 
 {
+  path: 'profile',
+  loadComponent: () =>
+    import('./features/profile/profile/profile').then(m => m.Profile)
+},
+
+{
 path:'reports',
 loadComponent: () =>
 import('./features/reports/reports/reports')

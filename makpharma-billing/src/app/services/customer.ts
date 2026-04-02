@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CustomerService {
 
-  private baseUrl = 'http://localhost:5000/api/customers';
+  private baseUrl = 'https://makpharma-billing-final.onrender.com/api/customers';
 
   private customersSubject = new BehaviorSubject<any[]>([]);
   customers$ = this.customersSubject.asObservable();
@@ -16,11 +16,28 @@ export class CustomerService {
     this.loadCustomers();
   }
 
+  /* ================= HELPER (TOKEN) ================= */
+
+  private getHeaders() {
+    const token = localStorage.getItem('token');
+
+    return {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      })
+    };
+  }
+
   /* ================= LOAD ================= */
 
   loadCustomers() {
-    this.http.get<any[]>(this.baseUrl).subscribe(data => {
-      this.customersSubject.next(data);
+    this.http.get<any[]>(this.baseUrl, this.getHeaders()).subscribe({
+      next: (data) => {
+        this.customersSubject.next(data);
+      },
+      error: (err) => {
+        console.error('Load Customers Error:', err);
+      }
     });
   }
 
@@ -33,8 +50,13 @@ export class CustomerService {
   /* ================= ADD ================= */
 
   addCustomer(customer: any) {
-    this.http.post(this.baseUrl + '/add', customer).subscribe(() => {
-      this.loadCustomers();
+    this.http.post(this.baseUrl + '/add', customer, this.getHeaders()).subscribe({
+      next: () => {
+        this.loadCustomers();
+      },
+      error: (err) => {
+        console.error('Add Customer Error:', err);
+      }
     });
   }
 
@@ -46,8 +68,13 @@ export class CustomerService {
 
     if (!id) return;
 
-    this.http.put(`${this.baseUrl}/${id}`, customer).subscribe(() => {
-      this.loadCustomers();
+    this.http.put(`${this.baseUrl}/${id}`, customer, this.getHeaders()).subscribe({
+      next: () => {
+        this.loadCustomers();
+      },
+      error: (err) => {
+        console.error('Update Error:', err);
+      }
     });
   }
 
@@ -59,8 +86,13 @@ export class CustomerService {
 
     if (!id) return;
 
-    this.http.delete(`${this.baseUrl}/${id}`).subscribe(() => {
-      this.loadCustomers();
+    this.http.delete(`${this.baseUrl}/${id}`, this.getHeaders()).subscribe({
+      next: () => {
+        this.loadCustomers();
+      },
+      error: (err) => {
+        console.error('Delete Error:', err);
+      }
     });
   }
 

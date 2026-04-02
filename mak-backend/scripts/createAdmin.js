@@ -12,7 +12,8 @@ async function createUsers() {
 
     const users = [
       { username: "ArunKumar", password: "Arun1552" },
-      { username: "Venkatesh", password: "kalaiV@999" }
+      { username: "Venkatesh", password: "kalaiV@999" },
+      { username: "Dharanesh", password: "raja@123"}
     ];
 
     for (const u of users) {

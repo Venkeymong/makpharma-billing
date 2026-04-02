@@ -1,9 +1,11 @@
 <div class="navbar">
 
+  <!-- ================= LEFT ================= -->
+
   <div class="navbar-left">
 
     <button class="menu-toggle" (click)="toggleSidebar()">
-      <span class="menu-icon">☰</span>
+      ☰
     </button>
 
     <div class="title">
@@ -12,18 +14,55 @@
 
   </div>
 
+  <!-- ================= RIGHT ================= -->
+
   <div class="navbar-right">
 
+    <!-- 🔔 NOTIFICATION -->
     <div class="notification">
       <i class="bi bi-bell"></i>
       <span class="notification-dot"></span>
     </div>
 
-    <div class="user-box">
-      <i class="bi bi-person-circle"></i>
-      <span>{{ user?.username || 'admin' }}</span>
+    <!-- 👤 USER PROFILE -->
+   <div class="user-box" (click)="goToProfile()">
+  <i class="bi bi-person-circle"></i>
+  <span>{{ user?.username || 'Admin' }}</span>
+</div>
+
+    <!-- 🔽 PROFILE POPUP -->
+    <div *ngIf="showProfilePopup" class="profile-popup">
+
+      <h4>👤 Profile</h4>
+
+      <!-- Name -->
+      <input [(ngModel)]="profile.name" placeholder="Name">
+
+      <!-- Email -->
+      <input [(ngModel)]="profile.email" placeholder="Email">
+
+      <!-- Username -->
+      <input [(ngModel)]="profile.username" placeholder="Username">
+
+      <!-- Action Password -->
+      <input type="password"
+             [(ngModel)]="profile.actionPassword"
+             placeholder="Action Password">
+
+      <!-- Verify Password -->
+      <input type="password"
+             [(ngModel)]="verifyPassword"
+             placeholder="Enter login password">
+
+      <!-- BUTTONS -->
+      <div class="popup-actions">
+        <button class="save-btn" (click)="saveProfile()">Save</button>
+        <button class="cancel-btn" (click)="showProfilePopup=false">Close</button>
+      </div>
+
     </div>
 
+    <!-- 🔓 LOGOUT -->
     <button class="logout-btn" (click)="logout()">
       Logout
     </button>

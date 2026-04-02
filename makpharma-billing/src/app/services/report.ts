@@ -1,14 +1,28 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ReportService {
 
-  private baseUrl = 'http://localhost:5000/api/reports';
+  private baseUrl = 'https://makpharma-billing-final.onrender.com/api/reports';
 
   constructor(private http: HttpClient) {}
+
+  /* ================= HELPER (TOKEN) ================= */
+
+  private getHeaders() {
+    const token = localStorage.getItem('token');
+
+    return {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      })
+    };
+  }
+
+  /* ================= GET REPORT ================= */
 
   getReport(type: string, startDate?: string, endDate?: string) {
 
@@ -18,7 +32,7 @@ export class ReportService {
       url += `&startDate=${startDate}&endDate=${endDate}`;
     }
 
-    return this.http.get<any>(url);
+    return this.http.get<any>(url, this.getHeaders());
   }
 
 }

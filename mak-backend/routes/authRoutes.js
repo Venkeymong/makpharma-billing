@@ -1,3 +1,4 @@
+
 const express = require("express");
 const router = express.Router();
 
@@ -16,20 +17,38 @@ router.post("/login", login);
 
 
 /* ======================================================
+   🧪 DEBUG ROUTE (IMPORTANT FOR TESTING)
+====================================================== */
+
+router.get("/check", (req, res) => {
+  res.send("🔥 BACKEND UPDATED & WORKING");
+});
+
+
+/* ======================================================
    👤 PROFILE
 ====================================================== */
 
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     res.json(user);
-  } catch {
+
+  } catch (err) {
+    console.error("PROFILE FETCH ERROR:", err);
     res.status(500).json({ message: "Failed to fetch profile" });
   }
 });
 
+
 router.put("/profile", authMiddleware, async (req, res) => {
   try {
+
     const updated = await User.findByIdAndUpdate(
       req.user.id,
       req.body,
@@ -37,7 +56,9 @@ router.put("/profile", authMiddleware, async (req, res) => {
     ).select("-password");
 
     res.json(updated);
-  } catch {
+
+  } catch (err) {
+    console.error("PROFILE UPDATE ERROR:", err);
     res.status(500).json({ message: "Failed to update profile" });
   }
 });
@@ -51,7 +72,13 @@ router.put("/profile", authMiddleware, async (req, res) => {
 router.post("/send-otp", async (req, res) => {
   try {
 
+    console.log("🔥 SEND OTP API HIT");
+
     const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
 
     const user = await User.findOne({ email });
 
@@ -71,7 +98,7 @@ router.post("/send-otp", async (req, res) => {
     res.json({ message: "OTP sent successfully" });
 
   } catch (err) {
-    console.error("SEND OTP ERROR:", err);
+    console.error("❌ SEND OTP ERROR:", err);
     res.status(500).json({ message: "Failed to send OTP" });
   }
 });
@@ -83,6 +110,10 @@ router.post("/verify-otp", async (req, res) => {
 
     const { email, otp } = req.body;
 
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP required" });
+    }
+
     const user = await User.findOne({ email });
 
     if (!user || user.resetOtp != otp) {
@@ -93,28 +124,35 @@ router.post("/verify-otp", async (req, res) => {
       return res.status(400).json({ message: "OTP expired" });
     }
 
-    res.json({ success: true });
+    res.json({ message: "OTP verified", success: true });
 
   } catch (err) {
-    console.error("VERIFY OTP ERROR:", err);
+    console.error("❌ VERIFY OTP ERROR:", err);
     res.status(500).json({ message: "Verification failed" });
   }
 });
 
 
-// 🔹 RESET PASSWORD (bcrypt 🔐)
+// 🔹 RESET PASSWORD
 router.post("/reset-password", async (req, res) => {
   try {
 
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email & password required" });
+    }
+
     const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     user.password = hashedPassword;
-
     user.resetOtp = null;
     user.otpExpiry = null;
 
@@ -123,7 +161,7 @@ router.post("/reset-password", async (req, res) => {
     res.json({ message: "Password reset successful" });
 
   } catch (err) {
-    console.error("RESET PASSWORD ERROR:", err);
+    console.error("❌ RESET PASSWORD ERROR:", err);
     res.status(500).json({ message: "Failed to reset password" });
   }
 });
@@ -135,10 +173,15 @@ router.post("/reset-password", async (req, res) => {
 
 router.get("/test-email", async (req, res) => {
   try {
+
+    console.log("🔥 TEST EMAIL HIT");
+
     await sendOTPEmail("venkeymong444@gmail.com", 123456);
+
     res.json({ message: "Test email sent successfully!" });
+
   } catch (err) {
-    console.error("MAIL ERROR:", err);
+    console.error("❌ MAIL ERROR:", err);
     res.status(500).json({ message: "Failed to send email" });
   }
 });

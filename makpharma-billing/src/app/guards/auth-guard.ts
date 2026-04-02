@@ -1,5 +1,10 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import {
+  CanActivateFn,
+  Router,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot
+} from '@angular/router';
 import { AuthService } from '../services/auth';
 
 export const authGuard: CanActivateFn = (
@@ -12,17 +17,22 @@ export const authGuard: CanActivateFn = (
 
   try {
 
-    /* ================= CHECK TOKEN ================= */
+    /* ================= GET DATA ================= */
 
-    const isLoggedIn = auth.isLoggedIn();
+    const token = localStorage.getItem('token');
     const user = auth.getUser();
 
-    if (!isLoggedIn || !user) {
+    /* ================= BASIC AUTH CHECK ================= */
 
-      // ✅ Save attempted URL (for redirect after login)
+    if (!token || !auth.isLoggedIn() || !user) {
+
+      // Save attempted URL for redirect after login
       localStorage.setItem('redirectUrl', state.url);
 
-      router.navigate(['/login']);
+      // Clear everything (important for back button issue)
+      auth.logout();
+
+      router.navigate(['/login'], { replaceUrl: true });
       return false;
     }
 
@@ -36,21 +46,21 @@ export const authGuard: CanActivateFn = (
 
         console.warn('Access Denied: Role mismatch');
 
-        // ✅ Redirect safely
-        router.navigate(['/dashboard']);
+        router.navigate(['/dashboard'], { replaceUrl: true });
         return false;
       }
     }
 
-    /* ================= TOKEN VALIDATION (BASIC) ================= */
+    /* ================= OPTIONAL: TOKEN EXPIRY CHECK ================= */
 
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      auth.logout();
-      router.navigate(['/login']);
-      return false;
-    }
+    // If you store expiry in future, you can validate here
+    // Example:
+    // const expiry = localStorage.getItem('tokenExpiry');
+    // if (expiry && Date.now() > Number(expiry)) {
+    //   auth.logout();
+    //   router.navigate(['/login'], { replaceUrl: true });
+    //   return false;
+    // }
 
     /* ================= SUCCESS ================= */
 
@@ -60,9 +70,9 @@ export const authGuard: CanActivateFn = (
 
     console.error('Auth Guard Error:', error);
 
-    // 🔐 Fail safe (security first)
+    // 🔐 Fail-safe (VERY IMPORTANT)
     auth.logout();
-    router.navigate(['/login']);
+    router.navigate(['/login'], { replaceUrl: true });
 
     return false;
   }
