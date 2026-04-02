@@ -1,4 +1,3 @@
-
 const express = require("express");
 const router = express.Router();
 
@@ -17,11 +16,17 @@ router.post("/login", login);
 
 
 /* ======================================================
-   🧪 DEBUG ROUTE (IMPORTANT FOR TESTING)
+   🧪 DEBUG ROUTES (VERY IMPORTANT)
 ====================================================== */
 
+// 👉 Check if auth routes are loaded
 router.get("/check", (req, res) => {
-  res.send("🔥 BACKEND UPDATED & WORKING");
+  res.send("🔥 AUTH ROUTE WORKING");
+});
+
+// 👉 Check POST route existence
+router.post("/ping", (req, res) => {
+  res.json({ message: "🔥 POST ROUTE WORKING" });
 });
 
 
@@ -40,7 +45,7 @@ router.get("/profile", authMiddleware, async (req, res) => {
     res.json(user);
 
   } catch (err) {
-    console.error("PROFILE FETCH ERROR:", err);
+    console.error("PROFILE ERROR:", err);
     res.status(500).json({ message: "Failed to fetch profile" });
   }
 });
@@ -65,19 +70,19 @@ router.put("/profile", authMiddleware, async (req, res) => {
 
 
 /* ======================================================
-   🔒 OTP SYSTEM 🔥
+   🔒 OTP SYSTEM
 ====================================================== */
 
 // 🔹 SEND OTP
 router.post("/send-otp", async (req, res) => {
   try {
 
-    console.log("🔥 SEND OTP API HIT");
+    console.log("🔥 SEND OTP HIT");
 
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ message: "Email is required" });
+      return res.status(400).json({ message: "Email required" });
     }
 
     const user = await User.findOne({ email });
@@ -108,11 +113,9 @@ router.post("/send-otp", async (req, res) => {
 router.post("/verify-otp", async (req, res) => {
   try {
 
-    const { email, otp } = req.body;
+    console.log("🔥 VERIFY OTP HIT");
 
-    if (!email || !otp) {
-      return res.status(400).json({ message: "Email and OTP required" });
-    }
+    const { email, otp } = req.body;
 
     const user = await User.findOne({ email });
 
@@ -137,11 +140,9 @@ router.post("/verify-otp", async (req, res) => {
 router.post("/reset-password", async (req, res) => {
   try {
 
-    const { email, password } = req.body;
+    console.log("🔥 RESET PASSWORD HIT");
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email & password required" });
-    }
+    const { email, password } = req.body;
 
     const user = await User.findOne({ email });
 
@@ -161,7 +162,7 @@ router.post("/reset-password", async (req, res) => {
     res.json({ message: "Password reset successful" });
 
   } catch (err) {
-    console.error("❌ RESET PASSWORD ERROR:", err);
+    console.error("❌ RESET ERROR:", err);
     res.status(500).json({ message: "Failed to reset password" });
   }
 });
