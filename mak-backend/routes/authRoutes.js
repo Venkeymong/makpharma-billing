@@ -7,28 +7,36 @@ const authMiddleware = require("../middleware/auth");
 const sendOTPEmail = require("../utils/mailer");
 const bcrypt = require("bcryptjs");
 
+console.log("✅ AUTH ROUTES FILE LOADED");
 
 /* ======================================================
    🔐 AUTH
 ====================================================== */
 
+// 🔹 LOGIN
 router.post("/login", login);
 
 
 /* ======================================================
-   🧪 DEBUG ROUTES (CRITICAL)
+   🧪 DEBUG ROUTES (VERY IMPORTANT)
 ====================================================== */
 
-// ✅ Check GET route
+// ✅ GET check (browser friendly)
 router.get("/check", (req, res) => {
   console.log("🔥 CHECK ROUTE HIT");
   res.send("🔥 AUTH ROUTE WORKING");
 });
 
-// ✅ Check POST route (important for debugging)
+// ✅ GET ping (browser test)
+router.get("/ping", (req, res) => {
+  console.log("🔥 PING GET HIT");
+  res.send("PING OK (GET)");
+});
+
+// ✅ POST ping (API test)
 router.post("/ping", (req, res) => {
-  console.log("🔥 PING ROUTE HIT");
-  res.json({ message: "PING OK" });
+  console.log("🔥 PING POST HIT");
+  res.json({ message: "PING OK (POST)" });
 });
 
 
@@ -36,6 +44,7 @@ router.post("/ping", (req, res) => {
    👤 PROFILE
 ====================================================== */
 
+// 🔹 GET PROFILE
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
     console.log("👤 PROFILE FETCH HIT");
@@ -54,7 +63,7 @@ router.get("/profile", authMiddleware, async (req, res) => {
   }
 });
 
-
+// 🔹 UPDATE PROFILE
 router.put("/profile", authMiddleware, async (req, res) => {
   try {
     console.log("👤 PROFILE UPDATE HIT");
@@ -78,10 +87,9 @@ router.put("/profile", authMiddleware, async (req, res) => {
    🔒 OTP SYSTEM
 ====================================================== */
 
-// 🔹 SEND OTP
+// 🔹 SEND OTP (POST)
 router.post("/send-otp", async (req, res) => {
   try {
-
     console.log("🔥 SEND OTP HIT");
     console.log("📩 Email:", req.body.email);
 
@@ -114,11 +122,15 @@ router.post("/send-otp", async (req, res) => {
   }
 });
 
+// 🔹 SEND OTP (GET fallback for testing in browser)
+router.get("/send-otp", async (req, res) => {
+  res.send("⚠️ Use POST method for /send-otp");
+});
+
 
 // 🔹 VERIFY OTP
 router.post("/verify-otp", async (req, res) => {
   try {
-
     console.log("🔥 VERIFY OTP HIT");
 
     const { email, otp } = req.body;
@@ -149,7 +161,6 @@ router.post("/verify-otp", async (req, res) => {
 // 🔹 RESET PASSWORD
 router.post("/reset-password", async (req, res) => {
   try {
-
     console.log("🔥 RESET PASSWORD HIT");
 
     const { email, password } = req.body;
@@ -188,7 +199,6 @@ router.post("/reset-password", async (req, res) => {
 
 router.get("/test-email", async (req, res) => {
   try {
-
     console.log("🔥 TEST EMAIL HIT");
 
     await sendOTPEmail("venkeymong444@gmail.com", 123456);
