@@ -16,32 +16,43 @@ connectDB();
    ⚙️ MIDDLEWARE
 ====================================================== */
 
-// ✅ CORS
-app.use(cors({
-  origin: "*",
-  credentials: true
-}));
+// ✅ CORS (SAFE FOR ANGULAR + NO ERRORS)
+app.use(cors());
+
+// ✅ HANDLE PREFLIGHT (NO * OR /* USED)
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // ✅ JSON parser
 app.use(express.json());
 
-// ✅ CACHE CONTROL (important)
+// ✅ CACHE CONTROL
 app.use((req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
 
 /* ======================================================
-   🔥 DEBUG ROUTES (VERY IMPORTANT)
+   🔥 DEBUG ROUTES
 ====================================================== */
 
-// 👉 ROOT TEST
 app.get("/test", (req, res) => {
   res.send("🔥 SERVER WORKING");
 });
 
+app.get("/", (req, res) => {
+  res.send("🚀 Pharmacy Backend API Running...");
+});
+
 /* ======================================================
-   📦 ROUTES IMPORT (AFTER APP INIT)
+   📦 ROUTES IMPORT
 ====================================================== */
 
 const medicineRoutes = require("./routes/medicineRoutes");
@@ -56,12 +67,6 @@ const authRoutes = require("./routes/authRoutes");
    📌 ROUTES
 ====================================================== */
 
-// Health check
-app.get("/", (req, res) => {
-  res.send("🚀 Pharmacy Backend API Running...");
-});
-
-// API routes
 app.use("/api/medicines", medicineRoutes);
 app.use("/api/purchases", purchaseRoutes);
 app.use("/api/bills", billRoutes);
@@ -76,8 +81,20 @@ app.get("/api/auth/check", (req, res) => {
 });
 
 /* ======================================================
+   ❌ 404 HANDLER
+====================================================== */
+
+app.use((req, res) => {
+  console.warn("❌ ROUTE NOT FOUND:", req.method, req.url);
+  res.status(404).json({
+    message: "Route not found"
+  });
+});
+
+/* ======================================================
    ❌ ERROR HANDLER
 ====================================================== */
+
 app.use((err, req, res, next) => {
   console.error("🔥 ERROR:", err.stack);
   res.status(500).json({
