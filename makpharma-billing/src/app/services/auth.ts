@@ -12,7 +12,7 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   /* ======================================================
-     🔐 HEADERS (TOKEN)
+     🔐 HEADERS
   ====================================================== */
 
   private getHeaders() {
@@ -20,7 +20,7 @@ export class AuthService {
 
     return {
       headers: new HttpHeaders({
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token || ''}`
       })
     };
   }
@@ -30,7 +30,6 @@ export class AuthService {
   ====================================================== */
 
   async login(username: string, password: string): Promise<boolean> {
-
     try {
 
       const res: any = await firstValueFrom(
@@ -40,14 +39,10 @@ export class AuthService {
         })
       );
 
-      if (!res || !res.token || !res.user) {
-        return false;
-      }
+      if (!res?.token || !res?.user) return false;
 
-      /* ===== STORE TOKEN ===== */
       localStorage.setItem('token', res.token);
 
-      /* ===== STORE USER ===== */
       const user = {
         ...res.user,
         actionPassword: res.user.actionPassword || ''
@@ -59,7 +54,7 @@ export class AuthService {
       return true;
 
     } catch (err) {
-      console.error('Login Error:', err);
+      console.error('❌ Login Error:', err);
       return false;
     }
   }
@@ -73,14 +68,12 @@ export class AuthService {
   }
 
   /* ======================================================
-     👤 USER MANAGEMENT (LOCAL CACHE)
+     👤 USER CACHE
   ====================================================== */
 
   getUser(): any {
-    const user = localStorage.getItem('user');
-
     try {
-      return user ? JSON.parse(user) : null;
+      return JSON.parse(localStorage.getItem('user') || 'null');
     } catch {
       return null;
     }
@@ -91,12 +84,11 @@ export class AuthService {
   }
 
   /* ======================================================
-     🔒 ACTION PASSWORD (LOCAL SECURITY)
+     🔒 ACTION PASSWORD
   ====================================================== */
 
   getActionPassword(): string {
-    const user = this.getUser();
-    return user?.actionPassword || '';
+    return this.getUser()?.actionPassword || '';
   }
 
   setActionPassword(password: string): void {
@@ -119,7 +111,7 @@ export class AuthService {
   }
 
   /* ======================================================
-     🌐 PROFILE (BACKEND)
+     🌐 PROFILE
   ====================================================== */
 
   getProfile() {
@@ -131,26 +123,47 @@ export class AuthService {
   }
 
   /* ======================================================
-     🔁 OTP PASSWORD RESET FLOW
+     🔁 OTP FLOW (FIXED)
   ====================================================== */
 
-  // 🔹 SEND OTP
-  sendOtp(email: string) {
-    return this.http.post(`${this.baseUrl}/send-otp`, { email });
+  async sendOtp(email: string): Promise<any> {
+    try {
+      const res = await firstValueFrom(
+        this.http.post(`${this.baseUrl}/send-otp`, { email })
+      );
+      return res;
+    } catch (err) {
+      console.error("❌ SEND OTP ERROR:", err);
+      throw err;
+    }
   }
 
-  // 🔹 VERIFY OTP
-  verifyOtp(email: string, otp: string) {
-    return this.http.post(`${this.baseUrl}/verify-otp`, { email, otp });
+  async verifyOtp(email: string, otp: string): Promise<any> {
+    try {
+      const res = await firstValueFrom(
+        this.http.post(`${this.baseUrl}/verify-otp`, { email, otp })
+      );
+      return res;
+    } catch (err) {
+      console.error("❌ VERIFY OTP ERROR:", err);
+      throw err;
+    }
   }
 
-  // 🔹 RESET PASSWORD
-  resetPassword(email: string, password: string) {
-    return this.http.post(`${this.baseUrl}/reset-password`, { email, password });
+  async resetPassword(email: string, password: string): Promise<any> {
+    try {
+      const res = await firstValueFrom(
+        this.http.post(`${this.baseUrl}/reset-password`, { email, password })
+      );
+      return res;
+    } catch (err) {
+      console.error("❌ RESET ERROR:", err);
+      throw err;
+    }
   }
 
   /* ======================================================
-     ✅ SESSION CHECK
+     ✅ SESSION
   ====================================================== */
 
   isLoggedIn(): boolean {
@@ -160,15 +173,11 @@ export class AuthService {
 
     if (!token || !user) return false;
 
-    /* ===== SESSION EXPIRY ===== */
-
     const loginTime = localStorage.getItem('loginTime');
 
     if (loginTime) {
 
-      const now = Date.now();
-      const diff = now - Number(loginTime);
-
+      const diff = Date.now() - Number(loginTime);
       const THIRTY_MIN = 30 * 60 * 1000;
 
       if (diff > THIRTY_MIN) {
@@ -182,7 +191,7 @@ export class AuthService {
   }
 
   /* ======================================================
-     🎟️ TOKEN ACCESS
+     🎟️ TOKEN
   ====================================================== */
 
   getToken(): string | null {

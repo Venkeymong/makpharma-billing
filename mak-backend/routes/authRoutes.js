@@ -20,13 +20,11 @@ router.post("/login", login);
    🧪 DEBUG ROUTES
 ====================================================== */
 
-// ✅ CHECK
 router.get("/check", (req, res) => {
   console.log("🔥 CHECK ROUTE HIT");
   res.send("🔥 AUTH ROUTE WORKING");
 });
 
-// ✅ PING
 router.get("/ping", (req, res) => {
   console.log("🔥 PING GET HIT");
   res.send("PING OK (GET)");
@@ -37,7 +35,6 @@ router.post("/ping", (req, res) => {
   res.json({ message: "PING OK (POST)" });
 });
 
-// ✅ ALL USERS
 router.get("/all-users", async (req, res) => {
   const users = await User.find();
   res.json(users);
@@ -50,8 +47,6 @@ router.get("/all-users", async (req, res) => {
 
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
-    console.log("👤 PROFILE FETCH HIT");
-
     const user = await User.findById(req.user.id).select("-password");
 
     if (!user) {
@@ -68,8 +63,6 @@ router.get("/profile", authMiddleware, async (req, res) => {
 
 router.put("/profile", authMiddleware, async (req, res) => {
   try {
-    console.log("👤 PROFILE UPDATE HIT");
-
     const updated = await User.findByIdAndUpdate(
       req.user.id,
       req.body,
@@ -86,7 +79,7 @@ router.put("/profile", authMiddleware, async (req, res) => {
 
 
 /* ======================================================
-   🔒 OTP SYSTEM (NO EMAIL)
+   🔒 OTP SYSTEM
 ====================================================== */
 
 // 🔹 SEND OTP
@@ -95,7 +88,6 @@ router.post("/send-otp", async (req, res) => {
     console.log("🔥 SEND OTP HIT");
 
     const { email } = req.body;
-    console.log("📩 Email:", email);
 
     if (!email) {
       return res.status(400).json({ message: "Email required" });
@@ -107,8 +99,8 @@ router.post("/send-otp", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 🔥 STATIC OTP
-    const otp = "123456";
+    // ✅ RANDOM OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     user.resetOtp = otp;
     user.otpExpiry = Date.now() + 5 * 60 * 1000;
@@ -119,7 +111,7 @@ router.post("/send-otp", async (req, res) => {
 
     res.json({
       message: "OTP sent successfully",
-      otp: otp // 🔥 send to frontend
+      otp // ⚠️ remove in production
     });
 
   } catch (err) {
@@ -142,7 +134,11 @@ router.post("/verify-otp", async (req, res) => {
 
     const user = await User.findOne({ email });
 
-    if (!user || user.resetOtp != otp) {
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.resetOtp !== otp) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
@@ -176,8 +172,16 @@ router.post("/reset-password", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // ✅ PREVENT OLD PASSWORD REUSE
+    const isSame = await bcrypt.compare(password, user.password);
+
+    if (isSame) {
+      return res.status(400).json({
+        message: "New password cannot be same as old password"
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     user.password = hashedPassword;
     user.resetOtp = null;

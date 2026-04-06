@@ -13,74 +13,65 @@ import { AuthService } from '../../../services/auth';
 })
 export class Login implements OnInit, OnDestroy {
 
-  /* ======================================================
-     🔐 LOGIN
-  ====================================================== */
+  // LOGIN
+  username = '';
+  password = '';
+  showPassword = false;
 
-  username: string = '';
-  password: string = '';
-  error: string = '';
-  loading: boolean = false;
+  loginError = '';
+  loading = false;
 
-  /* ======================================================
-     🔁 FORGOT PASSWORD
-  ====================================================== */
+  // FORGOT PASSWORD
+  showForgot = false;
+  step = 1;
 
-  showForgot: boolean = false;
-  step: number = 1;
+  email = '';
+  otp = '';
+  newPassword = '';
+  confirmPassword = '';
 
-  email: string = '';
-  otp: string = '';
-  newPassword: string = '';
+  otpError = '';
+  verifyError = '';
+  resetError = '';
 
-  otpLoading: boolean = false;
-  verifyLoading: boolean = false;
-  resetLoading: boolean = false;
+  otpLoading = false;
+  verifyLoading = false;
+  resetLoading = false;
 
-  /* ======================================================
-     ⏳ OTP TIMER
-  ====================================================== */
-
-  timer: number = 60;
+  // TIMER
+  timer = 60;
   interval: any;
-  canResend: boolean = false;
+  canResend = false;
 
   constructor(
     private auth: AuthService,
     private router: Router
   ) {}
 
-  /* ======================================================
-     🚀 INIT
-  ====================================================== */
-
   ngOnInit(): void {
     const token = localStorage.getItem('token');
-
     if (token) {
       this.router.navigate(['/dashboard']);
     }
   }
 
-  /* ======================================================
-     🧹 CLEANUP (IMPORTANT)
-  ====================================================== */
-
   ngOnDestroy(): void {
-    if (this.interval) {
-      clearInterval(this.interval);
-    }
+    this.stopTimer();
   }
 
-  /* ======================================================
-     🔑 LOGIN
-  ====================================================== */
+  // ================= LOGIN =================
 
   async login(): Promise<void> {
 
     if (this.loading) return;
 
-    this.error = '';
+    this.loginError = '';
+
+    if (!this.username.trim() || !this.password.trim()) {
+      this.loginError = 'All fields are required';
+      return;
+    }
+
     this.loading = true;
 
     try {
@@ -93,20 +84,18 @@ export class Login implements OnInit, OnDestroy {
       if (success) {
         this.router.navigate(['/dashboard']);
       } else {
-        this.error = 'Invalid username or password';
+        this.loginError = 'Invalid username or password';
       }
 
     } catch (err) {
-      console.error('Login Error:', err);
-      this.error = 'Server error. Try again.';
+      console.error(err);
+      this.loginError = 'Server error. Try again.';
     } finally {
       this.loading = false;
     }
   }
 
-  /* ======================================================
-     🪟 FORGOT MODAL
-  ====================================================== */
+  // ================= MODAL =================
 
   openForgot(): void {
     this.showForgot = true;
@@ -118,148 +107,172 @@ export class Login implements OnInit, OnDestroy {
     this.resetState();
   }
 
-  /* ======================================================
-     🔄 RESET STATE
-  ====================================================== */
-
   resetState(): void {
     this.step = 1;
     this.email = '';
     this.otp = '';
     this.newPassword = '';
+    this.confirmPassword = '';
 
-    this.otpLoading = false;
-    this.verifyLoading = false;
-    this.resetLoading = false;
+    this.otpError = '';
+    this.verifyError = '';
+    this.resetError = '';
 
     this.stopTimer();
   }
 
-  /* ======================================================
-     ⏳ TIMER LOGIC
-  ====================================================== */
+  // ================= TIMER =================
 
   startTimer(): void {
-
     this.timer = 60;
     this.canResend = false;
 
     this.interval = setInterval(() => {
-
       this.timer--;
 
       if (this.timer <= 0) {
         this.stopTimer();
         this.canResend = true;
       }
-
     }, 1000);
   }
 
   stopTimer(): void {
     if (this.interval) {
       clearInterval(this.interval);
+      this.interval = null;
     }
   }
 
-  /* ======================================================
-     📩 SEND OTP
-  ====================================================== */
+  // ================= SEND OTP =================
 
-  sendOtp(event?: Event): void {
+  async sendOtp(event?: Event) {
 
-  if (event) {
-    event.preventDefault(); // 🔥 THIS FIXES IT
-  }
+    if (event) event.preventDefault();
 
-  console.log("🔥 Send OTP clicked");
+    this.otpError = '';
 
-  if (!this.email || !this.email.includes('@')) {
-    this.error = 'Enter valid email';
-    return;
-  }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  this.error = '';
-  this.otpLoading = true;
+    if (!emailRegex.test(this.email)) {
+      this.otpError = 'Enter a valid email address';
+      return;
+    }
 
-  this.auth.sendOtp(this.email.trim()).subscribe({
-    next: () => {
-      console.log("✅ OTP SENT");
+    this.otpLoading = true;
+
+    try {
+
+      await this.auth.sendOtp(this.email.trim());
+
       this.step = 2;
       this.startTimer();
-      this.otpLoading = false;
-    },
-    error: (err) => {
-      console.error("❌ OTP ERROR", err);
-      this.error = 'Failed to send OTP';
+
+    } catch (err: any) {
+
+      this.otpError = err?.error?.message || 'Failed to send OTP';
+
+    } finally {
       this.otpLoading = false;
     }
-  });
-}
+  }
 
-  /* ======================================================
-     🔑 VERIFY OTP
-  ====================================================== */
+  // ================= VERIFY OTP =================
 
-  verifyOtp(): void {
+  async verifyOtp() {
 
-    if (!this.otp || this.otp.length < 4) {
-      this.error = 'Enter valid OTP';
+    this.verifyError = '';
+
+    if (!/^\d{6}$/.test(this.otp)) {
+      this.verifyError = 'Enter valid 6-digit OTP';
       return;
     }
 
-    this.error = '';
     this.verifyLoading = true;
 
-    this.auth.verifyOtp(this.email, this.otp).subscribe({
-      next: () => {
-        this.step = 3;
-        this.verifyLoading = false;
-      },
-      error: () => {
-        this.error = 'Invalid or expired OTP';
-        this.verifyLoading = false;
-      }
-    });
+    try {
+
+      await this.auth.verifyOtp(
+        this.email.trim(),
+        this.otp.trim()
+      );
+
+      this.step = 3;
+
+    } catch (err: any) {
+
+      this.verifyError = err?.error?.message || 'Invalid OTP';
+
+    } finally {
+      this.verifyLoading = false;
+    }
   }
 
-  /* ======================================================
-     🔒 RESET PASSWORD
-  ====================================================== */
+  // ================= RESET PASSWORD =================
 
-  resetPassword(): void {
+  async resetPassword() {
 
-    if (!this.newPassword || this.newPassword.length < 4) {
-      this.error = 'Password must be at least 4 characters';
+    this.resetError = '';
+
+    const strongPassword = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+
+    if (!strongPassword.test(this.newPassword)) {
+      this.resetError = 'Password must be strong (8+ chars, capital, number, symbol)';
       return;
     }
 
-    this.error = '';
+    if (this.newPassword !== this.confirmPassword) {
+      this.resetError = 'Passwords do not match';
+      return;
+    }
+
     this.resetLoading = true;
 
-    this.auth.resetPassword(this.email, this.newPassword).subscribe({
-      next: () => {
-        this.closeForgot();
-        this.error = '';
-        alert("Password reset successful!");
-        this.resetLoading = false;
-      },
-      error: () => {
-        this.error = 'Failed to reset password';
-        this.resetLoading = false;
-      }
-    });
+    try {
+
+      await this.auth.resetPassword(
+        this.email,
+        this.newPassword
+      );
+
+      alert('Password reset successful!');
+
+      this.closeForgot();
+
+    } catch (err: any) {
+
+      this.resetError = err?.error?.message || 'Reset failed';
+
+    } finally {
+      this.resetLoading = false;
+    }
   }
 
-  /* ======================================================
-     🔁 RESEND OTP
-  ====================================================== */
+  // ================= RESEND =================
 
   resendOtp(): void {
-
     if (!this.canResend) return;
-
     this.sendOtp();
+  }
+
+  // ================= PASSWORD STRENGTH =================
+
+  getPasswordStrength(password: string): string {
+
+    if (!password) return '';
+
+    let score = 0;
+
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    if (score <= 1) return 'Weak';
+    if (score === 2) return 'Medium';
+    if (score >= 3) return 'Strong';
+
+    return '';
   }
 
 }
