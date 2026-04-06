@@ -166,28 +166,36 @@ export class Login implements OnInit, OnDestroy {
      📩 SEND OTP
   ====================================================== */
 
-  sendOtp(): void {
+  sendOtp(event?: Event): void {
 
-    if (!this.email || !this.email.includes('@')) {
-      this.error = 'Enter valid email';
-      return;
-    }
-
-    this.error = '';
-    this.otpLoading = true;
-
-    this.auth.sendOtp(this.email.trim()).subscribe({
-      next: () => {
-        this.step = 2;
-        this.startTimer();
-        this.otpLoading = false;
-      },
-      error: () => {
-        this.error = 'Failed to send OTP';
-        this.otpLoading = false;
-      }
-    });
+  if (event) {
+    event.preventDefault(); // 🔥 THIS FIXES IT
   }
+
+  console.log("🔥 Send OTP clicked");
+
+  if (!this.email || !this.email.includes('@')) {
+    this.error = 'Enter valid email';
+    return;
+  }
+
+  this.error = '';
+  this.otpLoading = true;
+
+  this.auth.sendOtp(this.email.trim()).subscribe({
+    next: () => {
+      console.log("✅ OTP SENT");
+      this.step = 2;
+      this.startTimer();
+      this.otpLoading = false;
+    },
+    error: (err) => {
+      console.error("❌ OTP ERROR", err);
+      this.error = 'Failed to send OTP';
+      this.otpLoading = false;
+    }
+  });
+}
 
   /* ======================================================
      🔑 VERIFY OTP

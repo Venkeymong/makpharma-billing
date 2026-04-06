@@ -16,8 +16,8 @@
         <p>Billing Management System</p>
       </div>
 
-      <!-- FORM -->
-      <form (ngSubmit)="login()" autocomplete="off">
+      <!-- 🔥 LOGIN FORM (SAFE) -->
+      <form (ngSubmit)="login(); $event.preventDefault()" autocomplete="off">
 
         <!-- USERNAME -->
         <div class="form-group">
@@ -59,10 +59,10 @@
           <a class="forgot" (click)="openForgot()">Forgot Password?</a>
         </div>
 
-        <!-- BUTTON -->
+        <!-- LOGIN BUTTON -->
         <button
-          class="login-btn"
           type="submit"
+          class="login-btn"
           [disabled]="loading"
         >
           <span *ngIf="!loading">🚀 Login</span>
@@ -78,7 +78,7 @@
 </div>
 
 
-<!-- 🔥 FORGOT PASSWORD MODAL -->
+<!-- 🔥 FORGOT PASSWORD MODAL (COMPLETELY ISOLATED) -->
 
 <div class="forgot-overlay" *ngIf="showForgot">
 
@@ -87,7 +87,7 @@
     <!-- HEADER -->
     <div class="modal-header">
       <h3>🔐 Reset Password</h3>
-      <button class="close-btn" (click)="closeForgot()">✖</button>
+      <button type="button" class="close-btn" (click)="closeForgot()">✖</button>
     </div>
 
     <!-- STEP INDICATOR -->
@@ -107,17 +107,20 @@
         <input
           type="email"
           [(ngModel)]="email"
+          name="email"
           placeholder="Enter your email"
         />
       </div>
 
+      <!-- 🔥 FIXED BUTTON -->
       <button
-        class="primary-btn"
-        (click)="sendOtp()"
-        [disabled]="otpLoading"
-      >
-        {{ otpLoading ? 'Sending OTP...' : 'Send OTP' }}
-      </button>
+  type="button"
+  class="primary-btn"
+  (click)="sendOtp($event)"
+  [disabled]="otpLoading"
+>
+  {{ otpLoading ? 'Sending OTP...' : 'Send OTP' }}
+</button>
 
     </div>
 
@@ -132,11 +135,13 @@
           type="text"
           maxlength="6"
           [(ngModel)]="otp"
+          name="otp"
           placeholder="Enter 6-digit OTP"
         />
       </div>
 
       <button
+        type="button"
         class="primary-btn"
         (click)="verifyOtp()"
         [disabled]="verifyLoading"
@@ -151,6 +156,7 @@
 
       <!-- RESEND -->
       <button
+        type="button"
         class="link-btn"
         *ngIf="canResend"
         (click)="resendOtp()"
@@ -170,11 +176,13 @@
         <input
           type="password"
           [(ngModel)]="newPassword"
+          name="newPassword"
           placeholder="Enter new password"
         />
       </div>
 
       <button
+        type="button"
         class="primary-btn success"
         (click)="resetPassword()"
         [disabled]="resetLoading"

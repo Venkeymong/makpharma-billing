@@ -18,27 +18,27 @@ router.post("/login", login);
 
 
 /* ======================================================
-   🧪 DEBUG ROUTES (VERY IMPORTANT)
+   🧪 DEBUG ROUTES
 ====================================================== */
 
-// ✅ GET check (browser friendly)
+// ✅ CHECK
 router.get("/check", (req, res) => {
   console.log("🔥 CHECK ROUTE HIT");
   res.send("🔥 AUTH ROUTE WORKING");
 });
 
-// ✅ GET ping (browser test)
+// ✅ PING
 router.get("/ping", (req, res) => {
   console.log("🔥 PING GET HIT");
   res.send("PING OK (GET)");
 });
 
-// ✅ POST ping (API test)
 router.post("/ping", (req, res) => {
   console.log("🔥 PING POST HIT");
   res.json({ message: "PING OK (POST)" });
 });
 
+// ✅ ALL USERS (DEBUG)
 router.get("/all-users", async (req, res) => {
   const users = await User.find();
   res.json(users);
@@ -92,13 +92,13 @@ router.put("/profile", authMiddleware, async (req, res) => {
    🔒 OTP SYSTEM
 ====================================================== */
 
-// 🔹 SEND OTP (POST)
+// 🔹 SEND OTP (ONLY POST — CLEAN)
 router.post("/send-otp", async (req, res) => {
   try {
     console.log("🔥 SEND OTP HIT");
-    console.log("📩 Email:", req.body.email);
 
     const { email } = req.body;
+    console.log("📩 Email:", email);
 
     if (!email) {
       return res.status(400).json({ message: "Email required" });
@@ -125,11 +125,6 @@ router.post("/send-otp", async (req, res) => {
     console.error("❌ SEND OTP ERROR:", err);
     res.status(500).json({ message: "Failed to send OTP" });
   }
-});
-
-// 🔹 SEND OTP (GET fallback for testing in browser)
-router.get("/send-otp", async (req, res) => {
-  res.send("⚠️ Use POST method for /send-otp");
 });
 
 
