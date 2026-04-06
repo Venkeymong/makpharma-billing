@@ -4,58 +4,38 @@ const bcrypt = require("bcryptjs");
 
 const User = require("../models/user");
 
-async function createUsers() {
+async function createUser() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("MongoDB Connected ✅");
 
-    const users = [
-      {
-        username: "ArunKumar",
-        email: "venkeymong444@gmail.com",
-        password: "Arun1552"
-      },
-      {
-        username: "Venkatesh",
-        email: "venkeymong444@gmail.com",
-        password: "kalaiV@999"
-      },
-      {
-        username: "Dharanesh",
-        email: "venkeymong444@gmail.com",
-        password: "raja@123"
-      }
-    ];
+    const userData = {
+      username: "Venkatesh",
+      email: "venkeymong444@gmail.com",
+      password: "kalaiV@999"
+    };
 
-    for (const u of users) {
+    const email = userData.email.toLowerCase();
 
-      const email = u.email.toLowerCase();
+    // 🔥 DELETE ALL EXISTING USERS (CLEAN START)
+    await User.deleteMany({});
+    console.log("🧹 Old users cleared");
 
-      // 🔥 CHECK BOTH USERNAME + EMAIL
-      const existing = await User.findOne({
-        $or: [
-          { username: u.username },
-          { email: email }
-        ]
-      });
+    // 🔐 HASH PASSWORD
+    const hashed = await bcrypt.hash(userData.password, 10);
 
-      if (existing) {
-        console.log(`⚠️ User already exists: ${u.username} / ${email}`);
-        continue;
-      }
+    // ✅ CREATE NEW USER
+    await User.create({
+      username: userData.username,
+      email: email,
+      password: hashed
+    });
 
-      const hashed = await bcrypt.hash(u.password, 10);
+    console.log("✅ Venkatesh created successfully");
+    console.log(`📧 Email: ${email}`);
+    console.log("🔑 Password: kalaiV@999");
 
-      await User.create({
-        username: u.username,
-        email: email,
-        password: hashed
-      });
-
-      console.log(`✅ ${u.username} created with email ${email}`);
-    }
-
-    console.log("🎉 User creation process completed");
+    console.log("🎉 Setup complete");
     process.exit();
 
   } catch (err) {
@@ -64,4 +44,4 @@ async function createUsers() {
   }
 }
 
-createUsers();
+createUser();

@@ -4,7 +4,6 @@ const router = express.Router();
 const { login } = require("../controllers/authController");
 const User = require("../models/user");
 const authMiddleware = require("../middleware/auth");
-const sendOTPEmail = require("../utils/mailer");
 const bcrypt = require("bcryptjs");
 
 console.log("✅ AUTH ROUTES FILE LOADED");
@@ -38,7 +37,7 @@ router.post("/ping", (req, res) => {
   res.json({ message: "PING OK (POST)" });
 });
 
-// ✅ ALL USERS (DEBUG)
+// ✅ ALL USERS
 router.get("/all-users", async (req, res) => {
   const users = await User.find();
   res.json(users);
@@ -49,7 +48,6 @@ router.get("/all-users", async (req, res) => {
    👤 PROFILE
 ====================================================== */
 
-// 🔹 GET PROFILE
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
     console.log("👤 PROFILE FETCH HIT");
@@ -68,7 +66,6 @@ router.get("/profile", authMiddleware, async (req, res) => {
   }
 });
 
-// 🔹 UPDATE PROFILE
 router.put("/profile", authMiddleware, async (req, res) => {
   try {
     console.log("👤 PROFILE UPDATE HIT");
@@ -89,10 +86,10 @@ router.put("/profile", authMiddleware, async (req, res) => {
 
 
 /* ======================================================
-   🔒 OTP SYSTEM
+   🔒 OTP SYSTEM (NO EMAIL)
 ====================================================== */
 
-// 🔹 SEND OTP (ONLY POST — CLEAN)
+// 🔹 SEND OTP
 router.post("/send-otp", async (req, res) => {
   try {
     console.log("🔥 SEND OTP HIT");
@@ -110,16 +107,20 @@ router.post("/send-otp", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000);
+    // 🔥 STATIC OTP
+    const otp = "123456";
 
     user.resetOtp = otp;
     user.otpExpiry = Date.now() + 5 * 60 * 1000;
 
     await user.save();
 
-    await sendOTPEmail(email, otp);
+    console.log("✅ OTP GENERATED:", otp);
 
-    res.json({ message: "OTP sent successfully" });
+    res.json({
+      message: "OTP sent successfully",
+      otp: otp // 🔥 send to frontend
+    });
 
   } catch (err) {
     console.error("❌ SEND OTP ERROR:", err);
@@ -189,25 +190,6 @@ router.post("/reset-password", async (req, res) => {
   } catch (err) {
     console.error("❌ RESET ERROR:", err);
     res.status(500).json({ message: "Failed to reset password" });
-  }
-});
-
-
-/* ======================================================
-   🧪 TEST EMAIL
-====================================================== */
-
-router.get("/test-email", async (req, res) => {
-  try {
-    console.log("🔥 TEST EMAIL HIT");
-
-    await sendOTPEmail("venkeymong444@gmail.com", 123456);
-
-    res.json({ message: "Test email sent successfully!" });
-
-  } catch (err) {
-    console.error("❌ MAIL ERROR:", err);
-    res.status(500).json({ message: "Failed to send email" });
   }
 });
 
