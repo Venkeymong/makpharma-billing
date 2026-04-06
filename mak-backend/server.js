@@ -81,13 +81,14 @@ app.get("/api/auth/check", (req, res) => {
 });
 
 /* ======================================================
-   ❌ 404 HANDLER
+   ❌ 404 HANDLER (DEBUG VERSION)
 ====================================================== */
 
 app.use((req, res) => {
-  console.warn("❌ ROUTE NOT FOUND:", req.method, req.url);
+  console.log("❌ 404 HIT:", req.method, req.url);
+
   res.status(404).json({
-    message: "Route not found"
+    message: `Route not found: ${req.method} ${req.url}`
   });
 });
 
