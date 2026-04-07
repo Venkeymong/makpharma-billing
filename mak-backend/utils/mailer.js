@@ -1,38 +1,50 @@
-const axios = require("axios");
+const nodemailer = require("nodemailer");
+
+// ==============================
+// 🚀 CREATE TRANSPORTER
+// ==============================
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,   // your gmail
+    pass: process.env.EMAIL_PASS    // app password
+  }
+});
+
+// ==============================
+// 📩 SEND OTP EMAIL FUNCTION
+// ==============================
 
 const sendOTPEmail = async (to, otp) => {
   try {
 
-    console.log("📩 Sending OTP via Brevo to:", to);
+    console.log("📩 Sending OTP to:", to);
 
-    const response = await axios.post(
-      "https://api.brevo.com/v3/smtp/email",
-      {
-        sender: {
-          name: "Mak Pharma",
-          email: process.env.EMAIL_USER
-        },
-        to: [{ email: to }],
-        subject: "🔐 Password Reset OTP",
-        htmlContent: `
-          <h2>Mak Pharma</h2>
-          <p>Your OTP:</p>
-          <h1>${otp}</h1>
-          <p>Valid for 5 minutes</p>
-        `
-      },
-      {
-        headers: {
-          "api-key": process.env.BREVO_API_KEY,
-          "Content-Type": "application/json"
-        }
-      }
-    );
+    const mailOptions = {
+      from: `"Mak Pharma" <${process.env.EMAIL_USER}>`,
+      to: to,
+      subject: "🔐 Password Reset OTP - Mak Pharma",
 
-    console.log("✅ EMAIL SENT VIA BREVO:", response.data);
+      html: `
+        <div style="font-family:Arial;padding:20px">
+          <h2 style="color:#6366f1">Mak Pharma</h2>
+          <p>Your OTP for password reset:</p>
+          <h1 style="letter-spacing:2px">${otp}</h1>
+          <p>This OTP is valid for 5 minutes.</p>
+        </div>
+      `,
+
+      text: `Your OTP is ${otp} (valid for 5 minutes)`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+
+    console.log("✅ EMAIL SENT:", info.response);
 
   } catch (err) {
-    console.error("❌ BREVO ERROR:", err.response?.data || err.message);
+    console.error("❌ EMAIL ERROR:", err);
+    throw err; // important for API response
   }
 };
 

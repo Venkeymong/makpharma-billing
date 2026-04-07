@@ -5,6 +5,7 @@ const { login } = require("../controllers/authController");
 const User = require("../models/user");
 const authMiddleware = require("../middleware/auth");
 const bcrypt = require("bcryptjs");
+const sendOTPEmail = require("../utils/mailer");
 
 console.log("✅ AUTH ROUTES FILE LOADED");
 
@@ -14,31 +15,6 @@ console.log("✅ AUTH ROUTES FILE LOADED");
 
 // 🔹 LOGIN
 router.post("/login", login);
-
-
-/* ======================================================
-   🧪 DEBUG ROUTES
-====================================================== */
-
-router.get("/check", (req, res) => {
-  console.log("🔥 CHECK ROUTE HIT");
-  res.send("🔥 AUTH ROUTE WORKING");
-});
-
-router.get("/ping", (req, res) => {
-  console.log("🔥 PING GET HIT");
-  res.send("PING OK (GET)");
-});
-
-router.post("/ping", (req, res) => {
-  console.log("🔥 PING POST HIT");
-  res.json({ message: "PING OK (POST)" });
-});
-
-router.get("/all-users", async (req, res) => {
-  const users = await User.find();
-  res.json(users);
-});
 
 
 /* ======================================================
@@ -109,9 +85,11 @@ router.post("/send-otp", async (req, res) => {
 
     console.log("✅ OTP GENERATED:", otp);
 
+    // ✅ SEND EMAIL
+    await sendOTPEmail(user.email, otp);
+
     res.json({
-      message: "OTP sent successfully",
-      otp // ⚠️ remove in production
+      message: "OTP sent successfully"
     });
 
   } catch (err) {
@@ -170,6 +148,15 @@ router.post("/reset-password", async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // 🔐 STRONG PASSWORD CHECK
+    const strongPassword = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+
+    if (!strongPassword.test(password)) {
+      return res.status(400).json({
+        message: "Password must be strong (8+ chars, capital, number, symbol)"
+      });
     }
 
     // ✅ PREVENT OLD PASSWORD REUSE
