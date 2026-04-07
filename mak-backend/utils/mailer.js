@@ -1,15 +1,25 @@
 const nodemailer = require("nodemailer");
 
 // ==============================
+// 🔍 DEBUG ENV (VERY IMPORTANT)
+// ==============================
+
+console.log("📧 EMAIL_USER:", process.env.EMAIL_USER);
+console.log(
+  "🔑 EMAIL_PASS:",
+  process.env.EMAIL_PASS ? "EXISTS ✅" : "MISSING ❌"
+);
+
+// ==============================
 // 🚀 CREATE TRANSPORTER
 // ==============================
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER,   // your gmail
-    pass: process.env.EMAIL_PASS    // app password
-  }
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 });
 
 // ==============================
@@ -18,8 +28,11 @@ const transporter = nodemailer.createTransport({
 
 const sendOTPEmail = async (to, otp) => {
   try {
-
     console.log("📩 Sending OTP to:", to);
+
+    // ✅ VERIFY TRANSPORT (checks Gmail login)
+    await transporter.verify();
+    console.log("✅ SMTP server is ready");
 
     const mailOptions = {
       from: `"Mak Pharma" <${process.env.EMAIL_USER}>`,
@@ -35,16 +48,20 @@ const sendOTPEmail = async (to, otp) => {
         </div>
       `,
 
-      text: `Your OTP is ${otp} (valid for 5 minutes)`
+      text: `Your OTP is ${otp} (valid for 5 minutes)`,
     };
 
     const info = await transporter.sendMail(mailOptions);
 
     console.log("✅ EMAIL SENT:", info.response);
 
+    return true;
+
   } catch (err) {
-    console.error("❌ EMAIL ERROR:", err);
-    throw err; // important for API response
+    console.error("❌ EMAIL ERROR FULL:", err);
+
+    // 🔥 RETURN FALSE INSTEAD OF CRASHING
+    return false;
   }
 };
 

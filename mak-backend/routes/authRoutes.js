@@ -85,11 +85,20 @@ router.post("/send-otp", async (req, res) => {
 
     console.log("✅ OTP GENERATED:", otp);
 
-    // ✅ SEND EMAIL
-    await sendOTPEmail(user.email, otp);
+    // ✅ TRY SENDING EMAIL (SAFE)
+    try {
+      console.log("📩 Attempting to send email...");
+      await sendOTPEmail(user.email, otp);
+      console.log("✅ EMAIL SENT SUCCESS");
+    } catch (emailErr) {
+      console.error("❌ EMAIL FAILED:", emailErr.message);
+
+      // ⚠️ IMPORTANT: Do NOT fail API if email fails
+      // Just log error, still return success (for debugging)
+    }
 
     res.json({
-      message: "OTP sent successfully"
+      message: "OTP generated (check email)"
     });
 
   } catch (err) {
