@@ -75,7 +75,7 @@ router.post("/send-otp", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // ✅ RANDOM OTP
+    // ✅ GENERATE OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     user.resetOtp = otp;
@@ -85,20 +85,14 @@ router.post("/send-otp", async (req, res) => {
 
     console.log("✅ OTP GENERATED:", otp);
 
-    // ✅ TRY SENDING EMAIL (SAFE)
-    try {
-      console.log("📩 Attempting to send email...");
-      await sendOTPEmail(user.email, otp);
-      console.log("✅ EMAIL SENT SUCCESS");
-    } catch (emailErr) {
-      console.error("❌ EMAIL FAILED:", emailErr.message);
+    // 🔥 SEND EMAIL IN BACKGROUND (NO BLOCKING)
+    sendOTPEmail(user.email, otp)
+      .then(() => console.log("✅ EMAIL SENT"))
+      .catch(err => console.error("❌ EMAIL ERROR:", err.message));
 
-      // ⚠️ IMPORTANT: Do NOT fail API if email fails
-      // Just log error, still return success (for debugging)
-    }
-
+    // ✅ INSTANT RESPONSE (NO WAIT)
     res.json({
-      message: "OTP generated (check email)"
+      message: "OTP sent successfully"
     });
 
   } catch (err) {
@@ -133,7 +127,10 @@ router.post("/verify-otp", async (req, res) => {
       return res.status(400).json({ message: "OTP expired" });
     }
 
-    res.json({ message: "OTP verified", success: true });
+    res.json({
+      message: "OTP verified",
+      success: true
+    });
 
   } catch (err) {
     console.error("❌ VERIFY OTP ERROR:", err);
@@ -160,15 +157,17 @@ router.post("/reset-password", async (req, res) => {
     }
 
     // 🔐 STRONG PASSWORD CHECK
-    const strongPassword = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+    const strongPassword =
+      /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
 
     if (!strongPassword.test(password)) {
       return res.status(400).json({
-        message: "Password must be strong (8+ chars, capital, number, symbol)"
+        message:
+          "Password must be strong (8+ chars, capital, number, symbol)"
       });
     }
 
-    // ✅ PREVENT OLD PASSWORD REUSE
+    // ❌ PREVENT OLD PASSWORD
     const isSame = await bcrypt.compare(password, user.password);
 
     if (isSame) {
@@ -185,7 +184,9 @@ router.post("/reset-password", async (req, res) => {
 
     await user.save();
 
-    res.json({ message: "Password reset successful" });
+    res.json({
+      message: "Password reset successful"
+    });
 
   } catch (err) {
     console.error("❌ RESET ERROR:", err);

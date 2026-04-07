@@ -13,7 +13,6 @@ import { AuthService } from '../../../services/auth';
 })
 export class Login implements OnInit, OnDestroy {
 
-  // LOGIN
   username = '';
   password = '';
   showPassword = false;
@@ -21,7 +20,6 @@ export class Login implements OnInit, OnDestroy {
   loginError = '';
   loading = false;
 
-  // FORGOT PASSWORD
   showForgot = false;
   step = 1;
 
@@ -38,7 +36,6 @@ export class Login implements OnInit, OnDestroy {
   verifyLoading = false;
   resetLoading = false;
 
-  // TIMER
   timer = 60;
   interval: any;
   canResend = false;
@@ -50,19 +47,15 @@ export class Login implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const token = localStorage.getItem('token');
-    if (token) {
-      this.router.navigate(['/dashboard']);
-    }
+    if (token) this.router.navigate(['/dashboard']);
   }
 
   ngOnDestroy(): void {
     this.stopTimer();
   }
 
-  // ================= LOGIN =================
-
-  async login(): Promise<void> {
-
+  // LOGIN
+  async login() {
     if (this.loading) return;
 
     this.loginError = '';
@@ -75,7 +68,6 @@ export class Login implements OnInit, OnDestroy {
     this.loading = true;
 
     try {
-
       const success = await this.auth.login(
         this.username.trim(),
         this.password.trim()
@@ -84,30 +76,27 @@ export class Login implements OnInit, OnDestroy {
       if (success) {
         this.router.navigate(['/dashboard']);
       } else {
-        this.loginError = 'Invalid username or password';
+        this.loginError = 'Invalid credentials';
       }
-
-    } catch (err) {
-      console.error(err);
-      this.loginError = 'Server error. Try again.';
+    } catch {
+      this.loginError = 'Server error';
     } finally {
       this.loading = false;
     }
   }
 
-  // ================= MODAL =================
-
-  openForgot(): void {
+  // MODAL
+  openForgot() {
     this.showForgot = true;
     this.resetState();
   }
 
-  closeForgot(): void {
+  closeForgot() {
     this.showForgot = false;
     this.resetState();
   }
 
-  resetState(): void {
+  resetState() {
     this.step = 1;
     this.email = '';
     this.otp = '';
@@ -121,15 +110,13 @@ export class Login implements OnInit, OnDestroy {
     this.stopTimer();
   }
 
-  // ================= TIMER =================
-
-  startTimer(): void {
+  // TIMER
+  startTimer() {
     this.timer = 60;
     this.canResend = false;
 
     this.interval = setInterval(() => {
       this.timer--;
-
       if (this.timer <= 0) {
         this.stopTimer();
         this.canResend = true;
@@ -137,87 +124,73 @@ export class Login implements OnInit, OnDestroy {
     }, 1000);
   }
 
-  stopTimer(): void {
+  stopTimer() {
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null;
     }
   }
 
-  // ================= SEND OTP =================
+  // SEND OTP
+  async sendOtp() {
 
-  async sendOtp(event?: Event) {
-
-    if (event) event.preventDefault();
+    if (this.otpLoading) return;
 
     this.otpError = '';
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(this.email)) {
-      this.otpError = 'Enter a valid email address';
+      this.otpError = 'Enter valid email';
       return;
     }
 
     this.otpLoading = true;
 
     try {
-
       await this.auth.sendOtp(this.email.trim());
-
       this.step = 2;
       this.startTimer();
-
     } catch (err: any) {
-
       this.otpError = err?.error?.message || 'Failed to send OTP';
-
     } finally {
       this.otpLoading = false;
     }
   }
 
-  // ================= VERIFY OTP =================
-
+  // VERIFY OTP
   async verifyOtp() {
+
+    if (this.verifyLoading) return;
 
     this.verifyError = '';
 
     if (!/^\d{6}$/.test(this.otp)) {
-      this.verifyError = 'Enter valid 6-digit OTP';
+      this.verifyError = 'Enter 6-digit OTP';
       return;
     }
 
     this.verifyLoading = true;
 
     try {
-
-      await this.auth.verifyOtp(
-        this.email.trim(),
-        this.otp.trim()
-      );
-
+      await this.auth.verifyOtp(this.email.trim(), this.otp.trim());
       this.step = 3;
-
     } catch (err: any) {
-
       this.verifyError = err?.error?.message || 'Invalid OTP';
-
     } finally {
       this.verifyLoading = false;
     }
   }
 
-  // ================= RESET PASSWORD =================
-
+  // RESET PASSWORD
   async resetPassword() {
+
+    if (this.resetLoading) return;
 
     this.resetError = '';
 
-    const strongPassword = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-
-    if (!strongPassword.test(this.newPassword)) {
-      this.resetError = 'Password must be strong (8+ chars, capital, number, symbol)';
+    if (this.newPassword.length < 6) {
+      this.resetError = 'Password too short';
       return;
     }
 
@@ -229,50 +202,19 @@ export class Login implements OnInit, OnDestroy {
     this.resetLoading = true;
 
     try {
-
-      await this.auth.resetPassword(
-        this.email,
-        this.newPassword
-      );
-
-      alert('Password reset successful!');
-
+      await this.auth.resetPassword(this.email, this.newPassword);
+      alert('Password reset successful');
       this.closeForgot();
-
     } catch (err: any) {
-
       this.resetError = err?.error?.message || 'Reset failed';
-
     } finally {
       this.resetLoading = false;
     }
   }
 
-  // ================= RESEND =================
-
-  resendOtp(): void {
+  // RESEND
+  resendOtp() {
     if (!this.canResend) return;
     this.sendOtp();
   }
-
-  // ================= PASSWORD STRENGTH =================
-
-  getPasswordStrength(password: string): string {
-
-    if (!password) return '';
-
-    let score = 0;
-
-    if (password.length >= 8) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-
-    if (score <= 1) return 'Weak';
-    if (score === 2) return 'Medium';
-    if (score >= 3) return 'Strong';
-
-    return '';
-  }
-
 }

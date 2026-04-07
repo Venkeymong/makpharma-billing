@@ -4,28 +4,20 @@
 
     <div class="login-card">
 
-      <div class="login-header text-center">
+      <div class="login-header">
         <h2 class="page-title">MAK Pharma</h2>
         <p>Billing Management System</p>
       </div>
 
-      <form (ngSubmit)="login()" autocomplete="off">
+      <form (ngSubmit)="login()">
 
-        <!-- USERNAME -->
         <div class="form-group">
           <label>Username</label>
-          <input
-            type="text"
-            [(ngModel)]="username"
-            name="username"
-            required
-          />
+          <input [(ngModel)]="username" name="username" required />
         </div>
 
-        <!-- PASSWORD -->
         <div class="form-group">
           <label>Password</label>
-
           <div class="password-box">
             <input
               [type]="showPassword ? 'text' : 'password'"
@@ -37,17 +29,12 @@
           </div>
         </div>
 
-        <!-- ERROR -->
-        <div class="error" *ngIf="loginError">
-          {{ loginError }}
-        </div>
+        <div class="error" *ngIf="loginError">{{ loginError }}</div>
 
-        <!-- FORGOT -->
         <div class="form-footer">
           <span class="forgot" (click)="openForgot()">Forgot Password?</span>
         </div>
 
-        <!-- BUTTON -->
         <button type="submit" [disabled]="loading">
           {{ loading ? 'Logging in...' : 'Login' }}
         </button>
@@ -72,17 +59,22 @@
 
     <!-- STEP 1 -->
     <div *ngIf="step === 1">
-      <input [(ngModel)]="email" placeholder="Enter email" name="email" />
-      <div class="error" *ngIf="otpError">{{ otpError }}</div>
-      <button (click)="sendOtp()">Send OTP</button>
+      <input [(ngModel)]="email" name="email" placeholder="Enter email" />
+      <div class="error">{{ otpError }}</div>
+
+      <button (click)="sendOtp()" [disabled]="otpLoading">
+        {{ otpLoading ? 'Sending...' : 'Send OTP' }}
+      </button>
     </div>
 
     <!-- STEP 2 -->
     <div *ngIf="step === 2">
-      <input [(ngModel)]="otp" placeholder="Enter OTP" name="otp" />
-      <div class="error" *ngIf="verifyError">{{ verifyError }}</div>
+      <input [(ngModel)]="otp" name="otp" placeholder="Enter OTP" />
+      <div class="error">{{ verifyError }}</div>
 
-      <button (click)="verifyOtp()">Verify OTP</button>
+      <button (click)="verifyOtp()" [disabled]="verifyLoading">
+        {{ verifyLoading ? 'Verifying...' : 'Verify OTP' }}
+      </button>
 
       <p *ngIf="!canResend">Resend in {{ timer }}s</p>
       <button *ngIf="canResend" (click)="resendOtp()">Resend OTP</button>
@@ -90,12 +82,14 @@
 
     <!-- STEP 3 -->
     <div *ngIf="step === 3">
-      <input [(ngModel)]="newPassword" placeholder="New Password" name="newPassword" />
-      <input [(ngModel)]="confirmPassword" placeholder="Confirm Password" name="confirmPassword" />
+      <input [(ngModel)]="newPassword" name="newPassword" placeholder="New Password" />
+      <input [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Confirm Password" />
 
-      <div class="error" *ngIf="resetError">{{ resetError }}</div>
+      <div class="error">{{ resetError }}</div>
 
-      <button (click)="resetPassword()">Reset Password</button>
+      <button (click)="resetPassword()" [disabled]="resetLoading">
+        {{ resetLoading ? 'Updating...' : 'Reset Password' }}
+      </button>
     </div>
 
   </div>
