@@ -1,3 +1,5 @@
+
+console.log("🔥 NEW USER MODEL LOADED");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
@@ -30,14 +32,12 @@ const userSchema = new mongoose.Schema({
     minlength: 6
   },
 
-  /* 🔐 ROLE (IMPORTANT FOR YOUR SYSTEM) */
   role: {
     type: String,
     enum: ["admin", "staff"],
     default: "admin"
   },
 
-  /* 🔑 OTP RESET */
   resetOtp: {
     type: String,
     default: null
@@ -54,21 +54,17 @@ const userSchema = new mongoose.Schema({
 
 
 /* =========================================
-   🔒 HASH PASSWORD BEFORE SAVE
+   🔒 HASH PASSWORD (FIXED - NO NEXT)
 ========================================= */
 
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
 
-  // Only hash if password modified
-  if (!this.isModified("password")) return next();
+  // Only hash if password changed
+  if (!this.isModified("password")) return;
 
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (err) {
-    next(err);
-  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+
 });
 
 
@@ -77,7 +73,7 @@ userSchema.pre("save", async function (next) {
 ========================================= */
 
 userSchema.methods.comparePassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+  return bcrypt.compare(enteredPassword, this.password);
 };
 
 
