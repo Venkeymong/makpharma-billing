@@ -34,11 +34,13 @@ export class SalesService {
 
   loadInvoices(): void {
 
-    this.http.get<any[]>(this.baseUrl, this.getHeaders()).subscribe({
+    this.http.get<any>(this.baseUrl, this.getHeaders()).subscribe({
 
-      next: (data) => {
+      next: (res: any) => {
 
-        const formatted = (data || []).map((b: any) => ({
+        const data = Array.isArray(res?.data) ? res.data : [];
+
+        const formatted = data.map((b: any) => ({
 
           _id: b._id,
 
@@ -62,14 +64,14 @@ export class SalesService {
 
           payment: b.paymentMethod || 'Cash',
 
-          items: (b.items || []).map((item: any) => ({
+          items: Array.isArray(b.items) ? b.items.map((item: any) => ({
             name: item.medicine,
             qty: item.qty,
-            price: item.sellingPrice || item.price, // 🔥 FIX (show selling)
-            gst: item.gst,
+            price: item.sellingPrice || item.price || 0,
+            gst: item.gst || 0,
             hsn: item.hsn || '-',
-            total: item.total || (item.qty * (item.sellingPrice || item.price))
-          }))
+            total: item.total || (item.qty * (item.sellingPrice || item.price || 0))
+          })) : []
 
         }));
 
@@ -94,7 +96,7 @@ export class SalesService {
   }
 
   /* ========================================
-     ADD INVOICE (FIXED)
+     ADD INVOICE
   ======================================== */
 
   addInvoice(invoice: any): Observable<any> {
@@ -103,40 +105,42 @@ export class SalesService {
 
       invoiceNumber: invoice.invoiceNumber,
 
-      customerName: invoice.customer?.name,
-      customerPhone: invoice.customer?.phone,
-      customerState: invoice.customer?.state,
-      customerGST: invoice.customer?.gst,
+      customerName: invoice.customer?.name || 'Walk-in',
+      customerPhone: invoice.customer?.phone || '-',
+      customerState: invoice.customer?.state || 'Tamil Nadu',
+      customerGST: invoice.customer?.gst || '',
 
-      date: invoice.date,
+      date: invoice.date || new Date(),
 
-      items: (invoice.items || []).map((item: any) => ({
+      items: Array.isArray(invoice.items) ? invoice.items.map((item: any) => ({
         medicine: item.medicine || item.name,
         batch: item.batch || '',
-        qty: item.qty,
+        qty: Number(item.qty || 0),
 
-        price: item.price || 0,
-        sellingPrice: item.sellingPrice || item.price || 0,
+        price: Number(item.price || 0),
+        sellingPrice: Number(item.sellingPrice || item.price || 0),
 
-        gst: item.gst || 0,
-        total: item.qty * (item.sellingPrice || item.price || 0)
-      })),
+        gst: Number(item.gst || 0),
+        total: Number(item.qty || 0) * Number(item.sellingPrice || item.price || 0)
+      })) : [],
 
-      subtotal: invoice.subtotal || 0,
-      cgst: invoice.cgstTotal || 0,
-      sgst: invoice.sgstTotal || 0,
-      igst: invoice.igstTotal || 0,
+      subtotal: Number(invoice.subtotal || 0),
+      cgst: Number(invoice.cgstTotal || 0),
+      sgst: Number(invoice.sgstTotal || 0),
+      igst: Number(invoice.igstTotal || 0),
 
-      totalAmount: invoice.totalAmount || invoice.total || 0,
+      totalAmount: Number(invoice.totalAmount || invoice.total || 0),
 
       paymentMethod: invoice.paymentMethod || "Cash"
     };
+
+    console.log("🚀 BILL DATA:", billData);
 
     return this.http.post(this.baseUrl + '/add', billData, this.getHeaders()).pipe(
 
       tap(() => {
         console.log("✅ Invoice saved:", billData.invoiceNumber);
-        this.loadInvoices(); // refresh list
+        this.loadInvoices();
       })
 
     );
