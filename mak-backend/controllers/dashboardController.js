@@ -1,36 +1,59 @@
 const Bill = require("../models/bill");
 const Medicine = require("../models/medicine");
 
-// 📊 DASHBOARD DATA
+/* =========================================
+   📊 DASHBOARD DATA (PRODUCTION READY)
+========================================= */
+
 exports.getDashboard = async (req, res) => {
   try {
 
+    /* ================= FETCH DATA ================= */
+
     const bills = await Bill.find();
 
-    const totalRevenue = bills.reduce((sum, b) => sum + b.totalAmount, 0);
+    /* ================= TOTAL REVENUE ================= */
+
+    const totalRevenue = bills.reduce((sum, b) => {
+      return sum + (b.totalAmount || 0);
+    }, 0);
 
     const totalBills = bills.length;
 
+    /* ================= TODAY SALES ================= */
+
     const today = new Date().toDateString();
 
-    const todaySales = bills.filter(b =>
-      new Date(b.createdAt).toDateString() === today
-    );
+    const todaySalesList = bills.filter(b => {
+      return new Date(b.createdAt).toDateString() === today;
+    });
 
-    const todayRevenue = todaySales.reduce((sum, b) => sum + b.totalAmount, 0);
+    const todayRevenue = todaySalesList.reduce((sum, b) => {
+      return sum + (b.totalAmount || 0);
+    }, 0);
 
-    // 🔥 LOW STOCK
-    const lowStock = await Medicine.find({ stock: { $lt: 10 } });
+    /* ================= LOW STOCK ================= */
+
+    const lowStock = await Medicine.find({
+      stock: { $lt: 10 }
+    }).sort({ stock: 1 });
+
+    /* ================= RESPONSE ================= */
 
     res.json({
       totalRevenue,
       totalBills,
       todayRevenue,
-      todaySales: todaySales.length,
+      todaySales: todaySalesList.length,
       lowStock
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    console.error("❌ Dashboard Error:", error);
+
+    res.status(500).json({
+      message: "Failed to load dashboard"
+    });
   }
 };

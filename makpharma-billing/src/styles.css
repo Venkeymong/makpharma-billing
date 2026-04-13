@@ -1,1 +1,174 @@
-/* You can add global styles to this file, and also import other style files */
+/* ========================================
+   🔥 GLOBAL RESET
+======================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ========================================
+   🌍 BODY (PRO UI BASE)
+======================================== */
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: #f1f5f9; /* 🔥 light professional bg */
+  color: #0f172a;
+  line-height: 1.5;
+}
+
+/* ========================================
+   📦 CONTAINER
+======================================== */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: auto;
+  padding: 16px;
+}
+
+/* ========================================
+   📐 FLEX UTILITIES
+======================================== */
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.center {
+  justify-content: center;
+  align-items: center;
+}
+
+.space-between {
+  justify-content: space-between;
+}
+
+/* ========================================
+   🔘 BUTTONS
+======================================== */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* ========================================
+   ✏️ INPUTS
+======================================== */
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  font-size: 14px;
+  background: #fff;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #6366f1;
+}
+
+/* ========================================
+   📄 CARD (VERY IMPORTANT)
+======================================== */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* ========================================
+   📊 TABLE FIX
+======================================== */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px; /* prevents breaking */
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* ========================================
+   🧾 TEXT UTILITIES
+======================================== */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-muted {
+  color: #64748b;
+}
+
+/* ========================================
+   📱 MOBILE RESPONSIVENESS
+======================================== */
+@media (max-width: 768px) {
+
+  body {
+    font-size: 14px;
+  }
+
+  .container {
+    padding: 10px;
+  }
+
+  /* FLEX STACK */
+  .flex {
+    flex-direction: column;
+  }
+
+  /* TABLE SCROLL */
+  table {
+    min-width: 500px;
+  }
+
+}
+
+/* ========================================
+   🪄 SMOOTH TRANSITIONS
+======================================== */
+* {
+  transition: all 0.2s ease-in-out;
+}

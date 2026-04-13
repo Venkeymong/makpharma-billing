@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CustomerService } from '../../../services/customer';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-customer-list',
@@ -10,107 +11,152 @@ import { CustomerService } from '../../../services/customer';
   templateUrl: './customer-list.html',
   styleUrl: './customer-list.css'
 })
-export class CustomerList {
+export class CustomerList implements OnInit, OnDestroy {
 
-  customers:any[] = [];
+  customers: any[] = [];
 
-  searchText:string = '';
+  searchText: string = '';
 
-  showForm:boolean = false;
+  showForm: boolean = false;
 
-  editIndex:number | null = null;
+  editCustomerId: string | null = null;
 
-  customer:any = {
-    name:'',
-    phone:'',
-    email:'',
-    address:'',
-    state:'Tamil Nadu',
-    gst:''
-  };
+  customer: any = this.getEmptyCustomer();
 
   // ✅ Pagination
-  currentPage:number = 1;
-  itemsPerPage:number = 5;
+  currentPage: number = 1;
+  itemsPerPage: number = 5;
 
-  constructor(private customerService:CustomerService){
-    this.customers = this.customerService.getCustomers();
-  }
+  private sub = new Subscription();
 
-  openForm(){
-    this.showForm = true;
-    this.editIndex = null;
+  constructor(private customerService: CustomerService) {}
 
-    this.customer = {
-      name:'',
-      phone:'',
-      email:'',
-      address:'',
-      state:'Tamil Nadu',
-      gst:''
-    };
-  }
+  /* =========================================
+     INIT
+  ========================================= */
 
-  saveCustomer(){
-    if(this.editIndex === null){
-      this.customerService.addCustomer({...this.customer});
-    }else{
-      this.customerService.updateCustomer(this.editIndex,{...this.customer});
-    }
-
-    this.customers = this.customerService.getCustomers();
-    this.resetForm();
-  }
-
-  editCustomer(index:number){
-    this.editIndex = index;
-    this.customer = {...this.customers[index]};
-    this.showForm = true;
-  }
-
-  deleteCustomer(index:number){
-    this.customerService.deleteCustomer(index);
-    this.customers = this.customerService.getCustomers();
-  }
-
-  resetForm(){
-    this.customer = {
-      name:'',
-      phone:'',
-      email:'',
-      address:'',
-      state:'Tamil Nadu',
-      gst:''
-    };
-
-    this.showForm = false;
-    this.editIndex = null;
-  }
-
-  // ✅ Pagination Logic
-  get filteredCustomers(){
-    return this.customers.filter(x =>
-      x.name.toLowerCase().includes(this.searchText.toLowerCase())
+  ngOnInit(): void {
+    this.sub.add(
+      this.customerService.customers$.subscribe(data => {
+        this.customers = data || [];
+      })
     );
   }
 
-  get paginatedCustomers(){
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
+  }
+
+  /* =========================================
+     FORM
+  ========================================= */
+
+  getEmptyCustomer() {
+    return {
+      name: '',
+      phone: '',
+      email: '',
+      address: '',
+      state: 'Tamil Nadu',
+      gst: ''
+    };
+  }
+
+  openForm() {
+    this.showForm = true;
+    this.editCustomerId = null;
+    this.customer = this.getEmptyCustomer();
+  }
+
+  saveCustomer() {
+
+    if (!this.customer.name?.trim()) {
+      alert('Customer name required');
+      return;
+    }
+
+    if (this.editCustomerId === null) {
+
+      this.customerService.addCustomer({ ...this.customer }).subscribe({
+        next: () => this.resetForm(),
+        error: () => alert('Failed to add customer')
+      });
+
+    } else {
+
+      this.customerService.updateCustomer(this.editCustomerId, { ...this.customer }).subscribe({
+        next: () => this.resetForm(),
+        error: () => alert('Failed to update customer')
+      });
+
+    }
+  }
+
+  editCustomer(customer: any) {
+    this.editCustomerId = customer._id;
+    this.customer = { ...customer };
+    this.showForm = true;
+  }
+
+  deleteCustomer(customer: any) {
+
+    if (!customer?._id) return;
+
+    if (confirm(`Delete ${customer.name}?`)) {
+
+      this.customerService.deleteCustomer(customer._id).subscribe({
+        error: () => alert('Delete failed')
+      });
+
+    }
+  }
+
+  resetForm() {
+    this.customer = this.getEmptyCustomer();
+    this.showForm = false;
+    this.editCustomerId = null;
+  }
+
+  /* =========================================
+     FILTER
+  ========================================= */
+
+  get filteredCustomers() {
+    const text = this.searchText.toLowerCase();
+
+    return this.customers.filter(x =>
+      x.name?.toLowerCase().includes(text) ||
+      x.phone?.includes(text) ||
+      x.email?.toLowerCase().includes(text)
+    );
+  }
+
+  /* =========================================
+     PAGINATION
+  ========================================= */
+
+  get paginatedCustomers() {
     const start = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredCustomers.slice(start, start + this.itemsPerPage);
   }
 
-  get totalPages(){
-    return Math.ceil(this.filteredCustomers.length / this.itemsPerPage);
+  get totalPages() {
+    return Math.max(Math.ceil(this.filteredCustomers.length / this.itemsPerPage), 1);
   }
 
-  changePage(page:number){
+  changePage(page: number) {
     this.currentPage = page;
   }
 
-  // ✅ Download Single
-  downloadCustomer(customer:any){
+  /* =========================================
+     DOWNLOAD
+  ========================================= */
+
+  downloadCustomer(customer: any) {
+
     const data = JSON.stringify(customer, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
+
     const url = window.URL.createObjectURL(blob);
 
     const a = document.createElement('a');
@@ -121,10 +167,11 @@ export class CustomerList {
     window.URL.revokeObjectURL(url);
   }
 
-  // ✅ Download All
-  downloadAllCustomers(){
+  downloadAllCustomers() {
+
     const data = JSON.stringify(this.customers, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
+
     const url = window.URL.createObjectURL(blob);
 
     const a = document.createElement('a');

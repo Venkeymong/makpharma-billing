@@ -1,31 +1,77 @@
 const mongoose = require("mongoose");
 
-/* ================= ITEMS ================= */
+/* =========================================
+   🧾 BILL ITEM SCHEMA (PRO)
+========================================= */
 
 const billItemSchema = new mongoose.Schema({
-  medicine: { type: String, required: true },
-  qty: { type: Number, required: true },
-  price: { type: Number, required: true },
-  gst: { type: Number, default: 0 },
-  total: { type: Number, required: true }
-});
 
-/* ================= BILL ================= */
+  medicine: {
+    type: String,
+    required: true,
+    trim: true
+  },
+
+  batch: {
+    type: String,
+    default: ""
+  },
+
+  qty: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+
+  /* 💰 PURCHASE PRICE */
+  price: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+
+  /* 💰 SELLING PRICE */
+  sellingPrice: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+
+  gst: {
+    type: Number,
+    default: 0
+  },
+
+  total: {
+    type: Number,
+    required: true,
+    min: 0
+  }
+
+}, { _id: false });
+
+
+/* =========================================
+   🧾 BILL SCHEMA (PRODUCTION READY)
+========================================= */
 
 const billSchema = new mongoose.Schema({
 
-  // ✅ AUTO INVOICE NUMBER (UNIQUE)
+  /* ================= INVOICE ================= */
+
   invoiceNumber: {
     type: String,
-    unique: true,
-    required: true
+    unique: true,   // ✅ KEEP THIS ONLY
+    required: true,
+    trim: true
   },
 
   /* ================= CUSTOMER ================= */
 
   customerName: {
     type: String,
-    default: "Walk-in"
+    default: "Walk-in",
+    trim: true
   },
 
   customerPhone: {
@@ -50,13 +96,17 @@ const billSchema = new mongoose.Schema({
     default: Date.now
   },
 
-  items: [billItemSchema],
+  items: {
+    type: [billItemSchema],
+    required: true
+  },
 
   /* ================= TOTALS ================= */
 
   subtotal: {
     type: Number,
-    default: 0
+    default: 0,
+    min: 0
   },
 
   cgst: {
@@ -76,7 +126,8 @@ const billSchema = new mongoose.Schema({
 
   totalAmount: {
     type: Number,
-    required: true
+    required: true,
+    min: 0
   },
 
   paymentMethod: {
@@ -88,7 +139,33 @@ const billSchema = new mongoose.Schema({
   timestamps: true
 });
 
-/* ✅ FIX: Prevent OverwriteModelError */
+
+/* =========================================
+   🔥 INDEX (ONLY NECESSARY ONES)
+========================================= */
+
+// ❌ REMOVED duplicate invoice index
+// ✅ Keep only useful index
+billSchema.index({ createdAt: -1 });
+
+
+/* =========================================
+   🔥 PRE SAVE (AUTO FIX)
+========================================= */
+
+billSchema.pre("save", function (next) {
+
+  this.subtotal = Number(this.subtotal) || 0;
+  this.totalAmount = Number(this.totalAmount) || 0;
+
+  next();
+});
+
+
+/* =========================================
+   🔥 SAFE EXPORT
+========================================= */
+
 module.exports =
   mongoose.models.Bill ||
   mongoose.model("Bill", billSchema);

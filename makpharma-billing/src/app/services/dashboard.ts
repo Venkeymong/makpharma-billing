@@ -1,30 +1,50 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
+import { Observable, catchError, throwError, map } from 'rxjs';
+
+export interface DashboardData {
+  totalSales: number;
+  totalOrders: number;
+  totalCustomers: number;
+  totalMedicines: number;
+  lowStock: any[];
+  recentSales: any[];
+  expirySoon: any[];
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class DashboardService {
 
-  private baseUrl = 'https://makpharma-billing-final.onrender.com/api/dashboard';
+  private readonly baseUrl = 'https://makpharma-billing-final.onrender.com/api/dashboard';
 
   constructor(private http: HttpClient) {}
 
-  /* ================= HELPER (TOKEN) ================= */
+  /* =========================================
+     GET DASHBOARD DATA
+  ========================================= */
 
-  private getHeaders() {
-    const token = localStorage.getItem('token');
+  getDashboard(): Observable<DashboardData> {
 
-    return {
-      headers: new HttpHeaders({
-        Authorization: `Bearer ${token}`
+    return this.http.get<any>(this.baseUrl).pipe(
+
+      map((res) => ({
+        totalSales: res?.totalSales || 0,
+        totalOrders: res?.totalOrders || 0,
+        totalCustomers: res?.totalCustomers || 0,
+        totalMedicines: res?.totalMedicines || 0,
+        lowStock: res?.lowStock || [],
+        recentSales: res?.recentSales || [],
+        expirySoon: res?.expirySoon || []
+      })),
+
+      catchError((error) => {
+        console.error('Dashboard API Error:', error);
+        return throwError(() => error);
       })
-    };
+
+    );
   }
 
-  /* ================= GET DASHBOARD ================= */
-
-  getDashboard() {
-    return this.http.get<any>(this.baseUrl, this.getHeaders());
-  }
 }

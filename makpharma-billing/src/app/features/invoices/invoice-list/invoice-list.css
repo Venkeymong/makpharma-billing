@@ -1,280 +1,216 @@
 /* =========================================
-INVOICE PAGE = PREMIUM UI
+🔥 INVOICE PAGE - PRO RESPONSIVE UI
 ========================================= */
 
-/* GLOBAL */
+.invoice-page {
+  padding: 20px;
+  min-height: 100vh;
+  font-family: 'Inter','Segoe UI',sans-serif;
 
-.invoice-page{
-  padding:30px;
-  min-height:100vh;
-  font-family:'Segoe UI', Roboto, sans-serif;
-
-  background:linear-gradient(135deg,#0f172a,#020617);
-  color:#e2e8f0;
+  background: linear-gradient(135deg,#0f172a,#020617);
+  color: #e2e8f0;
 }
-
 
 /* =========================================
 HEADER
 ========================================= */
 
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:25px;
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap; /* 🔥 mobile fix */
+  gap: 10px;
 }
 
-.header h2{
-  font-size:26px;
-  font-weight:600;
-  color:#38bdf8;
+.header h2 {
+  font-size: 22px;
+  color: #38bdf8;
 }
 
-.sub{
-  font-size:13px;
-  color:#94a3b8;
+.sub {
+  font-size: 13px;
+  color: #94a3b8;
 }
 
 /* SALES SUMMARY */
 
-.sales-summary{
-  background:rgba(34,197,94,0.15);
-  padding:10px 16px;
-  border-radius:12px;
-  font-weight:600;
-  color:#22c55e;
-  box-shadow:0 0 12px rgba(34,197,94,0.2);
+.sales-summary {
+  background: rgba(34,197,94,0.15);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  color: #22c55e;
 }
-
 
 /* =========================================
 CONTROLS
 ========================================= */
 
-.controls{
-  margin-bottom:20px;
+.controls {
+  margin-bottom: 15px;
 }
 
-.search{
-  width:320px;
-  height:42px;
-  padding:10px 14px;
+.search {
+  width: 100%;
+  max-width: 320px;
+  height: 40px;
+  padding: 10px;
 
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
 
-  background:rgba(255,255,255,0.06);
-  color:#fff;
-  outline:none;
-
-  transition:0.3s;
+  background: rgba(255,255,255,0.06);
+  color: #fff;
 }
-
-.search:focus{
-  border-color:#38bdf8;
-  box-shadow:0 0 10px rgba(56,189,248,0.3);
-}
-
 
 /* =========================================
-TABLE CONTAINER (GLASS)
+TABLE CONTAINER
 ========================================= */
 
-.table-container{
-  background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(20px);
+.table-container {
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(14px);
 
-  padding:20px;
-  border-radius:18px;
+  padding: 15px;
+  border-radius: 14px;
 
-  border:1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.08);
 
-  box-shadow:0 15px 40px rgba(0,0,0,0.5);
+  overflow-x: auto; /* 🔥 FIX */
 }
 
-
 /* =========================================
-TABLE
+TABLE (CRITICAL FIX)
 ========================================= */
 
-.invoice-table{
-  width:100%;
-  border-collapse:collapse;
+.invoice-table {
+  width: 100%;
+  min-width: 700px; /* 🔥 prevents breaking */
+  border-collapse: collapse;
 }
 
 /* REMOVE WHITE */
 
 .invoice-table,
-.invoice-table thead,
-.invoice-table tbody,
-.invoice-table tr,
 .invoice-table th,
-.invoice-table td{
-  background:transparent !important;
+.invoice-table td {
+  background: transparent !important;
 }
 
 /* HEADER */
 
-.invoice-table thead{
-  background:rgba(255,255,255,0.06);
-}
-
-.invoice-table th{
-  padding:12px;
-  text-align:left;
-  font-weight:600;
-  font-size:13px;
-  color:#93c5fd;
-  border-bottom:1px solid rgba(255,255,255,0.1);
+.invoice-table th {
+  padding: 10px;
+  font-size: 13px;
+  color: #93c5fd;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 /* BODY */
 
-.invoice-table td{
-  padding:12px;
-  font-size:13px;
-  color:#e2e8f0;
-  border-bottom:1px solid rgba(255,255,255,0.06);
+.invoice-table td {
+  padding: 10px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 /* HOVER */
 
-.invoice-table tr{
-  transition:0.25s;
+.invoice-table tr:hover {
+  background: rgba(255,255,255,0.06);
 }
-
-.invoice-table tr:hover{
-  background:rgba(255,255,255,0.07);
-  transform:scale(1.01);
-}
-
 
 /* =========================================
-CUSTOMER STYLE
+CUSTOMER
 ========================================= */
 
-.customer .name{
-  display:block;
-  font-weight:500;
+.customer .name {
+  font-weight: 500;
 }
 
-.customer .phone{
-  font-size:11px;
-  color:#94a3b8;
+.customer .phone {
+  font-size: 11px;
+  color: #94a3b8;
 }
-
 
 /* =========================================
 ACTIONS
 ========================================= */
 
-.actions{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
+.actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.btn{
-  padding:6px 12px;
-  border:none;
-  border-radius:10px;
-  font-size:12px;
-  cursor:pointer;
-  transition:0.25s;
+.btn {
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  border: none;
+  cursor: pointer;
 }
 
 /* COLORS */
 
-.btn.view{
-  background:#6366f1;
-  color:#fff;
-}
-
-.btn.print{
-  background:#22c55e;
-  color:#fff;
-}
-
-.btn.edit{
-  background:#f59e0b;
-  color:#fff;
-}
-
-.btn.delete{
-  background:#ef4444;
-  color:#fff;
-}
-
-/* HOVER EFFECT */
-
-.btn:hover{
-  transform:translateY(-2px);
-  box-shadow:0 6px 14px rgba(0,0,0,0.4);
-  opacity:0.95;
-}
-
+.btn.view { background:#6366f1; color:#fff; }
+.btn.print { background:#22c55e; color:#fff; }
+.btn.edit { background:#f59e0b; color:#fff; }
+.btn.delete { background:#ef4444; color:#fff; }
 
 /* =========================================
 NO DATA
 ========================================= */
 
-.no-data{
-  text-align:center;
-  padding:20px;
-  color:#94a3b8;
+.no-data {
+  text-align: center;
+  padding: 15px;
+  color: #94a3b8;
 }
-
 
 /* =========================================
 PAGINATION
 ========================================= */
 
-.pagination{
-  margin-top:25px;
-  display:flex;
-  justify-content:center;
-  gap:10px;
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.page-btn{
-  background:rgba(255,255,255,0.08);
-  color:#fff;
-  border:none;
-  border-radius:10px;
-  padding:8px 14px;
-  cursor:pointer;
-  transition:0.25s;
+.page-btn {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  border: none;
+  cursor: pointer;
 }
 
-.page-btn:hover{
-  background:#6366f1;
+.page-btn.active {
+  background: #6366f1;
 }
-
-.page-btn.active{
-  background:#6366f1;
-  box-shadow:0 0 10px rgba(99,102,241,0.5);
-}
-
 
 /* =========================================
-RESPONSIVE
+📱 MOBILE FIX
 ========================================= */
 
-@media (max-width:768px){
+@media (max-width: 768px) {
 
-  .header{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:10px;
+  .header h2 {
+    font-size: 18px;
   }
 
-  .search{
-    width:100%;
+  .invoice-page {
+    padding: 12px;
   }
 
-  .actions{
-    flex-direction:column;
+  .invoice-table {
+    min-width: 600px;
   }
 
 }

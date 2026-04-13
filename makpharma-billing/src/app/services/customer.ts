@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { BehaviorSubject, tap, catchError, throwError } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -9,6 +9,10 @@ export class CustomerService {
 
   private baseUrl = 'https://makpharma-billing-final.onrender.com/api/customers';
 
+  /* =========================================
+     STATE MANAGEMENT
+  ========================================= */
+
   private customersSubject = new BehaviorSubject<any[]>([]);
   customers$ = this.customersSubject.asObservable();
 
@@ -16,84 +20,97 @@ export class CustomerService {
     this.loadCustomers();
   }
 
-  /* ================= HELPER (TOKEN) ================= */
-
-  private getHeaders() {
-    const token = localStorage.getItem('token');
-
-    return {
-      headers: new HttpHeaders({
-        Authorization: `Bearer ${token}`
-      })
-    };
-  }
-
-  /* ================= LOAD ================= */
+  /* =========================================
+     LOAD CUSTOMERS
+  ========================================= */
 
   loadCustomers() {
-    this.http.get<any[]>(this.baseUrl, this.getHeaders()).subscribe({
-      next: (data) => {
-        this.customersSubject.next(data);
-      },
-      error: (err) => {
-        console.error('Load Customers Error:', err);
-      }
-    });
+    this.http.get<any[]>(this.baseUrl).pipe(
+
+      tap((data) => {
+        this.customersSubject.next(data || []);
+      }),
+
+      catchError((err) => {
+        console.error('❌ Load Customers Error:', err);
+        return throwError(() => err);
+      })
+
+    ).subscribe();
   }
 
-  /* ================= GET ================= */
+  /* =========================================
+     GET CURRENT VALUE
+  ========================================= */
 
-  getCustomers() {
-    return this.customersSubject.value;
+  getCustomers(): any[] {
+    return this.customersSubject.value || [];
   }
 
-  /* ================= ADD ================= */
+  /* =========================================
+     ADD CUSTOMER
+  ========================================= */
 
   addCustomer(customer: any) {
-    this.http.post(this.baseUrl + '/add', customer, this.getHeaders()).subscribe({
-      next: () => {
-        this.loadCustomers();
-      },
-      error: (err) => {
-        console.error('Add Customer Error:', err);
-      }
-    });
+    return this.http.post<any>(`${this.baseUrl}/add`, customer).pipe(
+
+      tap((newCustomer) => {
+        const current = this.getCustomers();
+        this.customersSubject.next([...current, newCustomer]);
+      }),
+
+      catchError((err) => {
+        console.error('❌ Add Customer Error:', err);
+        return throwError(() => err);
+      })
+
+    );
   }
 
-  /* ================= UPDATE ================= */
+  /* =========================================
+     UPDATE CUSTOMER (ID BASED ✅)
+  ========================================= */
 
-  updateCustomer(index: number, customer: any) {
-    const data = this.getCustomers();
-    const id = data[index]?._id;
+  updateCustomer(id: string, customer: any) {
+    return this.http.put<any>(`${this.baseUrl}/${id}`, customer).pipe(
 
-    if (!id) return;
+      tap((updatedCustomer) => {
 
-    this.http.put(`${this.baseUrl}/${id}`, customer, this.getHeaders()).subscribe({
-      next: () => {
-        this.loadCustomers();
-      },
-      error: (err) => {
-        console.error('Update Error:', err);
-      }
-    });
+        const updated = this.getCustomers().map(c =>
+          c._id === id ? { ...c, ...updatedCustomer } : c
+        );
+
+        this.customersSubject.next(updated);
+      }),
+
+      catchError((err) => {
+        console.error('❌ Update Customer Error:', err);
+        return throwError(() => err);
+      })
+
+    );
   }
 
-  /* ================= DELETE ================= */
+  /* =========================================
+     DELETE CUSTOMER (ID BASED ✅)
+  ========================================= */
 
-  deleteCustomer(index: number) {
-    const data = this.getCustomers();
-    const id = data[index]?._id;
+  deleteCustomer(id: string) {
+    return this.http.delete(`${this.baseUrl}/${id}`).pipe(
 
-    if (!id) return;
+      tap(() => {
 
-    this.http.delete(`${this.baseUrl}/${id}`, this.getHeaders()).subscribe({
-      next: () => {
-        this.loadCustomers();
-      },
-      error: (err) => {
-        console.error('Delete Error:', err);
-      }
-    });
+        const updated = this.getCustomers().filter(c => c._id !== id);
+
+        this.customersSubject.next(updated);
+      }),
+
+      catchError((err) => {
+        console.error('❌ Delete Customer Error:', err);
+        return throwError(() => err);
+      })
+
+    );
   }
 
 }

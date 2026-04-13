@@ -3,20 +3,26 @@ import { HttpRequest, HttpHandlerFn, HttpErrorResponse } from '@angular/common/h
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
+import { AuthService } from '../services/auth';
 
 export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<any>, next: HttpHandlerFn) => {
 
+  const auth = inject(AuthService);
   const router = inject(Router);
 
-  /* ================= GET TOKEN ================= */
+  /* =========================================
+     🔐 GET TOKEN (CENTRALIZED)
+  ========================================= */
 
-  const token = localStorage.getItem('token');
+  const token = auth.getToken();
 
-  /* ================= CLONE REQUEST ================= */
+  /* =========================================
+     🚀 ATTACH TOKEN
+  ========================================= */
 
   let modifiedReq = req;
 
-  if (token) {
+  if (token && auth.isTokenValid()) {
 
     modifiedReq = req.clone({
       setHeaders: {
@@ -26,25 +32,41 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<any>, next: 
 
   }
 
-  /* ================= HANDLE RESPONSE ================= */
+  /* =========================================
+     🚨 GLOBAL ERROR HANDLING
+  ========================================= */
 
   return next(modifiedReq).pipe(
 
     catchError((error: HttpErrorResponse) => {
 
-      /* 🔐 AUTO LOGOUT IF TOKEN EXPIRED */
+      /* ================= 401 ================= */
 
       if (error.status === 401) {
 
-        console.warn('Unauthorized - Logging out');
+        console.warn('🔐 Unauthorized - Session expired');
 
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        // Prevent multiple redirects loop
+        if (auth.isLoggedIn()) {
+          auth.logout();
+          router.navigate(['/login'], { replaceUrl: true });
+        }
+      }
 
-        router.navigate(['/login']);
+      /* ================= 403 ================= */
+
+      if (error.status === 403) {
+        console.warn('🚫 Forbidden access');
+      }
+
+      /* ================= 500 ================= */
+
+      if (error.status === 500) {
+        console.error('🔥 Server error occurred');
       }
 
       return throwError(() => error);
+
     })
 
   );

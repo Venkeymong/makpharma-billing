@@ -2,7 +2,9 @@ const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-/* ================= LOGIN ================= */
+/* =========================================
+   🔐 LOGIN (PRODUCTION READY)
+========================================= */
 
 exports.login = async (req, res) => {
   try {
@@ -12,15 +14,19 @@ exports.login = async (req, res) => {
     /* ================= VALIDATION ================= */
 
     if (!username || !password) {
-      return res.status(400).json({ message: "Username and password are required" });
+      return res.status(400).json({
+        message: "Username and password are required"
+      });
     }
 
     /* ================= FIND USER ================= */
 
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ username }).select("+password");
 
     if (!user) {
-      return res.status(401).json({ message: "User not found" });
+      return res.status(401).json({
+        message: "Invalid username or password" // 🔥 secure message
+      });
     }
 
     /* ================= CHECK PASSWORD ================= */
@@ -28,14 +34,20 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid password" });
+      return res.status(401).json({
+        message: "Invalid username or password"
+      });
     }
 
-    /* ================= ROLE HANDLING ================= */
+    /* ================= ROLE ================= */
 
-    const role = user.role || "admin"; // 🔥 fallback for now
+    const role = user.role || "admin";
 
-    /* ================= CREATE TOKEN ================= */
+    /* ================= TOKEN ================= */
+
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET not defined");
+    }
 
     const token = jwt.sign(
       {
@@ -44,7 +56,9 @@ exports.login = async (req, res) => {
         role: role
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      {
+        expiresIn: "1d"
+      }
     );
 
     /* ================= RESPONSE ================= */
@@ -61,11 +75,10 @@ exports.login = async (req, res) => {
 
   } catch (err) {
 
-    console.error("Login Error:", err);
+    console.error("❌ Login Error:", err);
 
     res.status(500).json({
-      message: "Server error",
-      error: err.message
+      message: "Server error"
     });
 
   }

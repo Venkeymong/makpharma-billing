@@ -1,10 +1,10 @@
 <div class="customer-page">
 
-  <!-- HEADER -->
+  <!-- ================= HEADER ================= -->
   <div class="header">
     <h2>Customers</h2>
 
-    <div>
+    <div class="header-actions">
       <button class="btn btn-success" (click)="openForm()">
         Add Customer
       </button>
@@ -15,19 +15,19 @@
     </div>
   </div>
 
-  <!-- SEARCH -->
+  <!-- ================= SEARCH ================= -->
   <div class="search-box">
     <input
       type="text"
-      placeholder="Search customer..."
+      placeholder="Search by name, phone or email..."
       [(ngModel)]="searchText"
     />
   </div>
 
-  <!-- FORM -->
+  <!-- ================= FORM ================= -->
   <div *ngIf="showForm" class="customer-form">
 
-    <h3>{{editIndex === null ? 'Add Customer' : 'Edit Customer'}}</h3>
+    <h3>{{ editCustomerId ? 'Edit Customer' : 'Add Customer' }}</h3>
 
     <div class="form-grid">
 
@@ -57,36 +57,16 @@
 
       <!-- STATE -->
       <div class="form-group">
-        <select [(ngModel)]="customer.state" required>
-          <option value="" disabled selected hidden></option>
-          <option>Andhra Pradesh</option>
-          <option>Arunachal Pradesh</option>
-          <option>Assam</option>
-          <option>Bihar</option>
-          <option>Chhattisgarh</option>
-          <option>Goa</option>
-          <option>Gujarat</option>
-          <option>Haryana</option>
-          <option>Himachal Pradesh</option>
-          <option>Jharkhand</option>
-          <option>Karnataka</option>
-          <option>Kerala</option>
-          <option>Madhya Pradesh</option>
-          <option>Maharashtra</option>
-          <option>Manipur</option>
-          <option>Meghalaya</option>
-          <option>Mizoram</option>
-          <option>Nagaland</option>
-          <option>Odisha</option>
-          <option>Punjab</option>
-          <option>Rajasthan</option>
-          <option>Sikkim</option>
-          <option>Tamil Nadu</option>
-          <option>Telangana</option>
-          <option>Tripura</option>
-          <option>Uttar Pradesh</option>
-          <option>Uttarakhand</option>
-          <option>West Bengal</option>
+        <select [(ngModel)]="customer.state">
+          <option *ngFor="let state of [
+            'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa',
+            'Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala',
+            'Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland',
+            'Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana',
+            'Tripura','Uttar Pradesh','Uttarakhand','West Bengal'
+          ]">
+            {{state}}
+          </option>
         </select>
         <label>State</label>
       </div>
@@ -99,19 +79,22 @@
 
     </div>
 
+    <!-- ACTIONS -->
     <div class="form-actions">
+
       <button class="btn btn-primary" (click)="saveCustomer()">
-        {{editIndex === null ? 'Save Customer' : 'Update Customer'}}
+        {{ editCustomerId ? 'Update Customer' : 'Save Customer' }}
       </button>
 
       <button class="btn btn-danger" (click)="resetForm()">
         Cancel
       </button>
+
     </div>
 
   </div>
 
-  <!-- TABLE -->
+  <!-- ================= TABLE ================= -->
   <div class="table-container">
 
     <table class="customer-table">
@@ -130,22 +113,22 @@
 
       <tbody>
 
-        <tr *ngFor="let c of paginatedCustomers; let i = index">
+        <tr *ngFor="let c of paginatedCustomers">
 
-          <td>{{c.name}}</td>
-          <td>{{c.phone}}</td>
-          <td>{{c.email}}</td>
-          <td>{{c.address}}</td>
-          <td>{{c.state}}</td>
-          <td>{{c.gst || '-'}}</td>
+          <td>{{ c.name }}</td>
+          <td>{{ c.phone }}</td>
+          <td>{{ c.email || '-' }}</td>
+          <td>{{ c.address || '-' }}</td>
+          <td>{{ c.state }}</td>
+          <td>{{ c.gst || '-' }}</td>
 
-          <td>
+          <td class="actions">
 
-            <button class="btn btn-primary btn-sm" (click)="editCustomer(i)">
+            <button class="btn btn-primary btn-sm" (click)="editCustomer(c)">
               Edit
             </button>
 
-            <button class="btn btn-danger btn-sm" (click)="deleteCustomer(i)">
+            <button class="btn btn-danger btn-sm" (click)="deleteCustomer(c)">
               Delete
             </button>
 
@@ -157,14 +140,21 @@
 
         </tr>
 
+        <!-- EMPTY STATE -->
+        <tr *ngIf="paginatedCustomers.length === 0">
+          <td colspan="7" class="no-data">
+            No customers found
+          </td>
+        </tr>
+
       </tbody>
 
     </table>
 
   </div>
 
-  <!-- PAGINATION -->
-  <div class="pagination">
+  <!-- ================= PAGINATION ================= -->
+  <div class="pagination" *ngIf="totalPages > 1">
 
     <button 
       class="btn"
@@ -176,9 +166,9 @@
     <button 
       *ngFor="let page of [].constructor(totalPages); let i = index"
       class="btn"
-      [class.active]="currentPage === i+1"
-      (click)="changePage(i+1)">
-      {{i+1}}
+      [class.active]="currentPage === i + 1"
+      (click)="changePage(i + 1)">
+      {{ i + 1 }}
     </button>
 
     <button 

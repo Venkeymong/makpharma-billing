@@ -1,112 +1,166 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { BehaviorSubject, Observable, catchError, throwError, tap } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+
+/* =========================================
+   INTERFACE (UPDATED - PRODUCTION SAFE)
+========================================= */
+
+export interface Medicine {
+  _id?: string;
+
+  name: string;
+
+  batch?: string;
+  hsn?: string;
+  expiry?: string;
+
+  price: number;          // purchase price
+  sellingPrice: number;   // selling price
+  mrp?: number;
+
+  gst?: number;
+  stock: number;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class MedicineService {
 
-  private baseUrl = 'https://makpharma-billing-final.onrender.com/api/medicines';
+  private readonly baseUrl = 'https://makpharma-billing-final.onrender.com/api/medicines';
 
-  private medicinesSubject = new BehaviorSubject<any[]>([]);
+  private medicinesSubject = new BehaviorSubject<Medicine[]>([]);
   medicines$ = this.medicinesSubject.asObservable();
 
   constructor(private http: HttpClient) {
     this.loadMedicines();
   }
 
-  /* ================= HELPER (TOKEN) ================= */
+  /* =========================================
+     LOAD FROM BACKEND
+  ========================================= */
 
-  private getHeaders() {
-    const token = localStorage.getItem('token');
+  loadMedicines(): void {
 
-    return {
-      headers: new HttpHeaders({
-        Authorization: `Bearer ${token}`
+    this.http.get<Medicine[]>(this.baseUrl).pipe(
+
+      tap((data) => {
+
+        const formatted = (data || []).map((m: any) => ({
+          _id: m._id,
+          name: m.name || '',
+
+          batch: m.batch || '',
+          hsn: m.hsn || '',
+          expiry: m.expiry || '',
+
+          price: Number(m.price) || 0,
+          sellingPrice: Number(m.sellingPrice ?? m.price) || 0,
+          mrp: Number(m.mrp ?? m.sellingPrice ?? m.price) || 0,
+
+          gst: Number(m.gst) || 0,
+          stock: Number(m.stock) || 0
+        }));
+
+        this.medicinesSubject.next(formatted);
+      }),
+
+      catchError((err) => {
+        console.error('Load Medicines Error:', err);
+        return throwError(() => err);
       })
-    };
+
+    ).subscribe();
   }
 
-  /* ================= LOAD FROM BACKEND ================= */
+  /* =========================================
+     GET CURRENT VALUE
+  ========================================= */
 
-  loadMedicines() {
-    this.http.get<any[]>(this.baseUrl, this.getHeaders()).subscribe({
-      next: (data) => {
-        this.medicinesSubject.next(data);
-      },
-      error: (err) => console.error('Load Medicines Error:', err)
-    });
+  getMedicines(): Medicine[] {
+    return this.medicinesSubject.value || [];
   }
 
-  /* ================= GET CURRENT VALUE ================= */
+  /* =========================================
+     ADD MEDICINE
+  ========================================= */
 
-  getMedicines(): any[] {
-    return this.medicinesSubject.value;
+  addMedicine(med: Medicine): Observable<any> {
+
+    return this.http.post(`${this.baseUrl}/add`, med).pipe(
+
+      tap(() => this.loadMedicines()),
+
+      catchError((err) => {
+        console.error('Add Medicine Error:', err);
+        return throwError(() => err);
+      })
+
+    );
   }
 
-  /* ================= SET STATE ================= */
+  /* =========================================
+     UPDATE MEDICINE
+  ========================================= */
 
-  private setMedicines(data: any[]) {
-    this.medicinesSubject.next([...data]);
+  updateMedicine(id: string, med: Medicine): Observable<any> {
+
+    if (!id) {
+      return throwError(() => new Error('Invalid Medicine ID'));
+    }
+
+    return this.http.put(`${this.baseUrl}/${id}`, med).pipe(
+
+      tap(() => this.loadMedicines()),
+
+      catchError((err) => {
+        console.error('Update Medicine Error:', err);
+        return throwError(() => err);
+      })
+
+    );
   }
 
-  /* ================= ADD ================= */
+  /* =========================================
+     DELETE MEDICINE
+  ========================================= */
 
-  addMedicine(med: any) {
-    this.http.post(this.baseUrl + '/add', med, this.getHeaders()).subscribe({
-      next: () => {
-        this.loadMedicines();
-      },
-      error: (err) => console.error('Add Medicine Error:', err)
-    });
+  deleteMedicine(id: string): Observable<any> {
+
+    if (!id) {
+      return throwError(() => new Error('Invalid Medicine ID'));
+    }
+
+    return this.http.delete(`${this.baseUrl}/${id}`).pipe(
+
+      tap(() => this.loadMedicines()),
+
+      catchError((err) => {
+        console.error('Delete Medicine Error:', err);
+        return throwError(() => err);
+      })
+
+    );
   }
 
-  /* ================= UPDATE ================= */
+  /* =========================================
+     REDUCE STOCK (LOCAL UPDATE)
+  ========================================= */
 
-  updateMedicine(index: number, med: any) {
-    const data = this.getMedicines();
-    const id = data[index]?._id;
-
-    if (!id) return;
-
-    this.http.put(`${this.baseUrl}/${id}`, med, this.getHeaders()).subscribe({
-      next: () => {
-        this.loadMedicines();
-      },
-      error: (err) => console.error('Update Medicine Error:', err)
-    });
-  }
-
-  /* ================= DELETE ================= */
-
-  deleteMedicine(index: number) {
-    const data = this.getMedicines();
-    const id = data[index]?._id;
-
-    if (!id) return;
-
-    this.http.delete(`${this.baseUrl}/${id}`, this.getHeaders()).subscribe({
-      next: () => {
-        this.loadMedicines();
-      },
-      error: (err) => console.error('Delete Medicine Error:', err)
-    });
-  }
-
-  /* ================= STOCK ================= */
-
-  reduceStock(name: string, qty: number) {
+  reduceStock(name: string, qty: number): void {
 
     const medicines = this.medicinesSubject.value;
 
     const updated = medicines.map(med => {
+
       if (med.name === name) {
         return {
           ...med,
-          stock: med.stock - qty
+          stock: Math.max((med.stock || 0) - qty, 0)
         };
       }
+
       return med;
     });
 

@@ -1,364 +1,143 @@
 /* =========================================
-CUSTOMER PAGE - EXACT MEDICINE LEVEL
+🔥 CUSTOMER PAGE - PRO RESPONSIVE UI
 ========================================= */
 
-/* GLOBAL */
+.customer-page {
+  padding: 20px;
+  min-height: 100vh;
+  font-family: 'Inter','Segoe UI',sans-serif;
 
-.customer-page{
-  padding:28px;
-  min-height:100vh;
-  font-family:'Segoe UI', Roboto, sans-serif;
-
-  background:linear-gradient(135deg,#1e293b,#0f172a);
-  color:#e2e8f0;
+  background: linear-gradient(135deg,#1e293b,#0f172a);
+  color: #e2e8f0;
 }
-
 
 /* =========================================
 HEADER
 ========================================= */
 
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:25px;
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap; /* 🔥 mobile fix */
+  gap: 10px;
 }
 
-.header h2{
-  font-size:26px;
-  font-weight:600;
-  color:#60a5fa;
+.header h2 {
+  font-size: 22px;
+  color: #60a5fa;
 }
 
-.header div{
-  display:flex;
-  gap:12px;
+.header div {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
-
 
 /* =========================================
-SEARCH (MATCH MEDICINE)
+SEARCH
 ========================================= */
 
-.search-box{
-  margin-bottom:20px;
+.search-box {
+  margin-bottom: 15px;
 }
 
-.search-box input{
-  width:400px;
-  height:42px;
-  padding:10px 14px;
+.search-box input {
+  width: 100%;
+  max-width: 400px;
+  height: 40px;
+  padding: 10px;
 
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
 
-  background:rgba(255,255,255,0.05);
-  color:#fff;
-
-  outline:none;
+  background: rgba(255,255,255,0.05);
+  color: #fff;
 }
-
 
 /* =========================================
-BUTTONS (EXACT SAME)
+BUTTONS
 ========================================= */
 
-.btn{
-  padding:10px 18px;
-  border:none;
-  border-radius:12px;
-  font-size:14px;
-  cursor:pointer;
-  transition:.25s;
+.btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.btn-primary{ background:#6366f1; color:#fff; }
-.btn-success{ background:#22c55e; color:#fff; }
-.btn-danger{ background:#ef4444; color:#fff; }
+.btn-primary { background:#6366f1; color:#fff; }
+.btn-success { background:#22c55e; color:#fff; }
+.btn-danger { background:#ef4444; color:#fff; }
 
-.btn:hover{
-  transform:translateY(-2px);
+.btn:hover {
+  transform: translateY(-2px);
 }
 
-.btn-sm{
-  padding:6px 12px;
-  font-size:12px;
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 12px;
 }
-
 
 /* =========================================
-CARD SYSTEM (FORM + TABLE)
+CARD
 ========================================= */
 
 .customer-form,
-.table-container{
-  background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(18px);
+.table-container {
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(12px);
 
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
 
-  box-shadow:0 8px 30px rgba(0,0,0,0.4);
-
-  padding:20px;
-  margin-bottom:25px;
+  padding: 16px;
+  margin-bottom: 20px;
 }
-
 
 /* =========================================
 FORM
 ========================================= */
 
-.customer-form h3{
-  font-size:16px;
-  margin-bottom:12px;
-  color:#cbd5f5;
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+  gap: 15px;
 }
 
-.form-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-  gap:20px;
-}
-
-.form-grid div{
-  display:flex;
-  flex-direction:column;
-}
-
-/* FIX SELECT ALIGNMENT */
-.form-grid select{
-  height:45px;
-  padding:10px;
-
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,0.1);
-
-  background:rgba(255,255,255,0.05);
-  color:#fff;
-}
-
-
-/* LABEL */
-
-label{
-  font-size:12px;
-  margin-bottom:6px;
-  color:#cbd5f5;
-}
-
-
-/* INPUT */
-
-.customer-form input{
-  height:45px;
-  padding:10px 14px;
-
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,0.1);
-
-  background:rgba(255,255,255,0.05);
-  color:#fff;
-
-  font-size:14px;
-}
-
-.customer-form input::placeholder{
-  color:#94a3b8;
-}
-
-.customer-form input:focus{
-  outline:none;
-  border:1px solid #6366f1;
-  box-shadow:0 0 10px rgba(99,102,241,0.4);
-}
-
-
-/* FORM ACTIONS */
-
-.form-actions{
-  margin-top:20px;
-  display:flex;
-  gap:10px;
-}
-
-
-/* =========================================
-TABLE (IDENTICAL)
-========================================= */
-
-.customer-table{
-  width:100%;
-  border-collapse:collapse;
-}
-
-.customer-table,
-.customer-table thead,
-.customer-table tbody,
-.customer-table tr,
-.customer-table th,
-.customer-table td{
-  background:transparent !important;
-}
-
-.customer-table thead{
-  background:rgba(255,255,255,0.05);
-}
-
-.customer-table th{
-  padding:14px;
-  font-size:13px;
-  color:#93c5fd;
-  border-bottom:1px solid rgba(255,255,255,0.1);
-}
-
-.customer-table td{
-  padding:14px;
-  font-size:13px;
-  color:#e2e8f0;
-  border-bottom:1px solid rgba(255,255,255,0.08);
-}
-
-.customer-table tr:hover{
-  background:rgba(255,255,255,0.05);
-}
-
-
-/* ACTION BUTTONS */
-
-.customer-table td:last-child{
-  display:flex;
-  gap:8px;
-  align-items:center;
-  flex-wrap:wrap;
-}
-
-
-/* =========================================
-PAGINATION
-========================================= */
-
-.pagination{
-  display:flex;
-  justify-content:center;
-  gap:10px;
-}
-
-.pagination .btn{
-  background:rgba(255,255,255,0.08);
-  color:#fff;
-}
-
-.pagination .btn:hover{
-  background:#6366f1;
-}
-
-.pagination .active{
-  background:#6366f1;
-}
-
-
-/* =========================================
-RESPONSIVE
-========================================= */
-
-@media (max-width:600px){
-
-  .customer-page{
-    padding:16px;
-  }
-
-  .search-box input{
-    width:100%;
-  }
-
-}
-/* =========================================
-PERFECT FORM ALIGNMENT
-========================================= */
-
-.form-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-  gap:20px;
-}
-
-.form-grid > div{
-  display:flex;
-  flex-direction:column;
-}
-
-/* SAME HEIGHT FOR ALL INPUTS */
-
-.customer-form input,
-.customer-form select{
-  height:45px;
-  padding:10px 14px;
-
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,0.1);
-
-  background:rgba(255,255,255,0.05);
-  color:#fff;
-
-  font-size:14px;
-}
-
-/* LABEL FIX */
-
-.form-grid label{
-  font-size:12px;
-  margin-bottom:6px;
-  color:#cbd5f5;
-}
-
-/* FORCE ALIGNMENT */
-
-.form-grid > div{
-  justify-content:flex-start;
-}
-/* =========================================
-FLOATING LABEL FORM (MODERN UI)
-========================================= */
-
-.form-group{
-  position:relative;
-  display:flex;
-  flex-direction:column;
+.form-group {
+  position: relative;
 }
 
 /* INPUT + SELECT */
 
 .form-group input,
-.form-group select{
-  height:45px;
-  padding:14px 12px 6px;
+.form-group select {
+  height: 42px;
+  padding: 12px 10px 5px;
 
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
 
-  background:rgba(255,255,255,0.05);
-  color:#fff;
-
-  font-size:14px;
-  outline:none;
+  background: rgba(255,255,255,0.05);
+  color: #fff;
 }
 
 /* LABEL */
 
-.form-group label{
-  position:absolute;
-  top:12px;
-  left:12px;
+.form-group label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
 
-  font-size:13px;
-  color:#94a3b8;
+  font-size: 12px;
+  color: #94a3b8;
 
-  pointer-events:none;
-  transition:0.25s ease;
-
-  background:transparent;
+  transition: 0.2s;
+  pointer-events: none;
 }
 
 /* FLOAT EFFECT */
@@ -366,21 +145,102 @@ FLOATING LABEL FORM (MODERN UI)
 .form-group input:focus + label,
 .form-group input:not(:placeholder-shown) + label,
 .form-group select:focus + label,
-.form-group select:not([value=""]) + label{
-  top:-8px;
-  left:10px;
-  font-size:11px;
-
-  color:#38bdf8;
-
-  background:#0f172a;
-  padding:0 4px;
+.form-group select:not([value=""]) + label {
+  top: -8px;
+  font-size: 10px;
+  color: #38bdf8;
+  background: #0f172a;
+  padding: 0 4px;
 }
 
-/* FOCUS EFFECT */
+/* =========================================
+FORM ACTIONS
+========================================= */
 
-.form-group input:focus,
-.form-group select:focus{
-  border:1px solid #6366f1;
-  box-shadow:0 0 10px rgba(99,102,241,0.4);
+.form-actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* =========================================
+TABLE (CRITICAL FIX)
+========================================= */
+
+.table-container {
+  overflow-x: auto; /* 🔥 important */
+}
+
+.customer-table {
+  width: 100%;
+  min-width: 700px; /* 🔥 prevents breaking */
+  border-collapse: collapse;
+}
+
+.customer-table th,
+.customer-table td {
+  padding: 10px;
+  font-size: 13px;
+}
+
+.customer-table th {
+  color: #93c5fd;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.customer-table td {
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.customer-table tr:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+/* ACTION BUTTONS */
+
+.customer-table td:last-child {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* =========================================
+PAGINATION
+========================================= */
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pagination .btn {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+.pagination .btn.active {
+  background: #6366f1;
+}
+
+/* =========================================
+📱 MOBILE FIX
+========================================= */
+
+@media (max-width: 768px) {
+
+  .customer-page {
+    padding: 12px;
+  }
+
+  .header h2 {
+    font-size: 18px;
+  }
+
+  .customer-table {
+    min-width: 600px;
+  }
+
 }

@@ -2,7 +2,9 @@ const mongoose = require("mongoose");
 const Bill = require("../models/bill");
 const Medicine = require("../models/medicine");
 
-/* ================= CREATE BILL ================= */
+/* =========================================
+   🧾 CREATE BILL (PRODUCTION READY)
+========================================= */
 
 exports.createBill = async (req, res) => {
 
@@ -13,18 +15,18 @@ exports.createBill = async (req, res) => {
 
     const year = new Date().getFullYear();
 
-    // 🔥 LOCK + GET LAST BILL (prevents duplicate invoice)
+    /* ================= GET LAST INVOICE ================= */
+
     const lastBill = await Bill.findOne({
       invoiceNumber: { $regex: `^MAK-${year}-` }
     })
-    .sort({ createdAt: -1 })
-    .session(session);
+      .sort({ createdAt: -1 })
+      .session(session);
 
     let nextNumber = 1;
 
-    if (lastBill && lastBill.invoiceNumber) {
-
-      const lastPart = lastBill.invoiceNumber.split('-')[2];
+    if (lastBill?.invoiceNumber) {
+      const lastPart = lastBill.invoiceNumber.split("-")[2];
       const lastNumber = parseInt(lastPart);
 
       if (!isNaN(lastNumber)) {
@@ -32,12 +34,11 @@ exports.createBill = async (req, res) => {
       }
     }
 
-    const paddedNumber = String(nextNumber).padStart(4, '0');
-    const invoiceNumber = `MAK-${year}-${paddedNumber}`;
+    const invoiceNumber = `MAK-${year}-${String(nextNumber).padStart(4, "0")}`;
 
     /* ================= VALIDATION ================= */
 
-    if (!req.body.items || !req.body.items.length) {
+    if (!req.body.items || !Array.isArray(req.body.items) || !req.body.items.length) {
       throw new Error("Items cannot be empty");
     }
 
@@ -52,19 +53,23 @@ exports.createBill = async (req, res) => {
 
     /* ================= STOCK REDUCTION ================= */
 
-    for (let item of req.body.items) {
+    for (const item of req.body.items) {
 
-      const med = await Medicine.findOne({ name: item.medicine }).session(session);
+      const med = await Medicine.findOne({
+        name: item.medicine,
+        batch: item.batch || undefined // 🔥 supports batch
+      }).session(session);
 
       if (!med) {
         throw new Error(`Medicine not found: ${item.medicine}`);
       }
 
-      if (med.stock < item.qty) {
+      if ((med.stock || 0) < item.qty) {
         throw new Error(`Insufficient stock for ${item.medicine}`);
       }
 
-      med.stock -= item.qty;
+      med.stock = (med.stock || 0) - item.qty;
+
       await med.save({ session });
     }
 
@@ -80,7 +85,7 @@ exports.createBill = async (req, res) => {
     await session.abortTransaction();
     session.endSession();
 
-    console.error("Create Bill Error:", error);
+    console.error("❌ Create Bill Error:", error);
 
     res.status(500).json({
       message: error.message || "Failed to create bill"
@@ -88,7 +93,10 @@ exports.createBill = async (req, res) => {
   }
 };
 
-/* ================= GET ALL BILLS ================= */
+
+/* =========================================
+   📥 GET ALL BILLS
+========================================= */
 
 exports.getBills = async (req, res) => {
   try {
@@ -98,17 +106,20 @@ exports.getBills = async (req, res) => {
     res.json(bills);
 
   } catch (error) {
-    console.error("Get Bills Error:", error);
-    res.status(500).json({ message: error.message });
+    console.error("❌ Get Bills Error:", error);
+    res.status(500).json({ message: "Failed to fetch bills" });
   }
 };
 
-/* ================= DELETE BILL ================= */
+
+/* =========================================
+   ❌ DELETE BILL (WITH STOCK RESTORE)
+========================================= */
 
 exports.deleteBill = async (req, res) => {
   try {
 
-    const id = req.params.id;
+    const { id } = req.params;
 
     if (!id) {
       return res.status(400).json({ message: "Invalid bill ID" });
@@ -120,11 +131,18 @@ exports.deleteBill = async (req, res) => {
       return res.status(404).json({ message: "Bill not found" });
     }
 
-    // 🔥 RESTORE STOCK WHEN DELETING
-    for (let item of bill.items) {
+    /* ================= RESTORE STOCK ================= */
+
+    for (const item of bill.items) {
+
       await Medicine.updateOne(
-        { name: item.medicine },
-        { $inc: { stock: item.qty } }
+        {
+          name: item.medicine,
+          batch: item.batch || undefined
+        },
+        {
+          $inc: { stock: item.qty }
+        }
       );
     }
 
@@ -133,7 +151,7 @@ exports.deleteBill = async (req, res) => {
     res.json({ message: "Bill deleted & stock restored" });
 
   } catch (error) {
-    console.error("Delete Bill Error:", error);
-    res.status(500).json({ message: error.message });
+    console.error("❌ Delete Bill Error:", error);
+    res.status(500).json({ message: "Failed to delete bill" });
   }
 };

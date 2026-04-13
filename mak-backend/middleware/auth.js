@@ -1,79 +1,94 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
+
+/* =========================================
+   🔐 AUTH MIDDLEWARE (PRODUCTION READY)
+========================================= */
 
 const authMiddleware = (req, res, next) => {
   try {
 
-    /* ======================================================
-       🔐 GET AUTH HEADER
-    ====================================================== */
+    /* ================= GET HEADER ================= */
+
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
       return res.status(401).json({
         success: false,
-        message: 'Access denied. No token provided.'
+        message: "Access denied. No token provided."
       });
     }
 
-    /* ======================================================
-       🔍 VALIDATE FORMAT (Bearer TOKEN)
-    ====================================================== */
-    const [scheme, token] = authHeader.split(' ');
+    /* ================= FORMAT CHECK ================= */
 
-    if (scheme !== 'Bearer' || !token) {
+    const parts = authHeader.split(" ");
+
+    if (parts.length !== 2) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid token format. Use Bearer token.'
+        message: "Invalid token format."
       });
     }
 
-    /* ======================================================
-       ✅ VERIFY TOKEN
-    ====================================================== */
+    const [scheme, token] = parts;
+
+    if (scheme !== "Bearer" || !token) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token format. Use Bearer token."
+      });
+    }
+
+    /* ================= SECRET CHECK ================= */
+
+    if (!process.env.JWT_SECRET) {
+      console.error("❌ JWT_SECRET missing");
+      return res.status(500).json({
+        success: false,
+        message: "Server configuration error"
+      });
+    }
+
+    /* ================= VERIFY TOKEN ================= */
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    /* ======================================================
-       👤 ATTACH USER DATA
-    ====================================================== */
+    /* ================= ATTACH USER ================= */
+
     req.user = {
       id: decoded.id,
       username: decoded.username,
-      role: decoded.role || 'admin' // fallback role
+      role: decoded.role || "admin"
     };
 
-    /* ======================================================
-       🚀 NEXT
-    ====================================================== */
     next();
 
   } catch (error) {
 
-    console.error('🔴 Auth Error:', error.message);
+    console.error("🔴 Auth Error:", error.message);
 
-    /* ======================================================
-       ⚠️ HANDLE TOKEN ERRORS
-    ====================================================== */
+    /* ================= TOKEN EXPIRED ================= */
 
-    // Token expired
-    if (error.name === 'TokenExpiredError') {
+    if (error.name === "TokenExpiredError") {
       return res.status(401).json({
         success: false,
-        message: 'Token expired. Please login again.'
+        message: "Token expired. Please login again."
       });
     }
 
-    // Invalid token
-    if (error.name === 'JsonWebTokenError') {
+    /* ================= INVALID TOKEN ================= */
+
+    if (error.name === "JsonWebTokenError") {
       return res.status(401).json({
         success: false,
-        message: 'Invalid token.'
+        message: "Invalid token."
       });
     }
 
-    // Generic error
-    return res.status(500).json({
+    /* ================= DEFAULT ================= */
+
+    return res.status(401).json({
       success: false,
-      message: 'Authentication failed.'
+      message: "Authentication failed."
     });
   }
 };

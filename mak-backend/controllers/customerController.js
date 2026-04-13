@@ -1,46 +1,133 @@
 const Customer = require("../models/customer");
 
-// ➕ ADD
+/* =========================================
+   ➕ ADD CUSTOMER
+========================================= */
+
 exports.addCustomer = async (req, res) => {
   try {
+
+    const { name, phone } = req.body;
+
+    /* 🔒 BASIC VALIDATION */
+    if (!name || !phone) {
+      return res.status(400).json({
+        message: "Name and phone are required"
+      });
+    }
+
     const customer = new Customer(req.body);
-    await customer.save();
-    res.json(customer);
+
+    const saved = await customer.save();
+
+    res.status(201).json(saved);
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    console.error("❌ Add Customer Error:", error);
+
+    res.status(500).json({
+      message: "Failed to add customer"
+    });
   }
 };
 
-// 📥 GET ALL
+
+/* =========================================
+   📥 GET ALL CUSTOMERS
+========================================= */
+
 exports.getCustomers = async (req, res) => {
   try {
+
     const data = await Customer.find().sort({ createdAt: -1 });
+
     res.json(data);
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    console.error("❌ Get Customers Error:", error);
+
+    res.status(500).json({
+      message: "Failed to fetch customers"
+    });
   }
 };
 
-// ✏️ UPDATE
+
+/* =========================================
+   ✏️ UPDATE CUSTOMER
+========================================= */
+
 exports.updateCustomer = async (req, res) => {
   try {
+
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        message: "Invalid customer ID"
+      });
+    }
+
     const updated = await Customer.findByIdAndUpdate(
-      req.params.id,
+      id,
       req.body,
       { new: true }
     );
+
+    if (!updated) {
+      return res.status(404).json({
+        message: "Customer not found"
+      });
+    }
+
     res.json(updated);
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    console.error("❌ Update Customer Error:", error);
+
+    res.status(500).json({
+      message: "Failed to update customer"
+    });
   }
 };
 
-// ❌ DELETE
+
+/* =========================================
+   ❌ DELETE CUSTOMER
+========================================= */
+
 exports.deleteCustomer = async (req, res) => {
   try {
-    await Customer.findByIdAndDelete(req.params.id);
-    res.json({ message: "Deleted" });
+
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        message: "Invalid customer ID"
+      });
+    }
+
+    const deleted = await Customer.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({
+        message: "Customer not found"
+      });
+    }
+
+    res.json({
+      message: "Customer deleted successfully"
+    });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    console.error("❌ Delete Customer Error:", error);
+
+    res.status(500).json({
+      message: "Failed to delete customer"
+    });
   }
 };

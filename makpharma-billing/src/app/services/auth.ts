@@ -12,17 +12,37 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   /* ======================================================
-     🔐 HEADERS
+     🔐 TOKEN MANAGEMENT (CENTRALIZED)
   ====================================================== */
 
-  private getHeaders() {
-    const token = localStorage.getItem('token');
+  private TOKEN_KEY = 'token';
+  private USER_KEY = 'user';
+  private EXPIRY_KEY = 'tokenExpiry';
 
-    return {
-      headers: new HttpHeaders({
-        Authorization: `Bearer ${token || ''}`
-      })
-    };
+  getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
+  }
+
+  private setToken(token: string): void {
+    localStorage.setItem(this.TOKEN_KEY, token);
+
+    // 1 hour expiry
+    const expiry = Date.now() + (60 * 60 * 1000);
+    localStorage.setItem(this.EXPIRY_KEY, expiry.toString());
+  }
+
+  private clearToken(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.EXPIRY_KEY);
+  }
+
+  isTokenValid(): boolean {
+    const token = this.getToken();
+    const expiry = localStorage.getItem(this.EXPIRY_KEY);
+
+    if (!token || !expiry) return false;
+
+    return Date.now() < Number(expiry);
   }
 
   /* ======================================================
@@ -41,15 +61,14 @@ export class AuthService {
 
       if (!res?.token || !res?.user) return false;
 
-      localStorage.setItem('token', res.token);
+      this.setToken(res.token);
 
       const user = {
         ...res.user,
         actionPassword: res.user.actionPassword || ''
       };
 
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('loginTime', Date.now().toString());
+      localStorage.setItem(this.USER_KEY, JSON.stringify(user));
 
       return true;
 
@@ -64,27 +83,28 @@ export class AuthService {
   ====================================================== */
 
   logout(): void {
-    localStorage.clear();
+    this.clearToken();
+    localStorage.removeItem(this.USER_KEY);
   }
 
   /* ======================================================
-     👤 USER CACHE
+     👤 USER
   ====================================================== */
 
   getUser(): any {
     try {
-      return JSON.parse(localStorage.getItem('user') || 'null');
+      return JSON.parse(localStorage.getItem(this.USER_KEY) || 'null');
     } catch {
       return null;
     }
   }
 
   updateUser(user: any): void {
-    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
   }
 
   /* ======================================================
-     🔒 ACTION PASSWORD
+     🔒 ACTION PASSWORD (LOCAL SECURITY)
   ====================================================== */
 
   getActionPassword(): string {
@@ -111,8 +131,18 @@ export class AuthService {
   }
 
   /* ======================================================
-     🌐 PROFILE
+     🌐 PROFILE API
   ====================================================== */
+
+  private getHeaders() {
+    const token = this.getToken();
+
+    return {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token || ''}`
+      })
+    };
+  }
 
   getProfile() {
     return this.http.get(`${this.baseUrl}/profile`, this.getHeaders());
@@ -123,79 +153,40 @@ export class AuthService {
   }
 
   /* ======================================================
-     🔁 OTP FLOW (FIXED)
+     🔁 OTP FLOW
   ====================================================== */
 
   async sendOtp(email: string): Promise<any> {
-    try {
-      const res = await firstValueFrom(
-        this.http.post(`${this.baseUrl}/send-otp`, { email })
-      );
-      return res;
-    } catch (err) {
-      console.error("❌ SEND OTP ERROR:", err);
-      throw err;
-    }
+    return await firstValueFrom(
+      this.http.post(`${this.baseUrl}/send-otp`, { email })
+    );
   }
 
   async verifyOtp(email: string, otp: string): Promise<any> {
-    try {
-      const res = await firstValueFrom(
-        this.http.post(`${this.baseUrl}/verify-otp`, { email, otp })
-      );
-      return res;
-    } catch (err) {
-      console.error("❌ VERIFY OTP ERROR:", err);
-      throw err;
-    }
+    return await firstValueFrom(
+      this.http.post(`${this.baseUrl}/verify-otp`, { email, otp })
+    );
   }
 
   async resetPassword(email: string, password: string): Promise<any> {
-    try {
-      const res = await firstValueFrom(
-        this.http.post(`${this.baseUrl}/reset-password`, { email, password })
-      );
-      return res;
-    } catch (err) {
-      console.error("❌ RESET ERROR:", err);
-      throw err;
-    }
+    return await firstValueFrom(
+      this.http.post(`${this.baseUrl}/reset-password`, { email, password })
+    );
   }
 
   /* ======================================================
-     ✅ SESSION
+     ✅ SESSION CHECK (IMPROVED)
   ====================================================== */
 
   isLoggedIn(): boolean {
+    const user = this.getUser();
 
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
-
-    if (!token || !user) return false;
-
-    const loginTime = localStorage.getItem('loginTime');
-
-    if (loginTime) {
-
-      const diff = Date.now() - Number(loginTime);
-      const THIRTY_MIN = 30 * 60 * 1000;
-
-      if (diff > THIRTY_MIN) {
-        console.warn('Session expired');
-        this.logout();
-        return false;
-      }
+    if (!this.isTokenValid() || !user) {
+      this.logout();
+      return false;
     }
 
     return true;
-  }
-
-  /* ======================================================
-     🎟️ TOKEN
-  ====================================================== */
-
-  getToken(): string | null {
-    return localStorage.getItem('token');
   }
 
 }

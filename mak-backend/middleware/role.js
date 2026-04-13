@@ -1,28 +1,50 @@
-// middleware/role.js
-
 const roleMiddleware = (...allowedRoles) => {
 
   return (req, res, next) => {
-
     try {
 
-      /* 🔥 FALLBACK ROLE (IMPORTANT) */
-      const userRole = req.user?.role || "admin";
+      /* ================= CHECK USER ================= */
 
-      /* 🔐 CHECK ACCESS */
-      if (!allowedRoles.includes(userRole)) {
-        return res.status(403).json({ message: "Access denied" });
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized. User not found."
+        });
       }
+
+      /* ================= GET ROLE ================= */
+
+      const userRole = req.user.role || "admin";
+
+      /* ================= VALIDATION ================= */
+
+      if (!Array.isArray(allowedRoles) || allowedRoles.length === 0) {
+        console.warn("⚠️ No roles defined for route");
+        return next(); // allow if no restriction
+      }
+
+      /* ================= ACCESS CHECK ================= */
+
+      if (!allowedRoles.includes(userRole)) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. Insufficient permissions."
+        });
+      }
+
+      /* ================= ALLOW ================= */
 
       next();
 
     } catch (error) {
 
-      console.error("Role Middleware Error:", error);
-      return res.status(500).json({ message: "Server error" });
+      console.error("❌ Role Middleware Error:", error);
 
+      return res.status(500).json({
+        success: false,
+        message: "Server error"
+      });
     }
-
   };
 
 };

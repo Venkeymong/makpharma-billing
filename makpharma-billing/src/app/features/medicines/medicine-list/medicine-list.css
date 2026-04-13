@@ -1,292 +1,159 @@
 /* =========================================
-MEDICINE PAGE (MATCH REPORT UI)
+🔥 FINAL DARK THEME (100% WORKING)
 ========================================= */
 
-/* GLOBAL */
-
-.medicine-page{
-  padding:28px;
-  min-height:100vh;
-  font-family:'Segoe UI', Roboto, sans-serif;
-
-  background:linear-gradient(135deg,#1e293b,#0f172a);
-  color:#e2e8f0;
+/* PAGE */
+.medicine-page {
+  background: linear-gradient(135deg,#1e293b,#0f172a);
+  color: #e2e8f0;
+  padding: 20px;
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-
-/* =========================================
-HEADER
-========================================= */
-
-.medicine-page .d-flex{
+/* HEADER */
+.header {
   display:flex;
   justify-content:space-between;
   align-items:center;
   margin-bottom:20px;
+  flex-wrap:wrap;
+  gap:10px;
 }
 
-.medicine-page h3{
-  font-size:26px;
+.header h2 {
+  font-size:22px;
   font-weight:600;
   color:#38bdf8;
 }
 
-
-/* =========================================
-SEARCH
-========================================= */
-
-.medicine-page input[type="text"]{
-  width:320px;
-  height:40px;
-  padding:8px 12px;
-
-  border-radius:10px;
-  border:1px solid rgba(255,255,255,0.1);
-
-  background:rgba(255,255,255,0.05);
-  color:#fff;
-}
-
-
-/* =========================================
-BUTTONS
-========================================= */
-
-.btn{
-  padding:8px 14px;
-  border:none;
-  border-radius:10px;
-  font-size:13px;
-  cursor:pointer;
-}
-
-.btn-primary{ background:#6366f1; color:#fff; }
-.btn-success{ background:#22c55e; color:#fff; }
-.btn-danger{ background:#ef4444; color:#fff; }
-.btn-warning{ background:#f59e0b; color:#000; }
-.btn-secondary{ background:#475569; color:#fff; }
-
-
-/* =========================================
-CARD (GLASS STYLE)
-========================================= */
-
-.card{
-  background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(18px);
-
-  border-radius:16px;
-  padding:18px;
-
-  border:1px solid rgba(255,255,255,0.1);
-  box-shadow:0 8px 30px rgba(0,0,0,0.4);
-
-  margin-bottom:25px;
-}
-
-.card-header{
-  font-size:14px;
-  font-weight:600;
-  color:#cbd5f5;
-  margin-bottom:10px;
-}
-
-.card-body{
-  padding:0;
-}
-
-
-/* =========================================
-FORM
-========================================= */
-
-.row.g-3{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:15px;
-}
-
-label{
+.sub {
   font-size:12px;
-  color:#cbd5f5;
+  color:#94a3b8;
 }
 
-.form-control{
-  height:40px;
-  padding:8px 10px;
-
+/* SEARCH */
+.search-box input {
+  width:100%;
+  max-width:320px;
+  padding:10px;
   border-radius:10px;
   border:1px solid rgba(255,255,255,0.1);
-
-  background:rgba(255,255,255,0.05);
+  background:#1e293b;
   color:#fff;
 }
 
-
-/* =========================================
-TABLE (MATCH REPORT)
-========================================= */
-
-.table{
-  width:100%;
-  border-collapse:collapse;
+/* CARD */
+.card {
+  background:#1e293b;
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:20px;
+  border:1px solid rgba(255,255,255,0.08);
+   -webkit-text-fill-color: #d3f6fc;
 }
 
-/* REMOVE WHITE */
+/* FORM */
+.form-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px;
+  margin-bottom:15px;
+}
 
+.form-grid input {
+  padding:10px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:#0f172a;
+  color:#fff;
+  -webkit-text-fill-color: #fff;
+}
+
+/* =========================================
+🔥 TABLE FIX (MAIN PART)
+========================================= */
+
+/* FORCE EVERYTHING DARK */
 .table,
 .table thead,
 .table tbody,
 .table tr,
 .table th,
-.table td{
-  background:transparent !important;
+.table td {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,0.08) !important;
 }
 
 /* HEADER */
-
-.table thead{
-  background:rgba(255,255,255,0.05);
+.table thead {
+  background-color: #334155 !important;
 }
 
-.table th{
-  padding:12px;
-  font-size:13px;
-  color:#93c5fd;
-  border-bottom:1px solid rgba(255,255,255,0.1);
+.table th {
+  color: #93c5fd !important;
+  padding: 12px;
+  font-size: 13px;
 }
 
 /* BODY */
-
-.table td{
-  padding:12px;
-  font-size:13px;
-  color:#e2e8f0;
-  border-bottom:1px solid rgba(255,255,255,0.08);
+.table td {
+  padding: 12px;
+  font-size: 13px;
 }
 
-.table tr:hover{
-  background:rgba(255,255,255,0.05);
+/* STRIPES */
+.table tbody tr:nth-child(even) {
+  background-color: #0f172a !important;
 }
 
+/* HOVER */
+.table tbody tr:hover {
+  background-color: #334155 !important;
+}
+
+/* FIX BOOTSTRAP WHITE TABLE */
+table {
+  background-color: #1e293b !important;
+}
+
+/* FORCE TEXT */
+td, th {
+  color: #e2e8f0 !important;
+}
 
 /* =========================================
-ACTION BUTTONS
+BUTTONS
 ========================================= */
 
-.table td:last-child{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}
-
-
-/* =========================================
-PAGINATION
-========================================= */
-
-.pagination-glass{
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  padding:15px;
-}
-
-.pagination-glass button{
-  background:rgba(255,255,255,0.08);
-  color:#fff;
-  border:none;
-  border-radius:10px;
+.btn {
   padding:8px 12px;
-}
-
-.pagination-glass button:hover{
-  background:#6366f1;
-}
-
-.pagination-glass .active{
-  background:#6366f1;
-}
-
-
-/* =========================================
-EXPIRY COLORS
-========================================= */
-
-.text-danger{
-  color:#ef4444;
-  font-weight:600;
-}
-
-.text-warning{
-  color:#f59e0b;
-  font-weight:600;
-}
-
-
-/* =========================================
-MODAL
-========================================= */
-
-.modal-overlay{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-
-  background:rgba(0,0,0,0.6);
-
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-
-.modal-card{
-  width:260px;
-  background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(18px);
-
-  padding:20px;
-  border-radius:12px;
-
-  border:1px solid rgba(255,255,255,0.1);
-  box-shadow:0 8px 30px rgba(0,0,0,0.4);
-
-  text-align:center;
-}
-
-.modal-card h5{
-  margin-bottom:10px;
-  color:#e2e8f0;
-}
-
-.modal-card input{
-  width:100%;
-  height:40px;
-  padding:8px;
-
   border-radius:8px;
-  border:1px solid rgba(255,255,255,0.1);
-
-  background:rgba(255,255,255,0.05);
-  color:#fff;
+  border:none;
+  cursor:pointer;
+  color:#fff !important;
 }
 
+.btn-primary { background:#6366f1 !important; }
+.btn-success { background:#22c55e !important; }
+.btn-danger { background:#ff0000 !important; }
+.btn-secondary { background:#ff0000 !important; }
 
-/* =========================================
-RESPONSIVE
-========================================= */
+.btn-sm {
+  padding:6px 10px;
+  font-size:12px;
+}
 
-@media (max-width:600px){
+/* ACTION ALIGN */
+.actions {
+  display:flex;
+  gap:6px;
+}
 
-  .medicine-page{
-    padding:16px;
-  }
-
-  .medicine-page input[type="text"]{
-    width:100%;
-  }
-
+/* EMPTY */
+.empty {
+  text-align:center;
+  color:#94a3b8;
+  padding:15px;
 }

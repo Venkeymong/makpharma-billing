@@ -4,56 +4,59 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 
-/* ================= CREATE APP ================= */
+/* =========================================
+   🚀 CREATE APP
+========================================= */
 const app = express();
 
-/* ======================================================
+
+/* =========================================
    🔌 DATABASE CONNECTION
-====================================================== */
+========================================= */
 connectDB();
 
-/* ======================================================
-   ⚙️ MIDDLEWARE
-====================================================== */
 
-// ✅ CORS (SAFE FOR ANGULAR + NO ERRORS)
-app.use(cors());
+/* =========================================
+   ⚙️ GLOBAL MIDDLEWARE
+========================================= */
 
-// ✅ HANDLE PREFLIGHT (NO * OR /* USED)
-app.use((req, res, next) => {
-  if (req.method === "OPTIONS") {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    return res.sendStatus(200);
-  }
-  next();
-});
+// 🔐 CORS (production safe)
+app.use(cors({
+  origin: "https://makpharma-billing-final.onrender.com", // 👉 change to frontend URL in production
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
-// ✅ JSON parser
+// 🔄 JSON parser
 app.use(express.json());
 
-// ✅ CACHE CONTROL
+// 🚫 CACHE CONTROL
 app.use((req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
 
-/* ======================================================
-   🔥 DEBUG ROUTES
-====================================================== */
 
-app.get("/test", (req, res) => {
-  res.send("🔥 SERVER WORKING");
-});
+/* =========================================
+   🔥 HEALTH CHECK ROUTES
+========================================= */
 
 app.get("/", (req, res) => {
   res.send("🚀 Pharmacy Backend API Running...");
 });
 
-/* ======================================================
+app.get("/test", (req, res) => {
+  res.send("🔥 SERVER WORKING");
+});
+
+app.get("/api/auth/check", (req, res) => {
+  res.send("🔥 AUTH ROUTE WORKING");
+});
+
+
+/* =========================================
    📦 ROUTES IMPORT
-====================================================== */
+========================================= */
 
 const medicineRoutes = require("./routes/medicineRoutes");
 const purchaseRoutes = require("./routes/purchaseRoutes");
@@ -63,9 +66,10 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const authRoutes = require("./routes/authRoutes");
 
-/* ======================================================
+
+/* =========================================
    📌 ROUTES
-====================================================== */
+========================================= */
 
 app.use("/api/medicines", medicineRoutes);
 app.use("/api/purchases", purchaseRoutes);
@@ -75,38 +79,38 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/auth", authRoutes);
 
-// 👉 AUTH DEBUG
-app.get("/api/auth/check", (req, res) => {
-  res.send("🔥 AUTH ROUTE WORKING");
-});
 
-/* ======================================================
-   ❌ 404 HANDLER (DEBUG VERSION)
-====================================================== */
+/* =========================================
+   ❌ 404 HANDLER
+========================================= */
 
 app.use((req, res) => {
-  console.log("❌ 404 HIT:", req.method, req.url);
+  console.warn("❌ 404:", req.method, req.url);
 
   res.status(404).json({
+    success: false,
     message: `Route not found: ${req.method} ${req.url}`
   });
 });
 
-/* ======================================================
-   ❌ ERROR HANDLER
-====================================================== */
+
+/* =========================================
+   ❌ GLOBAL ERROR HANDLER
+========================================= */
 
 app.use((err, req, res, next) => {
-  console.error("🔥 ERROR:", err.stack);
-  res.status(500).json({
-    message: "Internal Server Error",
-    error: err.message
+  console.error("🔥 SERVER ERROR:", err.message);
+
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error"
   });
 });
 
-/* ======================================================
-   🚀 SERVER START
-====================================================== */
+
+/* =========================================
+   🚀 START SERVER
+========================================= */
 
 const PORT = process.env.PORT || 5000;
 

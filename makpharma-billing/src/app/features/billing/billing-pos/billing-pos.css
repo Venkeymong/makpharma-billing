@@ -1,264 +1,312 @@
 /* =========================================
-GLOBAL
+🔥 BILLING PAGE - PRO POS UI (RESPONSIVE)
 ========================================= */
 
-.billing-page{
-  padding:28px;
-  min-height:100vh;
-  font-family:'Segoe UI', sans-serif;
+.billing-page {
+  padding: 20px;
+  min-height: 100vh;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
 
-  background:linear-gradient(135deg,#1e293b,#0f172a);
-  color:#e2e8f0;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: #e2e8f0;
 }
 
-/* HEADER */
+/* =========================================
+HEADER
+========================================= */
 
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.header h2{
-  margin:0;
-  font-size:24px;
+.header h2 {
+  font-size: 22px;
 }
 
-.sub{
-  font-size:13px;
-  color:#94a3b8;
+.sub {
+  font-size: 13px;
+  color: #94a3b8;
 }
 
-.invoice-box{
-  background:rgba(255,255,255,0.05);
-  padding:10px 15px;
-  border-radius:12px;
-  font-size:13px;
+.invoice-box {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
 }
 
-/* CUSTOMER */
+/* =========================================
+CUSTOMER
+========================================= */
 
-.customer-section{
-  position:relative;
-  display:flex;
-  gap:10px;
-  margin-bottom:20px;
+.customer-section {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
 }
 
-.customer-section input{
-  flex:1;
-  height:42px;
-  padding:10px;
-  border-radius:10px;
-  border:1px solid rgba(255,255,255,0.1);
-  background:rgba(255,255,255,0.05);
-  color:#fff;
+.customer-section input {
+  flex: 1;
+  min-width: 200px;
+  height: 40px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: #fff;
 }
 
-.dropdown{
-  position:absolute;
-  top:45px;
-  width:300px;
-  background:#1e293b;
-  border-radius:10px;
-  max-height:200px;
-  overflow:auto;
-  z-index:10;
+/* DROPDOWN */
+
+.dropdown {
+  position: absolute;
+  top: 45px;
+  width: 100%;
+  max-width: 300px;
+  background: #1e293b;
+  border-radius: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
 }
 
-.dropdown li{
-  padding:10px;
-  cursor:pointer;
+.dropdown li {
+  padding: 10px;
+  cursor: pointer;
 }
 
-.dropdown li:hover{
-  background:rgba(255,255,255,0.05);
+.dropdown li:hover {
+  background: rgba(255,255,255,0.08);
 }
 
-.add-btn{
-  background:#22c55e;
-  border:none;
-  padding:10px 16px;
-  border-radius:10px;
-  color:#fff;
-  cursor:pointer;
+.add-btn {
+  background: #22c55e;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
 }
 
-/* MAIN LAYOUT */
+/* =========================================
+MAIN LAYOUT
+========================================= */
 
-.main-container{
-  display:grid;
-  grid-template-columns:1fr 1.2fr;
-  gap:20px;
+.main-container {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 20px;
 }
 
-/* CARD */
+/* MOBILE */
+
+@media (max-width: 900px) {
+  .main-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================
+CARD
+========================================= */
 
 .med-section,
-.cart-section{
-  background:rgba(255,255,255,0.05);
-  border-radius:16px;
-  padding:20px;
-  backdrop-filter:blur(15px);
+.cart-section {
+  background: rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 16px;
+  backdrop-filter: blur(12px);
 }
 
-/* MEDICINE */
+/* =========================================
+MEDICINES
+========================================= */
 
-.med-section input{
-  width:100%;
-  height:40px;
-  margin-bottom:10px;
-  padding:10px;
-  border-radius:10px;
-  border:1px solid rgba(255,255,255,0.1);
-  background:rgba(255,255,255,0.05);
-  color:#fff;
+.med-section input {
+  width: 100%;
+  height: 38px;
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: #fff;
 }
 
-.med-grid{
-  display:grid;
-  gap:10px;
+/* GRID */
+
+.med-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
 }
 
-.med-card{
-  padding:12px;
-  border-radius:12px;
-  background:rgba(255,255,255,0.05);
-  cursor:pointer;
+/* MOBILE GRID */
+
+@media (max-width: 500px) {
+  .med-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.med-card:hover{
-  background:rgba(255,255,255,0.08);
+.med-card {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-/* TABLE */
-
-table{
-  width:100%;
-  border-collapse:collapse;
+.med-card:hover {
+  background: rgba(255,255,255,0.1);
 }
 
-th, td{
-  padding:10px;
-  border-bottom:1px solid rgba(255,255,255,0.1);
-  font-size:13px;
+/* =========================================
+TABLE (CRITICAL FIX)
+========================================= */
+
+.cart-section {
+  overflow-x: auto;
 }
 
-th{
-  color:#93c5fd;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px; /* prevents breaking */
 }
 
-tr:hover{
-  background:rgba(255,255,255,0.05);
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  font-size: 13px;
 }
 
-/* QTY */
-
-.qty{
-  display:flex;
-  gap:5px;
-  align-items:center;
+th {
+  color: #93c5fd;
 }
 
-.qty button{
-  width:25px;
-  height:25px;
-  border:none;
-  border-radius:5px;
-  background:#6366f1;
-  color:#fff;
-  cursor:pointer;
+tr:hover {
+  background: rgba(255,255,255,0.05);
 }
 
-/* DISCOUNT */
+/* =========================================
+QTY
+========================================= */
 
-.discount{
-  display:flex;
-  gap:10px;
-  margin-top:10px;
+.qty {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.qty button {
+  width: 25px;
+  height: 25px;
+  border: none;
+  border-radius: 6px;
+  background: #6366f1;
+  color: #fff;
+}
+
+/* =========================================
+DISCOUNT
+========================================= */
+
+.discount {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
 }
 
 .discount select,
-.discount input{
-  height:40px;
-  border-radius:10px;
-  border:1px solid rgba(255,255,255,0.1);
-  background:rgba(255,255,255,0.05);
-  color:#fff;
-  padding:8px;
+.discount input {
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+  padding: 8px;
 }
 
-/* SUMMARY */
+/* =========================================
+SUMMARY
+========================================= */
 
-.summary{
-  margin-top:15px;
+.summary {
+  margin-top: 15px;
 }
 
-.summary div{
-  display:flex;
-  justify-content:space-between;
-  margin:5px 0;
+.summary div {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0;
 }
 
-.total{
-  font-size:16px;
-  font-weight:600;
-  margin-top:10px;
-  border-top:1px solid rgba(255,255,255,0.1);
-  padding-top:10px;
+.total {
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 10px;
 }
 
-/* ACTIONS */
+/* =========================================
+PAYMENT
+========================================= */
 
-.actions{
-  display:flex;
-  gap:12px;
-  margin-top:15px;
-}
-
-.print{
-  background:#22c55e;
-  border:none;
-  padding:10px 15px;
-  border-radius:10px;
-  color:#fff;
-}
-
-.pdf{
-  background:#6366f1;
-  border:none;
-  padding:10px 15px;
-  border-radius:10px;
-  color:#fff;
-}
-
-/* EMPTY */
-
-.empty{
-  text-align:center;
-  padding:15px;
-  color:#94a3b8;
-}
-
-/* RESPONSIVE */
-
-@media(max-width:900px){
-  .main-container{
-    grid-template-columns:1fr;
-  }
-}
 .payment-box {
   margin-top: 15px;
 }
 
 .payment-options {
   display: flex;
-  gap: 20px;
-  margin-top: 5px;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 
-.payment-options label {
-  cursor: pointer;
-  font-weight: 500;
+/* =========================================
+ACTIONS
+========================================= */
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.print {
+  background: #22c55e;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  color: #fff;
+  flex: 1;
+}
+
+.pdf {
+  background: #6366f1;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  color: #fff;
+  flex: 1;
+}
+
+/* =========================================
+EMPTY
+========================================= */
+
+.empty {
+  text-align: center;
+  padding: 15px;
+  color: #94a3b8;
 }

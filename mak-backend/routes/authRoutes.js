@@ -21,8 +21,10 @@ router.post("/login", login);
    👤 PROFILE
 ====================================================== */
 
+// 🔹 GET PROFILE
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
+
     const user = await User.findById(req.user.id).select("-password");
 
     if (!user) {
@@ -32,23 +34,33 @@ router.get("/profile", authMiddleware, async (req, res) => {
     res.json(user);
 
   } catch (err) {
-    console.error("❌ PROFILE ERROR:", err);
+    console.error("❌ PROFILE ERROR:", err.message);
     res.status(500).json({ message: "Failed to fetch profile" });
   }
 });
 
+
+// 🔹 UPDATE PROFILE
 router.put("/profile", authMiddleware, async (req, res) => {
   try {
+
+    const allowedFields = ["username", "email"];
+    const updates = {};
+
+    for (let key of allowedFields) {
+      if (req.body[key]) updates[key] = req.body[key];
+    }
+
     const updated = await User.findByIdAndUpdate(
       req.user.id,
-      req.body,
-      { new: true }
+      updates,
+      { new: true, runValidators: true }
     ).select("-password");
 
     res.json(updated);
 
   } catch (err) {
-    console.error("❌ PROFILE UPDATE ERROR:", err);
+    console.error("❌ PROFILE UPDATE ERROR:", err.message);
     res.status(500).json({ message: "Failed to update profile" });
   }
 });
@@ -61,7 +73,6 @@ router.put("/profile", authMiddleware, async (req, res) => {
 // 🔹 SEND OTP
 router.post("/send-otp", async (req, res) => {
   try {
-    console.log("🔥 SEND OTP HIT");
 
     const { email } = req.body;
 
@@ -75,7 +86,7 @@ router.post("/send-otp", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // ✅ GENERATE OTP
+    // 🔥 GENERATE OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     user.resetOtp = otp;
@@ -83,20 +94,17 @@ router.post("/send-otp", async (req, res) => {
 
     await user.save();
 
-    console.log("✅ OTP GENERATED:", otp);
-
-    // 🔥 SEND EMAIL IN BACKGROUND (NO BLOCKING)
+    // 🔥 SEND EMAIL (NON-BLOCKING)
     sendOTPEmail(user.email, otp)
-      .then(() => console.log("✅ EMAIL SENT"))
-      .catch(err => console.error("❌ EMAIL ERROR:", err.message));
+      .then(() => console.log("✅ OTP Email Sent"))
+      .catch(err => console.error("❌ Email Error:", err.message));
 
-    // ✅ INSTANT RESPONSE (NO WAIT)
     res.json({
       message: "OTP sent successfully"
     });
 
   } catch (err) {
-    console.error("❌ SEND OTP ERROR:", err);
+    console.error("❌ SEND OTP ERROR:", err.message);
     res.status(500).json({ message: "Failed to send OTP" });
   }
 });
@@ -105,7 +113,6 @@ router.post("/send-otp", async (req, res) => {
 // 🔹 VERIFY OTP
 router.post("/verify-otp", async (req, res) => {
   try {
-    console.log("🔥 VERIFY OTP HIT");
 
     const { email, otp } = req.body;
 
@@ -119,11 +126,11 @@ router.post("/verify-otp", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (user.resetOtp !== otp) {
+    if (!user.resetOtp || user.resetOtp !== otp) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
-    if (user.otpExpiry < Date.now()) {
+    if (!user.otpExpiry || user.otpExpiry < Date.now()) {
       return res.status(400).json({ message: "OTP expired" });
     }
 
@@ -133,7 +140,7 @@ router.post("/verify-otp", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("❌ VERIFY OTP ERROR:", err);
+    console.error("❌ VERIFY OTP ERROR:", err.message);
     res.status(500).json({ message: "Verification failed" });
   }
 });
@@ -142,7 +149,6 @@ router.post("/verify-otp", async (req, res) => {
 // 🔹 RESET PASSWORD
 router.post("/reset-password", async (req, res) => {
   try {
-    console.log("🔥 RESET PASSWORD HIT");
 
     const { email, password } = req.body;
 
@@ -156,18 +162,17 @@ router.post("/reset-password", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 🔐 STRONG PASSWORD CHECK
+    /* 🔐 STRONG PASSWORD CHECK */
     const strongPassword =
       /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
 
     if (!strongPassword.test(password)) {
       return res.status(400).json({
-        message:
-          "Password must be strong (8+ chars, capital, number, symbol)"
+        message: "Password must be strong (8+ chars, capital, number, symbol)"
       });
     }
 
-    // ❌ PREVENT OLD PASSWORD
+    // ❌ PREVENT SAME PASSWORD
     const isSame = await bcrypt.compare(password, user.password);
 
     if (isSame) {
@@ -176,9 +181,8 @@ router.post("/reset-password", async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    user.password = hashedPassword;
+    // 🔐 SAVE (HASH handled in model)
+    user.password = password;
     user.resetOtp = null;
     user.otpExpiry = null;
 
@@ -189,7 +193,7 @@ router.post("/reset-password", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("❌ RESET ERROR:", err);
+    console.error("❌ RESET ERROR:", err.message);
     res.status(500).json({ message: "Failed to reset password" });
   }
 });

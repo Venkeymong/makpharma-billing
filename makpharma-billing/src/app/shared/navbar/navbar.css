@@ -1,212 +1,236 @@
 /* =========================================
-NAVBAR - DARK GLASS (ADVANCED PROFILE UI)
+🔥 NAVBAR - PRO DARK GLASS (RESPONSIVE)
 ========================================= */
 
-/* BASE */
+.navbar {
+  height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
 
-.navbar{
-  height:65px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 25px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(18px);
 
-  background:rgba(15,23,42,0.75);
-  backdrop-filter:blur(18px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 
-  border-bottom:1px solid rgba(255,255,255,0.08);
-  box-shadow:0 8px 25px rgba(0,0,0,0.4);
+  position: relative;
+  z-index: 100;
 
-  position:relative;
-  z-index:100;
+  flex-wrap: wrap; /* 🔥 MOBILE FIX */
 }
-
-/* LEFT */
-
-.navbar-left{
-  display:flex;
-  align-items:center;
-  gap:15px;
-}
-
-/* TOGGLE */
-
-.menu-toggle{
-  width:40px;
-  height:40px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-
-  background:rgba(255,255,255,0.08);
-  color:#e2e8f0;
-
-  transition:.25s;
-}
-
-.menu-toggle:hover{
-  background:#6366f1;
-}
-
-/* TITLE */
 
 /* =========================================
-TITLE (SAFE GRADIENT TEXT)
+LEFT SECTION
 ========================================= */
 
-.title{
-  font-size:18px;
-  font-weight:700;
-  letter-spacing:0.3px;
-
-  /* fallback color (IMPORTANT) */
-  color:#38bdf8;
-
-  /* gradient */
-  background:linear-gradient(90deg,#38bdf8,#6366f1);
-
-  /* clip text */
-  -webkit-background-clip:text;
-  background-clip:text;
-
-  /* make text transparent */
-  -webkit-text-fill-color:transparent;
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-/* RIGHT */
+/* MENU BUTTON */
 
-.navbar-right{
-  display:flex;
-  align-items:center;
-  gap:18px;
+.menu-toggle {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+
+  transition: 0.25s;
+}
+
+.menu-toggle:hover {
+  background: #6366f1;
+}
+
+/* =========================================
+TITLE
+========================================= */
+
+.title {
+  font-size: 17px;
+  font-weight: 700;
+
+  color: #38bdf8;
+
+  background: linear-gradient(90deg, #38bdf8, #6366f1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* =========================================
+RIGHT SECTION
+========================================= */
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 /* USER */
 
-.user-box{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  padding:6px 10px;
-  border-radius:10px;
+.user-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
 
-  background:rgba(255,255,255,0.05);
-  cursor:pointer;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.user-box:hover{
-  background:rgba(255,255,255,0.12);
+.user-box:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 /* =========================================
-🔥 PROFILE POPUP (UPGRADED)
+🔔 NOTIFICATION
 ========================================= */
 
-.profile-popup{
-  position:absolute;
-  top:70px;
-  right:20px;
-
-  width:280px;
-  padding:18px;
-
-  background:#0f172a;
-  border-radius:14px;
-
-  border:1px solid rgba(255,255,255,0.08);
-  box-shadow:0 20px 40px rgba(0,0,0,0.6);
-
-  animation:fadeIn 0.2s ease;
+.notification {
+  position: relative;
+  cursor: pointer;
 }
 
-/* HEADER */
-
-.profile-header{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:15px;
+.notification-dot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 6px;
+  background: red;
+  border-radius: 50%;
 }
 
-.profile-header img{
-  width:45px;
-  height:45px;
-  border-radius:50%;
-  object-fit:cover;
-}
+/* =========================================
+PROFILE POPUP
+========================================= */
 
-.profile-header h4{
-  margin:0;
-  font-size:14px;
-}
+.profile-popup {
+  position: absolute;
+  top: 70px;
+  right: 15px;
 
-.profile-header p{
-  font-size:12px;
-  color:#94a3b8;
-}
+  width: 260px;
+  padding: 15px;
 
-/* BODY */
+  background: #0f172a;
+  border-radius: 14px;
 
-.profile-body{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+
+  animation: fadeIn 0.2s ease;
 }
 
 /* INPUT */
 
-.profile-body input{
-  padding:8px;
-  border-radius:6px;
-  border:1px solid rgba(255,255,255,0.1);
+.profile-popup input {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 
-  background:rgba(255,255,255,0.05);
-  color:#fff;
-  font-size:13px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 13px;
 }
 
 /* BUTTONS */
 
-.popup-actions{
-  display:flex;
-  gap:8px;
-  margin-top:10px;
+.popup-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.save-btn{
-  flex:1;
-  padding:8px;
-  border:none;
-  border-radius:6px;
-  background:#22c55e;
-  color:#fff;
-  cursor:pointer;
+.save-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  cursor: pointer;
 }
 
-.cancel-btn{
-  flex:1;
-  padding:8px;
-  border:none;
-  border-radius:6px;
-  background:#475569;
-  color:#fff;
-  cursor:pointer;
+.cancel-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  background: #475569;
+  color: #fff;
+  border: none;
+  cursor: pointer;
 }
 
 /* LOGOUT */
 
-.logout-btn{
-  padding:7px 14px;
-  border:none;
-  border-radius:10px;
-
-  background:#ef4444;
-  color:#fff;
+.logout-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  cursor: pointer;
 }
 
-/* ANIMATION */
+/* =========================================
+📱 MOBILE RESPONSIVE
+========================================= */
 
-@keyframes fadeIn{
-  from{opacity:0; transform:translateY(-5px);}
-  to{opacity:1; transform:translateY(0);}
+@media (max-width: 768px) {
+
+  .title {
+    display: none; /* 🔥 hide long text */
+  }
+
+  .navbar {
+    padding: 10px;
+  }
+
+  .navbar-right {
+    gap: 8px;
+  }
+
+  .user-box span {
+    display: none; /* show only icon */
+  }
+
+  .logout-btn {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+
+  .profile-popup {
+    width: 90%;
+    right: 5%;
+  }
+
+}
+
+/* =========================================
+ANIMATION
+========================================= */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

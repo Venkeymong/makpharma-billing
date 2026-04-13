@@ -1,71 +1,99 @@
 const nodemailer = require("nodemailer");
 
-// ==============================
-// 🔍 DEBUG ENV (VERY IMPORTANT)
-// ==============================
+/* =========================================
+   🔍 ENV CHECK (SAFE LOG)
+========================================= */
 
-console.log("📧 EMAIL_USER:", process.env.EMAIL_USER);
-console.log(
-  "🔑 EMAIL_PASS:",
-  process.env.EMAIL_PASS ? "EXISTS ✅" : "MISSING ❌"
-);
+if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  console.warn("⚠️ Email credentials missing in .env");
+}
 
-// ==============================
-// 🚀 CREATE TRANSPORTER
-// ==============================
+
+/* =========================================
+   🚀 CREATE TRANSPORTER
+========================================= */
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  family: 4, // 🔥 FORCE IPv4 (VERY IMPORTANT)
+  service: "gmail", // cleaner than host/port
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
-  },
+  }
 });
 
-// ==============================
-// 📩 SEND OTP EMAIL FUNCTION
-// ==============================
+
+/* =========================================
+   📩 SEND OTP EMAIL
+========================================= */
 
 const sendOTPEmail = async (to, otp) => {
   try {
-    console.log("📩 Sending OTP to:", to);
 
-    // ✅ VERIFY TRANSPORT (checks Gmail login)
-    await transporter.verify();
-    console.log("✅ SMTP server is ready");
+    if (!to || !otp) {
+      console.error("❌ Missing email or OTP");
+      return false;
+    }
 
     const mailOptions = {
       from: `"Mak Pharma" <${process.env.EMAIL_USER}>`,
-      to: to,
+      to,
       subject: "🔐 Password Reset OTP - Mak Pharma",
 
       html: `
-        <div style="font-family:Arial;padding:20px">
-          <h2 style="color:#6366f1">Mak Pharma</h2>
-          <p>Your OTP for password reset:</p>
-          <h1 style="letter-spacing:2px">${otp}</h1>
-          <p>This OTP is valid for 5 minutes.</p>
+        <div style="font-family:Segoe UI,Arial;padding:20px;background:#f9fafb">
+          
+          <h2 style="color:#6366f1;margin-bottom:10px;">
+            💊 Mak Pharma
+          </h2>
+
+          <p style="font-size:14px;color:#333;">
+            Your OTP for password reset is:
+          </p>
+
+          <div style="
+            font-size:28px;
+            font-weight:bold;
+            letter-spacing:4px;
+            margin:20px 0;
+            color:#111;
+          ">
+            ${otp}
+          </div>
+
+          <p style="font-size:13px;color:#555;">
+            This OTP is valid for <b>5 minutes</b>.
+          </p>
+
+          <hr style="margin:20px 0;" />
+
+          <p style="font-size:12px;color:#888;">
+            If you didn't request this, please ignore this email.
+          </p>
+
         </div>
       `,
 
-      text: `Your OTP is ${otp} (valid for 5 minutes)`,
+      text: `Mak Pharma OTP: ${otp} (valid for 5 minutes)`
     };
 
     const info = await transporter.sendMail(mailOptions);
 
-    console.log("✅ EMAIL SENT:", info.response);
+    console.log("✅ OTP Email Sent:", info.response);
 
     return true;
 
   } catch (err) {
-    console.error("❌ EMAIL ERROR FULL:", err);
 
-    // 🔥 RETURN FALSE INSTEAD OF CRASHING
+    console.error("❌ EMAIL ERROR:", err.message);
+
+    // 🔥 never crash app
     return false;
   }
 };
+
+
+/* =========================================
+   🚀 EXPORT
+========================================= */
 
 module.exports = sendOTPEmail;
