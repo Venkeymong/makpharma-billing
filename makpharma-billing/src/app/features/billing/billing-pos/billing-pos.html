@@ -95,8 +95,11 @@
           <tr *ngFor="let item of cart; let i = index">
 
             <td>{{i + 1}}</td>
+
             <td class="left">{{item.name}}</td>
-            <td>₹{{item.price}}</td>
+
+            <!-- 🔥 FIXED -->
+            <td>₹{{item.sellingPrice || item.price}}</td>
 
             <td class="qty">
               <button (click)="decreaseQty(item)">-</button>
@@ -106,7 +109,10 @@
 
             <td>{{item.gst}}%</td>
 
-            <td>₹{{item.price * item.qty | number:'1.2-2'}}</td>
+            <!-- 🔥 FIXED -->
+            <td>
+              ₹{{ (item.qty * (item.sellingPrice || item.price)) | number:'1.2-2' }}
+            </td>
 
           </tr>
 

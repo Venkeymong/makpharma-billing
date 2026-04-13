@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
@@ -16,20 +16,20 @@ export class SalesService {
     this.loadInvoices();
   }
 
-  /* ================= HELPER (TOKEN) ================= */
+  /* ================= TOKEN ================= */
 
   private getHeaders() {
     const token = localStorage.getItem('token');
 
     return {
       headers: new HttpHeaders({
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token || ''}`
       })
     };
   }
 
   /* ========================================
-     LOAD INVOICES FROM BACKEND
+     LOAD INVOICES
   ======================================== */
 
   loadInvoices(): void {
@@ -65,10 +65,10 @@ export class SalesService {
           items: (b.items || []).map((item: any) => ({
             name: item.medicine,
             qty: item.qty,
-            price: item.price,
+            price: item.sellingPrice || item.price, // 🔥 FIX (show selling)
             gst: item.gst,
             hsn: item.hsn || '-',
-            total: item.total || (item.qty * item.price)
+            total: item.total || (item.qty * (item.sellingPrice || item.price))
           }))
 
         }));
@@ -78,7 +78,7 @@ export class SalesService {
         this.invoicesSubject.next(formatted);
       },
 
-      error: (err) => {
+      error: (err: any) => {
         console.error("❌ Load Error:", err);
       }
 
@@ -94,10 +94,10 @@ export class SalesService {
   }
 
   /* ========================================
-     ADD INVOICE
+     ADD INVOICE (FIXED)
   ======================================== */
 
-  addInvoice(invoice: any): void {
+  addInvoice(invoice: any): Observable<any> {
 
     const billData = {
 
@@ -111,62 +111,56 @@ export class SalesService {
       date: invoice.date,
 
       items: (invoice.items || []).map((item: any) => ({
-        medicine: item.name,
+        medicine: item.medicine || item.name,
+        batch: item.batch || '',
         qty: item.qty,
-        price: item.price,
-        gst: item.gst,
-        hsn: item.hsn,
-        total: item.qty * item.price
+
+        price: item.price || 0,
+        sellingPrice: item.sellingPrice || item.price || 0,
+
+        gst: item.gst || 0,
+        total: item.qty * (item.sellingPrice || item.price || 0)
       })),
 
-      subtotal: invoice.subtotal,
-      cgst: invoice.cgstTotal,
-      sgst: invoice.sgstTotal,
-      igst: invoice.igstTotal,
-      totalAmount: invoice.total,
+      subtotal: invoice.subtotal || 0,
+      cgst: invoice.cgstTotal || 0,
+      sgst: invoice.sgstTotal || 0,
+      igst: invoice.igstTotal || 0,
+
+      totalAmount: invoice.totalAmount || invoice.total || 0,
 
       paymentMethod: invoice.paymentMethod || "Cash"
     };
 
-    this.http.post(this.baseUrl + '/add', billData, this.getHeaders()).subscribe({
+    return this.http.post(this.baseUrl + '/add', billData, this.getHeaders()).pipe(
 
-      next: () => {
+      tap(() => {
         console.log("✅ Invoice saved:", billData.invoiceNumber);
-        this.loadInvoices();
-      },
+        this.loadInvoices(); // refresh list
+      })
 
-      error: (err) => {
-        console.error("❌ Add Error:", err);
-      }
-
-    });
+    );
   }
 
   /* ========================================
      DELETE INVOICE
   ======================================== */
 
-  deleteInvoice(id: string): void {
-
-    console.log("🗑️ Deleting ID:", id);
+  deleteInvoice(id: string): Observable<any> {
 
     if (!id) {
       console.error("❌ Invalid ID");
-      return;
+      throw new Error("Invalid ID");
     }
 
-    this.http.delete(`${this.baseUrl}/${id}`, this.getHeaders()).subscribe({
+    return this.http.delete(`${this.baseUrl}/${id}`, this.getHeaders()).pipe(
 
-      next: () => {
+      tap(() => {
         console.log("✅ Invoice deleted");
         this.loadInvoices();
-      },
+      })
 
-      error: (err) => {
-        console.error("❌ Delete Error:", err);
-      }
-
-    });
+    );
   }
 
   /* ========================================

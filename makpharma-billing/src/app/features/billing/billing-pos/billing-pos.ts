@@ -153,13 +153,17 @@ export class BillingPos implements OnInit {
 
     } else {
 
-      this.cart.push({
-        name: med.name,
-        hsn: med.hsn,
-        price,
-        gst: med.gst,
-        qty: 1
-      });
+     this.cart.push({
+  name: med.name,
+  hsn: med.hsn,
+  batch: med.batch, // 🔥 IMPORTANT
+
+  price: med.price,                 // 💰 purchase price (hidden)
+  sellingPrice: med.sellingPrice,   // 💰 customer price
+
+  gst: med.gst,
+  qty: 1
+});
 
     }
 
@@ -196,7 +200,7 @@ export class BillingPos implements OnInit {
 
     for (let item of this.cart) {
 
-      const base = item.qty * item.price;
+     const base = item.qty * item.sellingPrice;
       const gstAmount = (base * item.gst) / 100;
 
       subtotal += base;
@@ -268,10 +272,25 @@ printBill(): void {
 this.salesService.addInvoice({
   invoiceNumber: this.invoiceNumber,
   customer: { ...this.customer },
-  total: this.grandTotal,
-  items: this.cart,
+  totalAmount: this.grandTotal,
+
+items: this.cart.map(item => ({
+  medicine: item.name || item.medicine, // ✅ FIX
+  batch: item.batch || '',
+  qty: item.qty,
+
+  price: item.price || 0,
+  sellingPrice: item.sellingPrice || item.price || 0,
+
+  gst: item.gst || 0,
+  total: item.qty * (item.sellingPrice || item.price || 0)
+})),
+
   date: new Date(),
-  paymentMethod: this.paymentMethod   // 🔥 ADD THIS
+  paymentMethod: this.paymentMethod
+}).subscribe({
+  next: () => console.log("✅ BILL SUCCESS"),
+  error: (err) => console.error("❌ BILL ERROR:", err)
 });
 
   /* ================= REDUCE STOCK (SAFE) ================= */
@@ -419,11 +438,11 @@ this.salesService.addInvoice({
         ${this.cart.map((item:any,i:number)=>`
         <tr>
           <td>${i+1}</td>
-          <td class="left">${item.name}</td>
-          <td>${item.price.toFixed(2)}</td>
-          <td>${item.qty}</td>
-          <td>${item.gst}%</td>
-          <td>${(item.qty * item.price).toFixed(2)}</td>
+<td class="left">${item.name}</td>
+<td>${(item.sellingPrice || item.price).toFixed(2)}</td>
+<td>${item.qty}</td>
+<td>${item.gst}%</td>
+<td>${(item.qty * (item.sellingPrice || item.price)).toFixed(2)}</td>
         </tr>
         `).join('')}
       </table>

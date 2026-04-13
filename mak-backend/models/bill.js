@@ -155,10 +155,10 @@ billSchema.index({ createdAt: -1 });
 
 billSchema.pre("save", function (next) {
 
-  this.subtotal = Number(this.subtotal) || 0;
-  this.totalAmount = Number(this.totalAmount) || 0;
+  this.subtotal = this.subtotal || 0;
+  this.totalAmount = this.totalAmount || 0;
 
-  next();
+  next(); // ✅ NOW VALID
 });
 
 
