@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MedicineService } from '../../../services/medicine';
 import { AuthService } from '../../../services/auth';
-import { Subscription } from 'rxjs';
+import { Subscription, forkJoin } from 'rxjs';
 
 /* ================= INTERFACES ================= */
 
@@ -76,14 +76,12 @@ export class MedicineList implements OnInit, OnDestroy {
 
   uploadedBill: string | null = null;
 
-  /* 🔐 AUTH */
   showAuthModal = false;
   authAction: string | null = null;
 
   selectedId: string | null = null;
   selectedIndex: number | null = null;
 
-  /* PAGINATION */
   currentPage = 1;
   itemsPerPage = 10;
 
@@ -168,6 +166,8 @@ export class MedicineList implements OnInit, OnDestroy {
       billFile: this.uploadedBill || undefined
     };
 
+    let requests: any[] = [];
+
     this.purchaseItems.forEach(item => {
 
       const existing = this.medicines.find(m =>
@@ -177,72 +177,37 @@ export class MedicineList implements OnInit, OnDestroy {
 
       if (existing && existing._id) {
 
-        this.medicineService.updateMedicine(existing._id, {
-          ...existing,
-          price: item.price,
-          sellingPrice: item.sellingPrice,
-          stock: existing.stock + item.qty
-        }).subscribe();
+        requests.push(
+          this.medicineService.updateMedicine(existing._id, {
+            ...existing,
+            price: item.price,
+            sellingPrice: item.sellingPrice,
+            stock: existing.stock + item.qty
+          })
+        );
 
       } else {
 
-        this.medicineService.addMedicine({
-          name: item.medicine,
-          batch: item.batch,
-          hsn: item.hsn,
-          expiry: item.expiry,
-          price: item.price,
-          sellingPrice: item.sellingPrice,
-          gst: item.gst,
-          stock: item.qty
-        }).subscribe();
+        requests.push(
+          this.medicineService.addMedicine({
+            name: item.medicine,
+            batch: item.batch,
+            hsn: item.hsn,
+            expiry: item.expiry,
+            price: item.price,
+            sellingPrice: item.sellingPrice,
+            gst: item.gst,
+            stock: item.qty
+          })
+        );
       }
-
     });
 
-  let requests: any[] = [];
-
-this.purchaseItems.forEach(item => {
-
-  const existing = this.medicines.find(m =>
-    m.name.toLowerCase() === item.medicine.toLowerCase() &&
-    m.batch === item.batch
-  );
-
-  if (existing && existing._id) {
-
-    requests.push(
-      this.medicineService.updateMedicine(existing._id, {
-        ...existing,
-        price: item.price,
-        sellingPrice: item.sellingPrice,
-        stock: existing.stock + item.qty
-      })
-    );
-
-  } else {
-
-    requests.push(
-      this.medicineService.addMedicine({
-        name: item.medicine,
-        batch: item.batch,
-        hsn: item.hsn,
-        expiry: item.expiry,
-        price: item.price,
-        sellingPrice: item.sellingPrice,
-        gst: item.gst,
-        stock: item.qty
-      })
-    );
-  }
-});
-
-/* 🔥 WAIT FOR ALL API CALLS */
-Promise.all(requests.map(req => req.toPromise()))
-  .then(() => {
-    this.medicineService.loadMedicines(); // ✅ refresh UI
-  })
-  .catch(err => console.error(err));
+    /* 🔥 FIXED: forkJoin instead of toPromise */
+    forkJoin(requests).subscribe({
+      next: () => this.medicineService.loadMedicines(),
+      error: err => console.error(err)
+    });
 
     if (this.editingPurchaseIndex !== null) {
       this.purchaseOrders[this.editingPurchaseIndex] = order;
@@ -257,7 +222,6 @@ Promise.all(requests.map(req => req.toPromise()))
   /* ================= AUTH FLOW ================= */
 
   openAuthModal(action: string, value: any): void {
-
     this.authAction = action;
 
     if (action.includes('Medicine')) {
@@ -269,52 +233,61 @@ Promise.all(requests.map(req => req.toPromise()))
     this.showAuthModal = true;
   }
 
-  verifyAdmin(): void {
+ verifyAdmin(): void {
 
-    switch (this.authAction) {
+  console.log("🔥 ACTION:", this.authAction);
 
-      case 'deleteMedicine':
-        if (this.selectedId) {
-          this.medicineService.deleteMedicine(this.selectedId).subscribe();
+  switch (this.authAction) {
+
+    case 'deleteMedicine':
+      if (this.selectedId) {
+        this.medicineService.deleteMedicine(this.selectedId).subscribe(() => {
+          console.log("✅ Deleted");
+          this.medicineService.loadMedicines(); // refresh
+        });
+      }
+      break;
+
+    case 'editMedicine':
+      if (this.selectedId) {
+        const med = this.medicines.find(m => m._id === this.selectedId);
+
+        if (med) {
+          console.log("✅ Editing:", med);
+
+          this.purchaseItems = [{
+            medicine: med.name,
+            batch: med.batch || '',
+            hsn: med.hsn || '',
+            expiry: med.expiry || '',
+            qty: med.stock,
+            price: med.price,
+            sellingPrice: med.sellingPrice,
+            gst: med.gst || 0,
+            total: 0
+          }];
+
+          this.showPurchaseForm = true;
         }
-        break;
+      }
+      break;
 
-      case 'editMedicine':
-        if (this.selectedId) {
-          const med = this.medicines.find(m => m._id === this.selectedId);
-          if (med) {
-            this.purchaseItems = [{
-              medicine: med.name,
-              batch: med.batch || '',
-              hsn: med.hsn || '',
-              expiry: med.expiry || '',
-              qty: med.stock,
-              price: med.price,
-              sellingPrice: med.sellingPrice,
-              gst: med.gst || 0,
-              total: 0
-            }];
-            this.showPurchaseForm = true;
-          }
-        }
-        break;
+    case 'deletePurchase':
+      if (this.selectedIndex !== null) {
+        this.purchaseOrders.splice(this.selectedIndex, 1);
+        this.savePurchaseOrders();
+      }
+      break;
 
-      case 'deletePurchase':
-        if (this.selectedIndex !== null) {
-          this.purchaseOrders.splice(this.selectedIndex, 1);
-          this.savePurchaseOrders();
-        }
-        break;
-
-      case 'editPurchase':
-        if (this.selectedIndex !== null) {
-          this.editPurchase(this.selectedIndex);
-        }
-        break;
-    }
-
-    this.closeAuthModal();
+    case 'editPurchase':
+      if (this.selectedIndex !== null) {
+        this.editPurchase(this.selectedIndex);
+      }
+      break;
   }
+
+  this.closeAuthModal();
+}
 
   closeAuthModal(): void {
     this.showAuthModal = false;
@@ -322,7 +295,7 @@ Promise.all(requests.map(req => req.toPromise()))
     this.selectedIndex = null;
   }
 
-  /* ================= PURCHASE STORAGE ================= */
+  /* ================= STORAGE ================= */
 
   loadPurchaseOrders(): void {
     this.purchaseOrders = JSON.parse(localStorage.getItem('purchaseOrders') || '[]');
@@ -371,38 +344,33 @@ Promise.all(requests.map(req => req.toPromise()))
 
   editPurchase(index: number): void {
 
-  const order = this.purchaseOrders[index];
-  if (!order) return;
+    const order = this.purchaseOrders[index];
+    if (!order) return;
 
-  this.purchase = {
-    supplier: order.supplier,
-    invoice: order.invoice,
-    date: order.date
-  };
+    this.purchase = {
+      supplier: order.supplier,
+      invoice: order.invoice,
+      date: order.date
+    };
 
-  this.purchaseItems = [...order.items];
+    this.purchaseItems = [...order.items];
+    this.uploadedBill = order.billFile || null;
+    this.editingPurchaseIndex = index;
+    this.showPurchaseForm = true;
+  }
 
-  this.uploadedBill = order.billFile || null;
+  resetPurchaseForm(): void {
 
-  this.editingPurchaseIndex = index;
+    this.purchase = {
+      supplier: '',
+      invoice: '',
+      date: ''
+    };
 
-  this.showPurchaseForm = true;
-} 
-resetPurchaseForm(): void {
-
-  this.purchase = {
-    supplier: '',
-    invoice: '',
-    date: ''
-  };
-
-  this.purchaseItems = [];
-  this.item = this.createEmptyItem();
-
-  this.uploadedBill = null;
-
-  this.editingPurchaseIndex = null;
-
-  this.showPurchaseForm = false;
-}
+    this.purchaseItems = [];
+    this.item = this.createEmptyItem();
+    this.uploadedBill = null;
+    this.editingPurchaseIndex = null;
+    this.showPurchaseForm = false;
+  }
 }

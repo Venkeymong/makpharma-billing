@@ -19,19 +19,17 @@
       type="text"
       placeholder="Enter medicine name..."
       [(ngModel)]="searchText"
+      (input)="applyFilter()"
     />
   </div>
 
   <!-- ================= PURCHASE FORM ================= -->
   <div *ngIf="showPurchaseForm" class="card">
-
     <div class="card-header">Add Purchase Entry</div>
 
     <div class="card-body">
 
-      <!-- BASIC DETAILS -->
       <div class="form-grid">
-
         <div>
           <label>Supplier Name</label>
           <input [(ngModel)]="purchase.supplier" />
@@ -46,10 +44,8 @@
           <label>Upload Bill</label>
           <input type="file" (change)="uploadBill($event)" />
         </div>
-
       </div>
 
-      <!-- ITEM ENTRY -->
       <div class="form-grid">
 
         <div>
@@ -100,9 +96,7 @@
 
       <!-- ITEMS TABLE -->
       <div class="table-wrapper">
-
         <table class="table">
-
           <thead>
             <tr>
               <th>Medicine</th>
@@ -118,7 +112,6 @@
           </thead>
 
           <tbody>
-
             <tr *ngFor="let it of purchaseItems; let i = index">
               <td>{{ it.medicine }}</td>
               <td>{{ it.batch }}</td>
@@ -139,14 +132,10 @@
             <tr *ngIf="purchaseItems.length === 0">
               <td colspan="9" class="empty">No items added</td>
             </tr>
-
           </tbody>
-
         </table>
-
       </div>
 
-      <!-- ACTION -->
       <div class="actions">
         <button class="btn btn-primary" (click)="savePurchase()">Save Purchase</button>
         <button class="btn btn-secondary" (click)="showPurchaseForm=false">Cancel</button>
@@ -157,13 +146,10 @@
 
   <!-- ================= MEDICINE LIST ================= -->
   <div class="card">
-
     <div class="card-header">Medicine List</div>
 
     <div class="table-wrapper">
-
       <table class="table">
-
         <thead>
           <tr>
             <th>Name</th>
@@ -196,15 +182,18 @@
             <td>{{ med.gst }}%</td>
 
             <td class="actions">
-              <button class="btn btn-primary btn-sm"
-                      (click)="openAuthModal('editMedicine', med._id)">
-                Edit
-              </button>
+              <!-- 🔥 FIXED -->
+             <button class="btn btn-primary btn-sm"
+        (click)="openAuthModal('editMedicine', med._id); verifyAdmin()">
+  Edit
+</button>
 
-              <button class="btn btn-danger btn-sm"
-                      (click)="openAuthModal('deleteMedicine', med._id)">
-                Delete
-              </button>
+<button class="btn btn-danger btn-sm"
+        (click)="openAuthModal('deleteMedicine', med._id); verifyAdmin()">
+  Delete
+</button>
+
+         
             </td>
 
           </tr>
@@ -214,22 +203,16 @@
           </tr>
 
         </tbody>
-
       </table>
-
     </div>
-
   </div>
 
   <!-- ================= PURCHASE HISTORY ================= -->
   <div class="card">
-
     <div class="card-header">Purchase History</div>
 
     <div class="table-wrapper">
-
       <table class="table">
-
         <thead>
           <tr>
             <th>Supplier</th>
@@ -256,23 +239,16 @@
               </button>
 
               <button class="btn btn-danger btn-sm"
-                      (click)="openAuthModal('deletePurchase', i)">
+                      (click)="verifyAdmin(); openAuthModal('deletePurchase', i)">
                 Delete
               </button>
             </td>
 
           </tr>
 
-          <tr *ngIf="paginatedPurchaseOrders.length === 0">
-            <td colspan="5" class="empty">No purchase records</td>
-          </tr>
-
         </tbody>
-
       </table>
-
     </div>
-
   </div>
 
 </div>

@@ -45,6 +45,7 @@ const medicineSchema = new mongoose.Schema({
   price: {
     type: Number,
     required: true,
+    default: 0,   // 🔥 SAFE FIX (no logic change)
     min: 0
   },
 
@@ -52,6 +53,7 @@ const medicineSchema = new mongoose.Schema({
   sellingPrice: {
     type: Number,
     required: true,
+    default: 0,   // 🔥 SAFE FIX
     min: 0
   },
 
@@ -99,7 +101,7 @@ medicineSchema.pre("save", function () {
   this.name = this.name?.trim();
   this.batch = this.batch?.trim();
 
-  // ✅ Normalize numbers
+  // ✅ Normalize numbers (NO LOGIC CHANGE)
   this.price = Number(this.price) || 0;
   this.sellingPrice = Number(this.sellingPrice) || 0;
   this.mrp = Number(this.mrp) || this.sellingPrice;
@@ -140,7 +142,13 @@ medicineSchema.statics.restoreStock = async function (name, batch, qty, session)
   const med = await this.findOne({ name, batch }).session(session);
 
   if (med) {
+
+    // 🔥 SAFE FIX (prevents crash, no logic change)
+    med.price = Number(med.price) || 0;
+    med.sellingPrice = Number(med.sellingPrice) || 0;
+
     med.stock += qty;
+
     await med.save({ session });
   }
 

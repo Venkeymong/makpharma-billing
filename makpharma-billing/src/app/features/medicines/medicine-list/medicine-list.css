@@ -1,28 +1,31 @@
 /* =========================================
-🔥 FINAL DARK THEME (100% WORKING)
+🔥 GLOBAL PAGE
 ========================================= */
 
-/* PAGE */
 .medicine-page {
   background: linear-gradient(135deg,#1e293b,#0f172a);
   color: #e2e8f0;
-  padding: 20px;
+  padding: 16px;
   min-height: 100vh;
   font-family: 'Segoe UI', sans-serif;
+  box-sizing: border-box;
 }
 
-/* HEADER */
+/* =========================================
+🔥 HEADER
+========================================= */
+
 .header {
   display:flex;
   justify-content:space-between;
   align-items:center;
   margin-bottom:20px;
   flex-wrap:wrap;
-  gap:10px;
+  gap:12px;
 }
 
 .header h2 {
-  font-size:22px;
+  font-size:20px;
   font-weight:600;
   color:#38bdf8;
 }
@@ -32,7 +35,10 @@
   color:#94a3b8;
 }
 
-/* SEARCH */
+/* =========================================
+🔥 SEARCH
+========================================= */
+
 .search-box input {
   width:100%;
   max-width:320px;
@@ -43,117 +49,285 @@
   color:#fff;
 }
 
-/* CARD */
+/* =========================================
+🔥 CARD
+========================================= */
+
 .card {
   background:#1e293b;
   border-radius:14px;
-  padding:18px;
+  padding:16px;
   margin-bottom:20px;
   border:1px solid rgba(255,255,255,0.08);
-   -webkit-text-fill-color: #d3f6fc;
 }
 
-/* FORM */
+/* =========================================
+🔥 FORM GRID
+========================================= */
+
 .form-grid {
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:12px;
-  margin-bottom:15px;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:10px;
 }
 
 .form-grid input {
-  padding:10px;
+  padding:9px;
   border-radius:8px;
   border:1px solid rgba(255,255,255,0.1);
   background:#0f172a;
   color:#fff;
-  -webkit-text-fill-color: #fff;
 }
 
 /* =========================================
-🔥 TABLE FIX (MAIN PART)
+🔥 ULTRA TABLE FIX (REAL SOLUTION)
 ========================================= */
 
-/* FORCE EVERYTHING DARK */
-.table,
-.table thead,
-.table tbody,
-.table tr,
-.table th,
-.table td {
-  background-color: #1e293b !important;
-  color: #ffffff !important;
-  border-color: rgba(255,255,255,0.08) !important;
+/* 🔥 RESET EVERYTHING */
+.table * {
+  color: inherit !important;
 }
 
-/* HEADER */
+/* 🔥 FORCE DARK TABLE */
+.table {
+  width:100%;
+  min-width:700px;
+  border-collapse:collapse;
+  background:#1e293b !important;
+  color:#f8fafc !important;
+}
+
+/* 🔥 HEADER */
 .table thead {
-  background-color: #334155 !important;
+  background:#334155 !important;
 }
 
 .table th {
-  color: #93c5fd !important;
-  padding: 12px;
-  font-size: 13px;
+  color:#60a5fa !important;
+  font-weight:600;
+  font-size:13px;
+  padding:12px;
 }
 
-/* BODY */
+/* 🔥 BODY */
 .table td {
-  padding: 12px;
-  font-size: 13px;
+  color:#e2e8f0 !important;
+  padding:12px;
+  font-size:13px;
 }
 
-/* STRIPES */
+/* 🔥 FORCE ALL CHILD ELEMENTS */
+.table td *,
+.table th * {
+  color:inherit !important;
+}
+
+/* 🔥 STRIPES */
 .table tbody tr:nth-child(even) {
-  background-color: #0f172a !important;
+  background:#0f172a !important;
 }
 
-/* HOVER */
+/* 🔥 HOVER */
 .table tbody tr:hover {
-  background-color: #334155 !important;
+  background:#334155 !important;
+  transition:0.2s;
 }
 
-/* FIX BOOTSTRAP WHITE TABLE */
-table {
-  background-color: #1e293b !important;
-}
-
-/* FORCE TEXT */
-td, th {
-  color: #e2e8f0 !important;
+/* 🔥 IMPORTANT FIX FOR BOOTSTRAP */
+.table,
+.table tr,
+.table td,
+.table th {
+  background-clip: padding-box !important;
 }
 
 /* =========================================
-BUTTONS
+🔥 TEXT COLORS (FORCE OVERRIDE)
+========================================= */
+
+.text-success,
+.table .text-success {
+  color:#22c55e !important;
+  font-weight:500;
+}
+
+.text-danger,
+.table .text-danger {
+  color:#ef4444 !important;
+}
+
+.text-warning,
+.table .text-warning {
+  color:#facc15 !important;
+}
+
+/* =========================================
+🔥 BUTTONS
 ========================================= */
 
 .btn {
-  padding:8px 12px;
+  padding:7px 12px;
   border-radius:8px;
   border:none;
   cursor:pointer;
   color:#fff !important;
+  font-size:12px;
 }
 
 .btn-primary { background:#6366f1 !important; }
 .btn-success { background:#22c55e !important; }
-.btn-danger { background:#ff0000 !important; }
-.btn-secondary { background:#ff0000 !important; }
+.btn-danger { background:#ef4444 !important; }
+.btn-secondary { background:#64748b !important; }
 
-.btn-sm {
-  padding:6px 10px;
-  font-size:12px;
-}
+/* =========================================
+🔥 ACTION ALIGN
+========================================= */
 
-/* ACTION ALIGN */
 .actions {
   display:flex;
   gap:6px;
+  flex-wrap:wrap;
 }
 
-/* EMPTY */
-.empty {
-  text-align:center;
-  color:#94a3b8;
-  padding:15px;
+/* =========================================
+🔥 MOBILE FIX
+========================================= */
+
+.table-wrapper {
+  overflow-x:auto;
+}
+
+@media (max-width:768px) {
+
+  .form-grid {
+    grid-template-columns:1fr;
+  }
+
+  .btn {
+    width:100%;
+  }
+
+  .actions {
+    flex-direction:column;
+  }
+
+}
+
+/* =========================================
+🔥 FINAL FORCE OVERRIDE (FIX WHITE TABLE)
+========================================= */
+
+/* REMOVE BOOTSTRAP TABLE STYLE */
+.table {
+  background: transparent !important;
+}
+
+/* FORCE DARK TABLE */
+.table thead,
+.table tbody,
+.table tr {
+  background: #1e293b !important;
+}
+
+/* HEADER FIX */
+.table thead th {
+  background: #334155 !important;
+  color: #60a5fa !important;
+  font-weight: 600;
+}
+
+/* BODY FIX */
+.table tbody td {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+/* FORCE EVERYTHING INSIDE */
+.table td *,
+.table th * {
+  color: inherit !important;
+}
+
+/* REMOVE WHITE STRIPES */
+.table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: #0f172a !important;
+}
+
+/* REMOVE BOOTSTRAP BORDER */
+.table,
+.table th,
+.table td {
+  border-color: rgba(255,255,255,0.08) !important;
+}
+/* =========================================
+🔥 FORM TEXT VISIBILITY FIX (CRITICAL)
+========================================= */
+
+/* LABELS */
+label {
+  color: #cbd5f5 !important;
+  font-size: 13px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* INPUTS */
+input,
+select,
+textarea {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+}
+
+/* PLACEHOLDER */
+input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* DATE INPUT FIX */
+input[type="date"] {
+  color-scheme: dark;
+}
+
+/* FILE INPUT FIX */
+input[type="file"] {
+  color: #f8fafc !important;
+}
+
+/* NUMBER INPUT */
+input[type="number"] {
+  color: #f8fafc !important;
+}
+
+/* FOCUS EFFECT */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 2px rgba(56,189,248,0.2);
+}
+
+/* REMOVE DEFAULT WHITE BACKGROUND */
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #0f172a inset !important;
+  -webkit-text-fill-color: #f8fafc !important;
+}
+
+/* =========================================
+🔥 FORM GRID IMPROVEMENT
+========================================= */
+
+.form-grid div {
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================================
+🔥 BUTTON ALIGNMENT FIX
+========================================= */
+
+button {
+  font-weight: 500;
 }

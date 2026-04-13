@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable, catchError, throwError, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
 /* =========================================
-   INTERFACE (UPDATED - PRODUCTION SAFE)
+   INTERFACE
 ========================================= */
 
 export interface Medicine {
@@ -15,8 +15,8 @@ export interface Medicine {
   hsn?: string;
   expiry?: string;
 
-  price: number;          // purchase price
-  sellingPrice: number;   // selling price
+  price: number;
+  sellingPrice: number;
   mrp?: number;
 
   gst?: number;
@@ -38,16 +38,20 @@ export class MedicineService {
   }
 
   /* =========================================
-     LOAD FROM BACKEND
+     LOAD FROM BACKEND (FIXED)
   ========================================= */
 
   loadMedicines(): void {
 
-    this.http.get<Medicine[]>(this.baseUrl).pipe(
+    this.http.get<{ success: boolean; data: any[] }>(this.baseUrl).pipe(
 
-      tap((data) => {
+      tap((res) => {
 
-        const formatted = (data || []).map((m: any) => ({
+        console.log("🔥 API RESPONSE:", res); // debug
+
+        const data = res?.data || [];
+
+        const formatted: Medicine[] = data.map((m: any) => ({
           _id: m._id,
           name: m.name || '',
 
@@ -67,7 +71,7 @@ export class MedicineService {
       }),
 
       catchError((err) => {
-        console.error('Load Medicines Error:', err);
+        console.error('❌ Load Medicines Error:', err);
         return throwError(() => err);
       })
 
@@ -93,7 +97,7 @@ export class MedicineService {
       tap(() => this.loadMedicines()),
 
       catchError((err) => {
-        console.error('Add Medicine Error:', err);
+        console.error('❌ Add Medicine Error:', err);
         return throwError(() => err);
       })
 
@@ -115,7 +119,7 @@ export class MedicineService {
       tap(() => this.loadMedicines()),
 
       catchError((err) => {
-        console.error('Update Medicine Error:', err);
+        console.error('❌ Update Medicine Error:', err);
         return throwError(() => err);
       })
 
@@ -137,7 +141,7 @@ export class MedicineService {
       tap(() => this.loadMedicines()),
 
       catchError((err) => {
-        console.error('Delete Medicine Error:', err);
+        console.error('❌ Delete Medicine Error:', err);
         return throwError(() => err);
       })
 

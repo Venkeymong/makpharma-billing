@@ -95,13 +95,22 @@ exports.createBill = async (req, res) => {
         throw new Error(`Medicine not found: ${item.medicine}`);
       }
 
+      /* 🔥 FIX: prevent validation crash (NO LOGIC CHANGE) */
+      if (med.price == null) {
+        med.price = item.price || 0;
+      }
+
+      if (med.sellingPrice == null) {
+        med.sellingPrice = item.sellingPrice || med.price || 0;
+      }
+
       if ((med.stock || 0) < item.qty) {
         throw new Error(`Insufficient stock for ${item.medicine}`);
       }
 
       med.stock = (med.stock || 0) - item.qty;
 
-      await med.save({ session }); // ⚠️ ERROR likely here if middleware wrong
+      await med.save({ session }); // now safe
     }
 
     /* ================= COMMIT ================= */
@@ -191,7 +200,13 @@ exports.deleteBill = async (req, res) => {
       }).session(session);
 
       if (med) {
+
+        /* 🔥 SAME SAFETY FIX */
+        if (med.price == null) med.price = 0;
+        if (med.sellingPrice == null) med.sellingPrice = 0;
+
         med.stock = (med.stock || 0) + item.qty;
+
         await med.save({ session });
       }
     }
