@@ -29,9 +29,17 @@ HEADER
   font-size: 26px;
   font-weight: 700;
 
-  background: linear-gradient(90deg,#38bdf8,#6366f1);
+  background: linear-gradient(90deg, #38bdf8, #6366f1);
+
+  /* ✅ Cross-browser support */
   -webkit-background-clip: text;
-  color: transparent;
+  background-clip: text;
+
+  /* ✅ Fallback color (important) */
+  color: #38bdf8;
+
+  /* ✅ Chrome fix */
+  -webkit-text-fill-color: transparent;
 }
 
 .dashboard-subtitle {

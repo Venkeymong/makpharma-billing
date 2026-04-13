@@ -46,9 +46,17 @@ HEADER
   font-size: 22px;
   font-weight: 700;
 
-  background: linear-gradient(90deg,#38bdf8,#6366f1);
+  background: linear-gradient(90deg, #38bdf8, #6366f1);
+
+  /* ✅ FIX */
   -webkit-background-clip: text;
-  color: transparent;
+  background-clip: text;
+
+  /* ✅ SAFETY (fallback color) */
+  color: #38bdf8;
+
+  /* ✅ REQUIRED for Chrome */
+  -webkit-text-fill-color: transparent;
 }
 
 /* CLOSE BUTTON */

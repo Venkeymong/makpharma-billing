@@ -9,22 +9,38 @@ const connectDB = require("./config/db");
 ========================================= */
 const app = express();
 
-
 /* =========================================
    🔌 DATABASE CONNECTION
 ========================================= */
 connectDB();
 
-
 /* =========================================
    ⚙️ GLOBAL MIDDLEWARE
 ========================================= */
 
-// 🔐 CORS (production safe)
+// 🔐 CORS (FULL SAFE - LOCAL + PRODUCTION)
+const allowedOrigins = [
+  "http://localhost:4200", // Angular local
+  "http://127.0.0.1:4200",
+  "https://makpharma-billing-final.onrender.com" // deployed frontend (change later if needed)
+];
+
 app.use(cors({
-  origin: "https://makpharma-billing-final.onrender.com", // 👉 change to frontend URL in production
+  origin: function (origin, callback) {
+
+    // allow tools like Postman / mobile apps
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn("❌ Blocked by CORS:", origin);
+      callback(new Error("CORS not allowed"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
 }));
 
 // 🔄 JSON parser
@@ -35,7 +51,6 @@ app.use((req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
-
 
 /* =========================================
    🔥 HEALTH CHECK ROUTES
@@ -53,7 +68,6 @@ app.get("/api/auth/check", (req, res) => {
   res.send("🔥 AUTH ROUTE WORKING");
 });
 
-
 /* =========================================
    📦 ROUTES IMPORT
 ========================================= */
@@ -66,7 +80,6 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const authRoutes = require("./routes/authRoutes");
 
-
 /* =========================================
    📌 ROUTES
 ========================================= */
@@ -78,7 +91,6 @@ app.use("/api/customers", customerRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/auth", authRoutes);
-
 
 /* =========================================
    ❌ 404 HANDLER
@@ -93,7 +105,6 @@ app.use((req, res) => {
   });
 });
 
-
 /* =========================================
    ❌ GLOBAL ERROR HANDLER
 ========================================= */
@@ -106,7 +117,6 @@ app.use((err, req, res, next) => {
     message: err.message || "Internal Server Error"
   });
 });
-
 
 /* =========================================
    🚀 START SERVER

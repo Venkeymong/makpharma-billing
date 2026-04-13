@@ -4,39 +4,77 @@
 
     <div class="login-card">
 
+      <!-- HEADER -->
       <div class="login-header">
         <h2 class="page-title">MAK Pharma</h2>
-        <p>Billing Management System</p>
+        <p class="subtitle">Billing Management System</p>
       </div>
 
-      <form (ngSubmit)="login()">
+      <!-- FORM -->
+      <form (ngSubmit)="login()" #loginForm="ngForm" novalidate>
 
+        <!-- USERNAME -->
         <div class="form-group">
-          <label>Username</label>
-          <input [(ngModel)]="username" name="username" required />
+          <label for="username">Username</label>
+          <input
+            id="username"
+            type="text"
+            [(ngModel)]="username"
+            name="username"
+            required
+            autocomplete="username"
+            placeholder="Enter username"
+          />
         </div>
 
+        <!-- PASSWORD -->
         <div class="form-group">
-          <label>Password</label>
+          <label for="password">Password</label>
+
           <div class="password-box">
             <input
+              id="password"
               [type]="showPassword ? 'text' : 'password'"
               [(ngModel)]="password"
               name="password"
               required
+              autocomplete="current-password"
+              placeholder="Enter password"
             />
-            <span (click)="showPassword = !showPassword">👁</span>
+
+            <button
+              type="button"
+              class="eye-btn"
+              (click)="showPassword = !showPassword"
+              aria-label="Toggle password visibility"
+            >
+              {{ showPassword ? '🙈' : '👁' }}
+            </button>
           </div>
         </div>
 
-        <div class="error" *ngIf="loginError">{{ loginError }}</div>
-
-        <div class="form-footer">
-          <span class="forgot" (click)="openForgot()">Forgot Password?</span>
+        <!-- ERROR -->
+        <div class="error" *ngIf="loginError">
+          {{ loginError }}
         </div>
 
-        <button type="submit" [disabled]="loading">
-          {{ loading ? 'Logging in...' : 'Login' }}
+        <!-- FOOTER -->
+    <div class="form-footer">
+ <span class="forgot" (click)="openForgot(); $event.preventDefault();">
+  Forgot Password?
+</span>
+</div>
+<span (click)="openForgot()" style="color:red;">
+  TEST CLICK
+</span>
+        <!-- SUBMIT -->
+        <button
+          type="submit"
+          class="btn-login"
+          [disabled]="loading || !username || !password"
+        >
+          <span *ngIf="!loading">Login</span>
+          <span *ngIf="loading" class="loader"></span>
         </button>
 
       </form>
@@ -47,49 +85,112 @@
 
 </div>
 
-<!-- MODAL -->
+<!-- =========================================
+   🔐 FORGOT PASSWORD MODAL
+========================================= -->
+
 <div class="forgot-overlay" *ngIf="showForgot">
 
   <div class="forgot-card">
 
+    <!-- HEADER -->
     <div class="modal-header">
       <h3>Reset Password</h3>
-      <button (click)="closeForgot()">✖</button>
+      <button class="close-btn" (click)="closeForgot()">✖</button>
     </div>
 
-    <!-- STEP 1 -->
-    <div *ngIf="step === 1">
-      <input [(ngModel)]="email" name="email" placeholder="Enter email" />
-      <div class="error">{{ otpError }}</div>
+    <!-- STEP 1: EMAIL -->
+    <div *ngIf="step === 1" class="modal-step">
 
-      <button (click)="sendOtp()" [disabled]="otpLoading">
+      <input
+        type="email"
+        [(ngModel)]="email"
+        name="email"
+        placeholder="Enter your email"
+      />
+
+      <div class="error" *ngIf="otpError">
+        {{ otpError }}
+      </div>
+
+      <button
+        class="btn-primary"
+        (click)="sendOtp()"
+        [disabled]="otpLoading"
+      >
         {{ otpLoading ? 'Sending...' : 'Send OTP' }}
       </button>
+
     </div>
 
-    <!-- STEP 2 -->
-    <div *ngIf="step === 2">
-      <input [(ngModel)]="otp" name="otp" placeholder="Enter OTP" />
-      <div class="error">{{ verifyError }}</div>
+    <!-- STEP 2: OTP -->
+    <div *ngIf="step === 2" class="modal-step">
 
-      <button (click)="verifyOtp()" [disabled]="verifyLoading">
+      <input
+        type="text"
+        maxlength="6"
+        [(ngModel)]="otp"
+        name="otp"
+        placeholder="Enter 6-digit OTP"
+      />
+
+      <div class="error" *ngIf="verifyError">
+        {{ verifyError }}
+      </div>
+
+      <button
+        class="btn-primary"
+        (click)="verifyOtp()"
+        [disabled]="verifyLoading"
+      >
         {{ verifyLoading ? 'Verifying...' : 'Verify OTP' }}
       </button>
 
-      <p *ngIf="!canResend">Resend in {{ timer }}s</p>
-      <button *ngIf="canResend" (click)="resendOtp()">Resend OTP</button>
+      <div class="timer">
+        <span *ngIf="!canResend">
+          Resend in {{ timer }}s
+        </span>
+
+        <button
+          *ngIf="canResend"
+          class="resend-btn"
+          (click)="resendOtp()"
+        >
+          Resend OTP
+        </button>
+      </div>
+
     </div>
 
-    <!-- STEP 3 -->
-    <div *ngIf="step === 3">
-      <input [(ngModel)]="newPassword" name="newPassword" placeholder="New Password" />
-      <input [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Confirm Password" />
+    <!-- STEP 3: RESET -->
+    <div *ngIf="step === 3" class="modal-step">
 
-      <div class="error">{{ resetError }}</div>
+      <input
+        type="password"
+        [(ngModel)]="newPassword"
+        name="newPassword"
+        placeholder="New Password"
+      />
 
-      <button (click)="resetPassword()" [disabled]="resetLoading">
+      <input
+        type="password"
+        [(ngModel)]="confirmPassword"
+        name="confirmPassword"
+        placeholder="Confirm Password"
+      />
+
+      <div class="error" *ngIf="resetError">
+        {{ resetError }}
+      </div>
+
+      <button
+        class="btn-success"
+        (click)="resetPassword()"
+        [disabled]="resetLoading"
+      >
         {{ resetLoading ? 'Updating...' : 'Reset Password' }}
       </button>
+
     </div>
 
   </div>

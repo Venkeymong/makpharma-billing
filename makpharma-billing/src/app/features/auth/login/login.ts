@@ -45,6 +45,9 @@ export class Login implements OnInit, OnDestroy {
     private router: Router
   ) {}
 
+  /* =========================================
+     INIT
+  ========================================= */
   ngOnInit(): void {
     const token = localStorage.getItem('token');
     if (token) this.router.navigate(['/dashboard']);
@@ -54,13 +57,19 @@ export class Login implements OnInit, OnDestroy {
     this.stopTimer();
   }
 
-  // LOGIN
+  /* =========================================
+     LOGIN (FAST + SAFE)
+  ========================================= */
   async login() {
+
     if (this.loading) return;
 
     this.loginError = '';
 
-    if (!this.username.trim() || !this.password.trim()) {
+    const username = this.username.trim();
+    const password = this.password.trim();
+
+    if (!username || !password) {
       this.loginError = 'All fields are required';
       return;
     }
@@ -68,24 +77,38 @@ export class Login implements OnInit, OnDestroy {
     this.loading = true;
 
     try {
-      const success = await this.auth.login(
-        this.username.trim(),
-        this.password.trim()
+
+      // 🔥 TIMEOUT PROTECTION
+      const loginPromise = this.auth.login(username, password);
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 8000)
       );
+
+      const success: any = await Promise.race([loginPromise, timeoutPromise]);
 
       if (success) {
         this.router.navigate(['/dashboard']);
       } else {
-        this.loginError = 'Invalid credentials';
+        this.loginError = 'Invalid username or password';
       }
-    } catch {
-      this.loginError = 'Server error';
+
+    } catch (err: any) {
+
+      if (err.message === 'timeout') {
+        this.loginError = 'Server is slow. Please try again.';
+      } else {
+        this.loginError = err?.error?.message || 'Login failed';
+      }
+
     } finally {
       this.loading = false;
     }
   }
 
-  // MODAL
+  /* =========================================
+     FORGOT PASSWORD MODAL
+  ========================================= */
   openForgot() {
     this.showForgot = true;
     this.resetState();
@@ -110,7 +133,9 @@ export class Login implements OnInit, OnDestroy {
     this.stopTimer();
   }
 
-  // TIMER
+  /* =========================================
+     TIMER
+  ========================================= */
   startTimer() {
     this.timer = 60;
     this.canResend = false;
@@ -131,24 +156,27 @@ export class Login implements OnInit, OnDestroy {
     }
   }
 
-  // SEND OTP
+  /* =========================================
+     SEND OTP
+  ========================================= */
   async sendOtp() {
 
     if (this.otpLoading) return;
 
     this.otpError = '';
 
+    const email = this.email.trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailRegex.test(this.email)) {
-      this.otpError = 'Enter valid email';
+    if (!emailRegex.test(email)) {
+      this.otpError = 'Enter a valid email';
       return;
     }
 
     this.otpLoading = true;
 
     try {
-      await this.auth.sendOtp(this.email.trim());
+      await this.auth.sendOtp(email);
       this.step = 2;
       this.startTimer();
     } catch (err: any) {
@@ -158,22 +186,26 @@ export class Login implements OnInit, OnDestroy {
     }
   }
 
-  // VERIFY OTP
+  /* =========================================
+     VERIFY OTP
+  ========================================= */
   async verifyOtp() {
 
     if (this.verifyLoading) return;
 
     this.verifyError = '';
 
-    if (!/^\d{6}$/.test(this.otp)) {
-      this.verifyError = 'Enter 6-digit OTP';
+    const otp = this.otp.trim();
+
+    if (!/^\d{6}$/.test(otp)) {
+      this.verifyError = 'Enter valid 6-digit OTP';
       return;
     }
 
     this.verifyLoading = true;
 
     try {
-      await this.auth.verifyOtp(this.email.trim(), this.otp.trim());
+      await this.auth.verifyOtp(this.email.trim(), otp);
       this.step = 3;
     } catch (err: any) {
       this.verifyError = err?.error?.message || 'Invalid OTP';
@@ -182,7 +214,9 @@ export class Login implements OnInit, OnDestroy {
     }
   }
 
-  // RESET PASSWORD
+  /* =========================================
+     RESET PASSWORD
+  ========================================= */
   async resetPassword() {
 
     if (this.resetLoading) return;
@@ -190,7 +224,7 @@ export class Login implements OnInit, OnDestroy {
     this.resetError = '';
 
     if (this.newPassword.length < 6) {
-      this.resetError = 'Password too short';
+      this.resetError = 'Password must be at least 6 characters';
       return;
     }
 
@@ -202,9 +236,14 @@ export class Login implements OnInit, OnDestroy {
     this.resetLoading = true;
 
     try {
-      await this.auth.resetPassword(this.email, this.newPassword);
+      await this.auth.resetPassword(
+        this.email.trim(),
+        this.newPassword
+      );
+
       alert('Password reset successful');
       this.closeForgot();
+
     } catch (err: any) {
       this.resetError = err?.error?.message || 'Reset failed';
     } finally {
@@ -212,7 +251,9 @@ export class Login implements OnInit, OnDestroy {
     }
   }
 
-  // RESEND
+  /* =========================================
+     RESEND OTP
+  ========================================= */
   resendOtp() {
     if (!this.canResend) return;
     this.sendOtp();
