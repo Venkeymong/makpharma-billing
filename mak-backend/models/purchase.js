@@ -1,11 +1,10 @@
 const mongoose = require("mongoose");
 
 /* =========================================
-   🧾 PURCHASE ITEM (STRONG STRUCTURE)
+   🧾 PURCHASE ITEM SCHEMA
 ========================================= */
 
 const purchaseItemSchema = new mongoose.Schema({
-
   medicine: {
     type: String,
     required: true,
@@ -37,7 +36,7 @@ const purchaseItemSchema = new mongoose.Schema({
     min: 0
   },
 
-  /* 💰 SELLING PRICE (IMPORTANT FOR PROFIT) */
+  /* 💰 SELLING PRICE */
   sellingPrice: {
     type: Number,
     required: true,
@@ -52,7 +51,7 @@ const purchaseItemSchema = new mongoose.Schema({
 
   total: {
     type: Number,
-    required: true,
+    default: 0,
     min: 0
   }
 
@@ -90,7 +89,7 @@ const purchaseSchema = new mongoose.Schema({
 
   totalAmount: {
     type: Number,
-    required: true,
+    default: 0,
     min: 0
   },
 
@@ -105,28 +104,48 @@ const purchaseSchema = new mongoose.Schema({
 
 
 /* =========================================
-   🔥 PRE SAVE (AUTO FIX NUMBERS)
+   🔥 PRE-SAVE (AUTO CALCULATION + SAFE)
 ========================================= */
 
-purchaseSchema.pre("save", function (next) {
+purchaseSchema.pre("save", function () {
 
-  this.totalAmount = Number(this.totalAmount) || 0;
+  let totalAmount = 0;
 
-  this.items = this.items.map(item => ({
-    ...item,
-    qty: Number(item.qty) || 0,
-    price: Number(item.price) || 0,
-    sellingPrice: Number(item.sellingPrice) || 0,
-    gst: Number(item.gst) || 0,
-    total: Number(item.total) || 0
-  }));
+  this.items = this.items.map(item => {
 
-  next();
+    const qty = Number(item.qty) || 0;
+    const price = Number(item.price) || 0;
+    const sellingPrice = Number(item.sellingPrice) || price;
+    const gst = Number(item.gst) || 0;
+
+    const total = qty * price;
+
+    totalAmount += total;
+
+    return {
+      ...item,
+      qty,
+      price,
+      sellingPrice,
+      gst,
+      total
+    };
+  });
+
+  this.totalAmount = totalAmount;
+
 });
 
 
 /* =========================================
-   🔥 EXPORT SAFE MODEL
+   🔥 INDEX (OPTIONAL OPTIMIZATION)
+========================================= */
+
+purchaseSchema.index({ createdAt: -1 });
+
+
+/* =========================================
+   🔥 SAFE EXPORT
 ========================================= */
 
 module.exports =

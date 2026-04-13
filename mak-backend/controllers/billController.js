@@ -27,8 +27,8 @@ exports.createBill = async (req, res) => {
     let nextNumber = 1;
 
     if (lastBill?.invoiceNumber) {
-      const lastPart = lastBill.invoiceNumber.split("-")[2];
-      const lastNumber = parseInt(lastPart);
+      const parts = lastBill.invoiceNumber.split("-");
+      const lastNumber = parseInt(parts[2]);
 
       if (!isNaN(lastNumber)) {
         nextNumber = lastNumber + 1;
@@ -68,8 +68,7 @@ exports.createBill = async (req, res) => {
         qty,
         price,
         sellingPrice,
-        gst,
-        total: qty * sellingPrice
+        gst
       };
     });
 
@@ -102,7 +101,7 @@ exports.createBill = async (req, res) => {
 
       med.stock = (med.stock || 0) - item.qty;
 
-      await med.save({ session });
+      await med.save({ session }); // ⚠️ ERROR likely here if middleware wrong
     }
 
     /* ================= COMMIT ================= */
@@ -110,7 +109,7 @@ exports.createBill = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Bill created successfully",
       data: bill
@@ -121,9 +120,10 @@ exports.createBill = async (req, res) => {
     await session.abortTransaction();
     session.endSession();
 
-    console.error("❌ Create Bill Error:", error.message);
+    console.error("❌ FULL ERROR:", error);
+    console.error("❌ STACK:", error.stack);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message || "Failed to create bill"
     });
@@ -140,15 +140,16 @@ exports.getBills = async (req, res) => {
 
     const bills = await Bill.find().sort({ createdAt: -1 });
 
-    res.json({
+    return res.json({
       success: true,
       data: bills
     });
 
   } catch (error) {
-    console.error("❌ Get Bills Error:", error.message);
 
-    res.status(500).json({
+    console.error("❌ Get Bills Error:", error);
+
+    return res.status(500).json({
       success: false,
       message: "Failed to fetch bills"
     });
@@ -161,55 +162,60 @@ exports.getBills = async (req, res) => {
 ========================================= */
 
 exports.deleteBill = async (req, res) => {
+
+  const session = await mongoose.startSession();
+
   try {
+
+    session.startTransaction();
 
     const { id } = req.params;
 
     if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid bill ID"
-      });
+      throw new Error("Invalid bill ID");
     }
 
-    const bill = await Bill.findById(id);
+    const bill = await Bill.findById(id).session(session);
 
     if (!bill) {
-      return res.status(404).json({
-        success: false,
-        message: "Bill not found"
-      });
+      throw new Error("Bill not found");
     }
 
     /* ================= RESTORE STOCK ================= */
 
     for (const item of bill.items) {
 
-      await Medicine.updateOne(
-        {
-          name: item.medicine,
-          batch: item.batch || undefined
-        },
-        {
-          $inc: { stock: item.qty }
-        }
-      );
+      const med = await Medicine.findOne({
+        name: item.medicine,
+        batch: item.batch || undefined
+      }).session(session);
+
+      if (med) {
+        med.stock = (med.stock || 0) + item.qty;
+        await med.save({ session });
+      }
     }
 
-    await Bill.findByIdAndDelete(id);
+    await Bill.findByIdAndDelete(id).session(session);
 
-    res.json({
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.json({
       success: true,
       message: "Bill deleted & stock restored"
     });
 
   } catch (error) {
 
-    console.error("❌ Delete Bill Error:", error.message);
+    await session.abortTransaction();
+    session.endSession();
 
-    res.status(500).json({
+    console.error("❌ Delete Bill Error:", error);
+
+    return res.status(500).json({
       success: false,
-      message: "Failed to delete bill"
+      message: error.message || "Failed to delete bill"
     });
   }
 };

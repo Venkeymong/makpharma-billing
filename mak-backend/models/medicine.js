@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 /* =========================================
-   💊 MEDICINE SCHEMA (FINAL PRODUCTION)
+   💊 MEDICINE SCHEMA (PRODUCTION READY)
 ========================================= */
 
 const medicineSchema = new mongoose.Schema({
@@ -80,7 +80,7 @@ const medicineSchema = new mongoose.Schema({
 
 
 /* =========================================
-   🔥 UNIQUE INDEX (NO DUPLICATE MEDICINE)
+   🔥 UNIQUE INDEX
 ========================================= */
 
 medicineSchema.index(
@@ -90,24 +90,62 @@ medicineSchema.index(
 
 
 /* =========================================
-   🔥 CLEAN & AUTO FIX
+   🔥 PRE-SAVE (SAFE + MODERN)
 ========================================= */
 
-medicineSchema.pre("save", function (next) {
+medicineSchema.pre("save", function () {
 
-  // Clean strings
+  // ✅ Clean strings
   this.name = this.name?.trim();
   this.batch = this.batch?.trim();
 
-  // Fix numbers
+  // ✅ Normalize numbers
   this.price = Number(this.price) || 0;
   this.sellingPrice = Number(this.sellingPrice) || 0;
   this.mrp = Number(this.mrp) || this.sellingPrice;
   this.gst = Number(this.gst) || 0;
   this.stock = Number(this.stock) || 0;
 
-  next();
 });
+
+
+/* =========================================
+   🔥 STATIC METHODS (BONUS PRO FEATURE)
+========================================= */
+
+// Safe stock reduction
+medicineSchema.statics.reduceStock = async function (name, batch, qty, session) {
+
+  const med = await this.findOne({ name, batch }).session(session);
+
+  if (!med) {
+    throw new Error(`Medicine not found: ${name}`);
+  }
+
+  if ((med.stock || 0) < qty) {
+    throw new Error(`Insufficient stock for ${name}`);
+  }
+
+  med.stock -= qty;
+
+  await med.save({ session });
+
+  return med;
+};
+
+
+// Restore stock
+medicineSchema.statics.restoreStock = async function (name, batch, qty, session) {
+
+  const med = await this.findOne({ name, batch }).session(session);
+
+  if (med) {
+    med.stock += qty;
+    await med.save({ session });
+  }
+
+  return med;
+};
 
 
 /* =========================================

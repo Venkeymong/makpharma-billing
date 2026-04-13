@@ -1,11 +1,10 @@
 const mongoose = require("mongoose");
 
 /* =========================================
-   🧾 BILL ITEM SCHEMA (PRO)
+   🧾 BILL ITEM SCHEMA
 ========================================= */
 
 const billItemSchema = new mongoose.Schema({
-
   medicine: {
     type: String,
     required: true,
@@ -44,7 +43,7 @@ const billItemSchema = new mongoose.Schema({
 
   total: {
     type: Number,
-    required: true,
+    default: 0,
     min: 0
   }
 
@@ -52,7 +51,7 @@ const billItemSchema = new mongoose.Schema({
 
 
 /* =========================================
-   🧾 BILL SCHEMA (PRODUCTION READY)
+   🧾 BILL SCHEMA
 ========================================= */
 
 const billSchema = new mongoose.Schema({
@@ -61,8 +60,8 @@ const billSchema = new mongoose.Schema({
 
   invoiceNumber: {
     type: String,
-    unique: true,   // ✅ KEEP THIS ONLY
     required: true,
+    unique: true,
     trim: true
   },
 
@@ -98,7 +97,8 @@ const billSchema = new mongoose.Schema({
 
   items: {
     type: [billItemSchema],
-    required: true
+    required: true,
+    validate: v => v.length > 0
   },
 
   /* ================= TOTALS ================= */
@@ -126,12 +126,13 @@ const billSchema = new mongoose.Schema({
 
   totalAmount: {
     type: Number,
-    required: true,
+    default: 0,
     min: 0
   },
 
   paymentMethod: {
     type: String,
+    enum: ["Cash", "Card", "UPI", "Credit"],
     default: "Cash"
   }
 
@@ -141,24 +142,45 @@ const billSchema = new mongoose.Schema({
 
 
 /* =========================================
-   🔥 INDEX (ONLY NECESSARY ONES)
+   🔥 INDEX
 ========================================= */
 
-// ❌ REMOVED duplicate invoice index
-// ✅ Keep only useful index
 billSchema.index({ createdAt: -1 });
 
 
 /* =========================================
-   🔥 PRE SAVE (AUTO FIX)
+   🔥 PRE-SAVE (AUTO CALCULATION)
 ========================================= */
 
-billSchema.pre("save", function (next) {
+billSchema.pre("save", function () {
+  console.log("✅ Pre-save running...");
 
-  this.subtotal = this.subtotal || 0;
-  this.totalAmount = this.totalAmount || 0;
+  let subtotal = 0;
+  let cgst = 0;
+  let sgst = 0;
+  let igst = 0;
 
-  next(); // ✅ NOW VALID
+  this.items.forEach(item => {
+    const price = item.sellingPrice || item.price;
+
+    // Calculate item total
+    item.total = item.qty * price;
+
+    subtotal += item.total;
+
+    const gstAmount = (item.total * item.gst) / 100;
+
+    // Assuming intra-state (CGST + SGST)
+    cgst += gstAmount / 2;
+    sgst += gstAmount / 2;
+  });
+
+  this.subtotal = subtotal;
+  this.cgst = cgst;
+  this.sgst = sgst;
+  this.igst = igst;
+
+  this.totalAmount = subtotal + cgst + sgst + igst;
 });
 
 
