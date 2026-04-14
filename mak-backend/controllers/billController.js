@@ -45,17 +45,13 @@ exports.createBill = async (req, res) => {
 
     const normalizedItems = items.map(item => {
 
-      if (!item.medicine || !item.qty) {
-        throw new Error("Invalid item data");
-      }
-
       const price = Number(item.price || 0);
       const sellingPrice = Number(item.sellingPrice || price || 0);
       const qty = Number(item.qty || 0);
       const gst = Number(item.gst || 0);
 
-      if (qty <= 0) {
-        throw new Error(`Invalid quantity for ${item.medicine}`);
+      if (!item.medicine || qty <= 0) {
+        throw new Error(`Invalid item: ${item.medicine}`);
       }
 
       return {
@@ -77,6 +73,7 @@ exports.createBill = async (req, res) => {
 
     await bill.save({ session });
 
+    /* 🔥 REDUCE STOCK */
     for (const item of normalizedItems) {
 
       const med = allMeds.find(m =>
@@ -147,7 +144,7 @@ exports.getBills = async (req, res) => {
 
 
 /* =========================================
-   ❌ DELETE BILL
+   ❌ DELETE BILL (RESTORE STOCK)
 ========================================= */
 
 exports.deleteBill = async (req, res) => {
@@ -171,6 +168,7 @@ exports.deleteBill = async (req, res) => {
 
     const allMeds = await Medicine.find().session(session);
 
+    /* 🔥 RESTORE STOCK */
     for (const item of bill.items) {
 
       const med = allMeds.find(m =>
@@ -210,48 +208,91 @@ exports.deleteBill = async (req, res) => {
 
 
 /* =========================================
-   🔥 UPDATE BILL (FIXED PROPERLY)
+   🔄 UPDATE BILL (🔥 FULL STOCK SAFE)
 ========================================= */
 
 exports.updateBill = async (req, res) => {
 
+  const session = await mongoose.startSession();
+
   try {
+
+    session.startTransaction();
 
     const { id } = req.params;
 
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "Bill ID is required"
-      });
+    const oldBill = await Bill.findById(id).session(session);
+
+    if (!oldBill) {
+      throw new Error("Bill not found");
     }
 
-    const updatedBill = await Bill.findByIdAndUpdate(
+    const normalize = (str) =>
+      String(str || "").toLowerCase().replace(/\s+/g, "");
+
+    const allMeds = await Medicine.find().session(session);
+
+    /* 🔥 STEP 1: RESTORE OLD STOCK */
+    for (const item of oldBill.items) {
+
+      const med = allMeds.find(m =>
+        normalize(m.name) === normalize(item.medicine)
+      );
+
+      if (med) {
+        med.stock += item.qty;
+        await med.save({ session });
+      }
+    }
+
+    /* 🔥 STEP 2: VALIDATE + REDUCE NEW STOCK */
+    const newItems = req.body.items || [];
+
+    for (const item of newItems) {
+
+      const med = allMeds.find(m =>
+        normalize(m.name) === normalize(item.medicine)
+      );
+
+      if (!med) {
+        throw new Error(`Medicine not found: ${item.medicine}`);
+      }
+
+      if (med.stock < item.qty) {
+        throw new Error(`Insufficient stock for ${item.medicine}`);
+      }
+
+      med.stock -= item.qty;
+      await med.save({ session });
+    }
+
+    /* 🔥 STEP 3: UPDATE BILL */
+    const updated = await Bill.findByIdAndUpdate(
       id,
       req.body,
-      { new: true }
+      { new: true, session }
     );
 
-    if (!updatedBill) {
-      return res.status(404).json({
-        success: false,
-        message: "Invoice not found"
-      });
-    }
+    await session.commitTransaction();
 
     return res.json({
       success: true,
       message: "Invoice updated successfully",
-      data: updatedBill
+      data: updated
     });
 
   } catch (error) {
+
+    await session.abortTransaction();
 
     console.error("❌ UPDATE BILL ERROR:", error);
 
     return res.status(500).json({
       success: false,
-      message: "Failed to update invoice"
+      message: error.message || "Failed to update invoice"
     });
+
+  } finally {
+    session.endSession();
   }
 };
