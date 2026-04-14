@@ -311,187 +311,274 @@ items: this.cart.map(item => ({
     alert("Popup blocked! Please allow popups.");
     return;
   }
+popup.document.write(`
+<html>
+<head>
+<title>Invoice</title>
 
-  popup.document.write(`
-  <html>
-  <head>
-    <title>Invoice</title>
+<style>
+@page {
+  size: A4;
+  margin: 0;
+}
 
-    <style>
-      @page { size: A4; margin: 5mm; }
+body {
+  margin: 0;
+  padding: 10px;
+  background: #fff;
+  font-family: 'Segoe UI', Arial;
+}
 
-      body {
-        font-family: Arial;
-        margin: 0;
-      }
+/* 🔥 PAGE */
+.page {
+  position: relative;
 
-      .invoice {
-        border: 1px solid #000;
-        padding: 10px;
-      }
+  width: calc(100% - 20px);
+  height: calc(297mm - 20px);
 
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 2px solid #000;
-        padding-bottom: 8px;
-      }
+  border: 2px solid #000;
 
-      .logo { height: 60px; }
+  padding: 8mm;
+  box-sizing: border-box;
 
-      .title { font-size: 22px; font-weight: bold; }
+  margin: auto;
 
-      .info {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 8px;
-        border-bottom: 1px solid #000;
-        padding-bottom: 6px;
-      }
+  display: flex;
+  flex-direction: column;
+}
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 8px;
-      }
+/* 🔥 WATERMARK */
+.watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 420px;
+  opacity: 0.06;
+  z-index: 0;
+}
 
-      th, td {
-        border: 1px solid #000;
-        padding: 5px;
-        font-size: 12px;
-        text-align: center;
-      }
+/* CONTENT ABOVE */
+.page > *:not(.watermark) {
+  position: relative;
+  z-index: 2;
+}
 
-      td.left { text-align: left; }
+/* 🔥 CONTENT WRAPPER */
+.content {
+  flex: 1;
+}
 
-      .totals {
-        width: 35%;
-        margin-left: auto;
-        margin-top: 10px;
-      }
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #000;
+  padding-bottom: 10px;
+}
 
-      .row {
-        display: flex;
-        justify-content: space-between;
-      }
+.logo { height: 70px; }
 
-      .grand {
-        border-top: 2px solid #000;
-        font-weight: bold;
-      }
+.company {
+  font-size: 14px;
+  line-height: 1.4;
+}
 
-      .words {
-        margin-top: 10px;
-        border-top: 1px solid #000;
-        padding-top: 6px;
-      }
+.title {
+  font-size: 26px;
+  font-weight: bold;
+}
 
-      .footer {
-        margin-top: 30px;
-        display: flex;
-        justify-content: space-between;
-      }
-    </style>
+/* INFO */
+.info {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  border-bottom: 1px solid #000;
+  padding-bottom: 8px;
+  font-size: 13px;
+}
 
-  </head>
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
 
-  <body onload="setTimeout(()=>{window.print();window.close();},300)">
+th {
+  background: #f1f5f9;
+  font-size: 13px;
+}
 
-    <div class="invoice">
+th, td {
+  border: 1px solid #000;
+  padding: 6px;
+  text-align: center;
+  font-size: 12px;
+}
 
-      <div class="header">
-        <img src="${logo}" class="logo"/>
+td.left {
+  text-align: left;
+}
 
-        <div>
-          <strong>MAK PHARMA</strong><br>
-          Chennai - 600037<br>
-          Phone: 9092700152
-        </div>
+/* TOTAL */
+.totals {
+  width: 280px;
+  margin-left: auto;
+  margin-top: 12px;
+  border: 1px solid #000;
+}
 
-        <div class="title">TAX INVOICE</div>
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.grand {
+  font-weight: bold;
+  background: #f1f5f9;
+}
+
+/* WORDS */
+.words {
+  margin-top: 12px;
+  border-top: 1px dashed #000;
+  padding-top: 6px;
+  font-size: 13px;
+}
+
+/* FOOTER */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.signature {
+  border-top: 1px solid #000;
+  width: 200px;
+  text-align: center;
+  padding-top: 5px;
+}
+
+</style>
+</head>
+
+<body onload="setTimeout(()=>{window.print();window.close();},300)">
+
+<div class="page">
+
+  <img src="${logo}" class="watermark" />
+
+  <div class="content">
+
+    <!-- HEADER -->
+    <div class="header">
+      <img src="${logo}" class="logo"/>
+
+      <div class="company">
+        <strong>MAK PHARMA</strong><br>
+        Chennai - 600037<br>
+        Phone: 9092700152
       </div>
 
-      <div class="info">
-        <div>
-          Invoice: ${this.invoiceNumber}<br>
-          Date: ${new Date().toLocaleDateString()}
-        </div>
+      <div class="title">TAX INVOICE</div>
+    </div>
 
-        <div>
-          <strong>Bill To:</strong><br>
-          ${this.customer.name}<br>
-          ${this.customer.phone}
-        </div>
+    <!-- INFO -->
+    <div class="info">
+      <div>
+        <strong>Invoice No:</strong> ${this.invoiceNumber}<br>
+        <strong>Date:</strong> ${new Date().toLocaleDateString()}
       </div>
 
-      <table>
-        <tr>
-          <th>#</th>
-          <th>Description</th>
-          <th>Rate</th>
-          <th>Qty</th>
-          <th>GST%</th>
-          <th>Amount</th>
-        </tr>
+      <div>
+        <strong>Bill To:</strong><br>
+        ${this.customer.name}<br>
+        ${this.customer.phone}
+      </div>
+    </div>
 
-        ${this.cart.map((item:any,i:number)=>`
-        <tr>
-          <td>${i+1}</td>
-<td class="left">${item.name}</td>
-<td>${(item.sellingPrice || item.price).toFixed(2)}</td>
-<td>${item.qty}</td>
-<td>${item.gst}%</td>
-<td>${(item.qty * (item.sellingPrice || item.price)).toFixed(2)}</td>
-        </tr>
-        `).join('')}
-      </table>
+    <!-- TABLE -->
+    <table>
+      <tr>
+        <th>#</th>
+        <th>Description</th>
+        <th>Rate</th>
+        <th>Qty</th>
+        <th>GST%</th>
+        <th>Amount</th>
+      </tr>
 
-      <div class="totals">
+      ${this.cart.map((item:any,i:number)=>`
+      <tr>
+        <td>${i+1}</td>
+        <td class="left">${item.name}</td>
+        <td>${(item.sellingPrice || item.price).toFixed(2)}</td>
+        <td>${item.qty}</td>
+        <td>${item.gst}%</td>
+        <td>${(item.qty * (item.sellingPrice || item.price)).toFixed(2)}</td>
+      </tr>
+      `).join('')}
+    </table>
 
-        <div class="row">
-          <span>Subtotal</span>
-          <span>₹${this.subtotal.toFixed(2)}</span>
-        </div>
+    <!-- TOTAL -->
+    <div class="totals">
 
-        ${
-          this.customer.state === 'Tamil Nadu'
-          ? `
-          <div class="row"><span>CGST</span><span>₹${this.cgstTotal.toFixed(2)}</span></div>
-          <div class="row"><span>SGST</span><span>₹${this.sgstTotal.toFixed(2)}</span></div>
-          `
-          : `
-          <div class="row"><span>IGST</span><span>₹${this.igstTotal.toFixed(2)}</span></div>
-          `
-        }
-
-        <div class="row">
-          <span>Discount</span>
-          <span>- ₹${this.discountTotal.toFixed(2)}</span>
-        </div>
-
-        <div class="row grand">
-          <span>Grand Total</span>
-          <span>₹${this.grandTotal.toFixed(2)}</span>
-        </div>
-
+      <div class="row">
+        <span>Subtotal</span>
+        <span>₹${this.subtotal.toFixed(2)}</span>
       </div>
 
-      <div class="words">
-        <strong>Total In Words:</strong><br>
-        ${amountWords}
+      ${
+        this.customer.state === 'Tamil Nadu'
+        ? `
+        <div class="row"><span>CGST</span><span>₹${this.cgstTotal.toFixed(2)}</span></div>
+        <div class="row"><span>SGST</span><span>₹${this.sgstTotal.toFixed(2)}</span></div>
+        `
+        : `
+        <div class="row"><span>IGST</span><span>₹${this.igstTotal.toFixed(2)}</span></div>
+        `
+      }
+
+      <div class="row">
+        <span>Discount</span>
+        <span>- ₹${this.discountTotal.toFixed(2)}</span>
       </div>
 
-      <div class="footer">
-        <div>Thank you for your business</div>
-        <div>Authorized Signature</div>
+      <div class="row grand">
+        <span>Grand Total</span>
+        <span>₹${this.grandTotal.toFixed(2)}</span>
       </div>
 
     </div>
 
-  </body>
-  </html>
-  `);
+    <!-- WORDS -->
+    <div class="words">
+      <strong>Total in Words:</strong> ${amountWords}
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div>Thank you for your business</div>
+    <div class="signature">Authorized Signature</div>
+  </div>
+
+</div>
+
+</body>
+</html>
+`);
 
   popup.document.close();
 

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap, catchError, throwError } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
@@ -13,7 +13,7 @@ export class SalesService {
   invoices$ = this.invoicesSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    this.loadInvoices();
+    this.loadInvoices(); // ✅ kept (no logic change)
   }
 
   /* ================= TOKEN ================= */
@@ -29,14 +29,22 @@ export class SalesService {
   }
 
   /* ========================================
-     LOAD INVOICES
+     LOAD INVOICES (SAFE FIX)
   ======================================== */
 
   loadInvoices(): void {
 
-    this.http.get<any>(this.baseUrl, this.getHeaders()).subscribe({
+    const token = localStorage.getItem('token');
 
-      next: (res: any) => {
+    /* 🔥 FIX: prevent empty load on refresh */
+    if (!token) {
+      console.warn("⚠️ No token, skipping invoice load");
+      return;
+    }
+
+    this.http.get<any>(this.baseUrl, this.getHeaders()).pipe(
+
+      tap((res: any) => {
 
         const data = Array.isArray(res?.data) ? res.data : [];
 
@@ -55,22 +63,22 @@ export class SalesService {
 
           date: b.date ? new Date(b.date) : new Date(),
 
-          subtotal: b.subtotal || 0,
-          total: b.totalAmount || 0,
+          subtotal: Number(b.subtotal || 0),
+          total: Number(b.totalAmount || 0),
 
-          cgst: b.cgst || 0,
-          sgst: b.sgst || 0,
-          igst: b.igst || 0,
+          cgst: Number(b.cgst || 0),
+          sgst: Number(b.sgst || 0),
+          igst: Number(b.igst || 0),
 
           payment: b.paymentMethod || 'Cash',
 
           items: Array.isArray(b.items) ? b.items.map((item: any) => ({
             name: item.medicine,
-            qty: item.qty,
-            price: item.sellingPrice || item.price || 0,
-            gst: item.gst || 0,
+            qty: Number(item.qty || 0),
+            price: Number(item.sellingPrice || item.price || 0),
+            gst: Number(item.gst || 0),
             hsn: item.hsn || '-',
-            total: item.total || (item.qty * (item.sellingPrice || item.price || 0))
+            total: Number(item.total || (item.qty * (item.sellingPrice || item.price || 0)))
           })) : []
 
         }));
@@ -78,13 +86,15 @@ export class SalesService {
         console.log("✅ Loaded Invoices:", formatted);
 
         this.invoicesSubject.next(formatted);
-      },
 
-      error: (err: any) => {
+      }),
+
+      catchError((err) => {
         console.error("❌ Load Error:", err);
-      }
+        return throwError(() => err);
+      })
 
-    });
+    ).subscribe();
   }
 
   /* ========================================
@@ -136,11 +146,16 @@ export class SalesService {
 
     console.log("🚀 BILL DATA:", billData);
 
-    return this.http.post(this.baseUrl + '/add', billData, this.getHeaders()).pipe(
+    return this.http.post(`${this.baseUrl}/add`, billData, this.getHeaders()).pipe(
 
       tap(() => {
         console.log("✅ Invoice saved:", billData.invoiceNumber);
-        this.loadInvoices();
+        this.loadInvoices(); // 🔥 refresh
+      }),
+
+      catchError((err) => {
+        console.error("❌ Add Invoice Error:", err);
+        return throwError(() => err);
       })
 
     );
@@ -154,14 +169,21 @@ export class SalesService {
 
     if (!id) {
       console.error("❌ Invalid ID");
-      throw new Error("Invalid ID");
+      return throwError(() => new Error("Invalid ID"));
     }
+
+    console.log("🗑️ Deleting Invoice:", id);
 
     return this.http.delete(`${this.baseUrl}/${id}`, this.getHeaders()).pipe(
 
       tap(() => {
-        console.log("✅ Invoice deleted");
-        this.loadInvoices();
+        console.log("✅ Invoice deleted:", id);
+        this.loadInvoices(); // 🔥 refresh list
+      }),
+
+      catchError((err) => {
+        console.error("❌ Delete Error:", err);
+        return throwError(() => err);
       })
 
     );

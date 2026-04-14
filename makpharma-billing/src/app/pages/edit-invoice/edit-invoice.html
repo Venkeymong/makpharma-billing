@@ -1,0 +1,36 @@
+<div class="edit-page">
+
+  <h2>Edit Invoice</h2>
+
+  <div class="form">
+
+    <label>Customer Name</label>
+    <input [(ngModel)]="invoice.customer.name" />
+
+    <label>Phone</label>
+    <input [(ngModel)]="invoice.customer.phone" />
+
+    <label>Payment</label>
+    <select [(ngModel)]="invoice.payment">
+      <option>Cash</option>
+      <option>UPI</option>
+      <option>Card</option>
+    </select>
+
+    <h3>Items</h3>
+
+    <div *ngFor="let item of invoice.items">
+
+      <input [(ngModel)]="item.name" placeholder="Medicine" />
+      <input type="number" [(ngModel)]="item.qty" />
+      <input type="number" [(ngModel)]="item.price" />
+
+    </div>
+
+    <button (click)="saveInvoice()" class="btn save">
+      Save Changes
+    </button>
+
+  </div>
+
+</div>

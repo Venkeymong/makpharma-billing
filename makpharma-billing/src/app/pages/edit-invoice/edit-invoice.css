@@ -1,0 +1,250 @@
+/* =========================================
+🔥 EDIT INVOICE - SAME THEME (PRO)
+========================================= */
+
+.edit-wrapper {
+  max-width: 900px;
+  margin: 20px auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+
+  font-family: 'Inter','Segoe UI',sans-serif;
+  color: #000;
+}
+
+/* =========================================
+HEADER
+========================================= */
+
+.edit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.company h1 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.company p {
+  font-size: 12px;
+  margin: 2px 0;
+}
+
+.invoice-meta {
+  text-align: right;
+  font-size: 12px;
+}
+
+/* =========================================
+DIVIDER
+========================================= */
+
+.divider {
+  border-bottom: 1px solid #ddd;
+  margin: 15px 0;
+}
+
+/* =========================================
+CUSTOMER FORM
+========================================= */
+
+.customer-box h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.customer-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+
+.customer-grid input,
+.customer-grid select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 12px;
+}
+
+/* =========================================
+TABLE (EDITABLE)
+========================================= */
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  min-width: 600px;
+}
+
+.invoice-table th {
+  background: #f3f4f6;
+  padding: 8px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+}
+
+.invoice-table td {
+  padding: 6px;
+  border: 1px solid #eee;
+  font-size: 12px;
+}
+
+/* INPUT INSIDE TABLE */
+.invoice-table input {
+  width: 100%;
+  padding: 6px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.name {
+  font-weight: 500;
+}
+
+/* =========================================
+TOTALS
+========================================= */
+
+.totals {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+.totals-box {
+  width: 250px;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.grand {
+  font-weight: 700;
+  font-size: 14px;
+  border-top: 1px solid #ddd;
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+/* =========================================
+FOOTER
+========================================= */
+
+.edit-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+
+.signature {
+  min-width: 150px;
+  text-align: right;
+}
+
+.signature p {
+  border-top: 1px solid #000;
+  display: inline-block;
+  padding-top: 5px;
+}
+
+/* =========================================
+ACTIONS
+========================================= */
+
+.edit-actions {
+  margin-top: 15px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* BUTTON COLORS */
+.save {
+  background: #22c55e;
+  color: #fff;
+}
+
+.back {
+  background: #64748b;
+  color: #fff;
+}
+
+.delete {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* HOVER EFFECT */
+.btn:hover {
+  opacity: 0.9;
+}
+
+/* =========================================
+📱 MOBILE
+========================================= */
+
+@media (max-width: 768px) {
+
+  .edit-wrapper {
+    padding: 15px;
+  }
+
+  .invoice-meta {
+    text-align: left;
+  }
+
+  .invoice-table {
+    display: block;
+    overflow-x: auto;
+  }
+
+}
+
+/* =========================================
+🖨️ PRINT (HIDE INPUTS)
+========================================= */
+
+@media print {
+
+  input,
+  select,
+  .edit-actions {
+    display: none !important;
+  }
+
+}

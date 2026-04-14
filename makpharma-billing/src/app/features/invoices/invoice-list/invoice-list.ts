@@ -15,23 +15,11 @@ import { SalesService } from '../../../services/sales';
 })
 export class InvoiceList implements OnInit, OnDestroy {
 
-  /* ========================================
-     DATA
-  ======================================== */
-
   invoices: any[] = [];
   searchText: string = '';
 
-  /* ========================================
-     PAGINATION
-  ======================================== */
-
   currentPage: number = 1;
   itemsPerPage: number = 5;
-
-  /* ========================================
-     SUBSCRIPTION
-  ======================================== */
 
   private sub = new Subscription();
 
@@ -40,47 +28,32 @@ export class InvoiceList implements OnInit, OnDestroy {
     private router: Router
   ) {}
 
-  /* ========================================
-     INIT
-  ======================================== */
-
   ngOnInit(): void {
 
     this.sub.add(
       this.salesService.invoices$.subscribe(data => {
 
-        this.invoices = (data || []).map(inv => ({
-
-          /* ================= CORE ================= */
-
+        this.invoices = (data || []).map((inv: any) => ({
           ...inv,
 
-          _id: inv._id, // ✅ ensure ID exists
+          _id: inv._id,
 
           invoiceNumber: inv.invoiceNumber || 'N/A',
 
-          /* ================= CUSTOMER ================= */
-
           customer: {
-            name: inv.customer?.name || 'Walk-in',
-            phone: inv.customer?.phone || '-'
+            name: inv.customerName || 'Walk-in',
+            phone: inv.customerPhone || '-'
           },
 
-          /* ================= OTHER ================= */
+          total: inv.totalAmount || 0,
+          payment: inv.paymentMethod || 'Cash',
 
-          total: inv.total || 0,
-          payment: inv.payment || 'Cash',
-          date: inv.date || new Date()
-
+          date: inv.createdAt || new Date()
         }));
 
       })
     );
   }
-
-  /* ========================================
-     DESTROY
-  ======================================== */
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
@@ -91,7 +64,6 @@ export class InvoiceList implements OnInit, OnDestroy {
   ======================================== */
 
   get filteredInvoices() {
-
     const text = this.searchText.toLowerCase();
 
     return this.invoices.filter(inv =>
@@ -105,9 +77,7 @@ export class InvoiceList implements OnInit, OnDestroy {
   ======================================== */
 
   get paginatedInvoices() {
-
     const start = (this.currentPage - 1) * this.itemsPerPage;
-
     return this.filteredInvoices.slice(start, start + this.itemsPerPage);
   }
 
@@ -122,10 +92,6 @@ export class InvoiceList implements OnInit, OnDestroy {
     this.currentPage = page;
   }
 
-  /* ========================================
-     SEARCH RESET
-  ======================================== */
-
   onSearchChange(): void {
     this.currentPage = 1;
   }
@@ -138,6 +104,16 @@ export class InvoiceList implements OnInit, OnDestroy {
     this.router.navigate(['/invoice', invoice.invoiceNumber]);
   }
 
+  printInvoice(invoice: any): void {
+    this.router.navigate(['/invoice', invoice.invoiceNumber]).then(() => {
+      setTimeout(() => window.print(), 500);
+    });
+  }
+
+editInvoice(invoice: any): void {
+  this.router.navigate(['/edit-invoice', invoice._id]);
+}
+
   deleteInvoice(invoice: any): void {
 
     if (!invoice?._id) {
@@ -145,26 +121,23 @@ export class InvoiceList implements OnInit, OnDestroy {
       return;
     }
 
-    if (confirm(`Delete invoice ${invoice.invoiceNumber}?`)) {
-      this.salesService.deleteInvoice(invoice._id);
-    }
-  }
+    if (!confirm(`Delete invoice ${invoice.invoiceNumber}?`)) return;
 
-  editInvoice(invoice: any): void {
-    alert(`Edit feature coming soon for ${invoice.invoiceNumber}`);
-  }
+    this.salesService.deleteInvoice(invoice._id).subscribe({
 
-  /* ========================================
-     PRINT
-  ======================================== */
+      next: () => {
 
-  printInvoice(invoice: any): void {
+        alert("Invoice deleted successfully");
 
-    this.router.navigate(['/invoice', invoice.invoiceNumber]).then(() => {
+        /* 🔥 REMOVE FROM UI */
+        this.invoices = this.invoices.filter(i => i._id !== invoice._id);
 
-      setTimeout(() => {
-        window.print();
-      }, 500);
+      },
+
+      error: (err) => {
+        console.error("Delete Error:", err);
+        alert("Failed to delete invoice");
+      }
 
     });
   }
@@ -174,7 +147,6 @@ export class InvoiceList implements OnInit, OnDestroy {
   ======================================== */
 
   getTotalSales(): number {
-
     return this.invoices.reduce(
       (sum, inv) => sum + (inv.total || 0),
       0
