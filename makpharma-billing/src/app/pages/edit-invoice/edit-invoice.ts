@@ -9,11 +9,12 @@ import { SalesService } from '../../services/sales';
   selector: 'app-edit-invoice',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './edit-invoice.html'
+  templateUrl: './edit-invoice.html',
+  styleUrls: ['./edit-invoice.css']
 })
 export class EditInvoiceComponent implements OnInit {
 
-  invoice: any;
+  invoice: any = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -31,16 +32,35 @@ export class EditInvoiceComponent implements OnInit {
 
     const data = this.salesService.getInvoices();
 
-    this.invoice = data.find(i => i._id === id);
+    if (!data || data.length === 0) {
 
-    if (!this.invoice) {
-      alert("Invoice not found");
-      this.router.navigate(['/invoices']); // ✅ FIXED ROUTE
+      this.salesService.loadInvoices();
+
+      setTimeout(() => {
+
+        const fresh = this.salesService.getInvoices();
+        this.invoice = fresh.find(i => i._id === id);
+
+        if (!this.invoice) {
+          alert("Invoice not found");
+          this.router.navigate(['/invoices']);
+        }
+
+      }, 500);
+
+    } else {
+
+      this.invoice = data.find(i => i._id === id);
+
+      if (!this.invoice) {
+        alert("Invoice not found");
+        this.router.navigate(['/invoices']);
+      }
     }
   }
 
   /* ========================================
-     SAVE INVOICE (FIXED)
+     SAVE INVOICE (FINAL FIX)
   ======================================== */
 
   saveInvoice(): void {
@@ -52,54 +72,75 @@ export class EditInvoiceComponent implements OnInit {
 
     console.log("🛠️ Editing Invoice:", this.invoice);
 
-    /* 🔥 FORMAT DATA BEFORE SAVE */
+    const originalInvoice = { ...this.invoice };
+
+    /* 🔥 SAFE ITEMS */
+    const safeItems = (this.invoice.items || []).map((item: any) => {
+
+      const qty = Number(item.qty || 1);
+      const price = Number(item.price || item.sellingPrice || 1);
+
+      return {
+        medicine: item.name || item.medicine || '',
+        batch: item.batch || '',
+        qty: qty,
+
+        price: price,
+        sellingPrice: price,
+
+        gst: Number(item.gst || 0),
+        total: qty * price
+      };
+    });
+
+    /* 🔥 AUTO CALCULATE TOTAL */
+   const totalAmount = safeItems.reduce(
+  (sum: number, i: any) => sum + Number(i.total || 0),
+  0
+);
+
     const updatedInvoice = {
 
-      ...this.invoice,
+      invoiceNumber: this.invoice.invoiceNumber,
 
-      customer: {
-        name: this.invoice.customer?.name || 'Walk-in',
-        phone: this.invoice.customer?.phone || '-',
-        state: this.invoice.customer?.state || 'Tamil Nadu',
-        gst: this.invoice.customer?.gst || ''
-      },
+      customerName: this.invoice.customer?.name || 'Walk-in',
+      customerPhone: this.invoice.customer?.phone || '-',
+      customerState: this.invoice.customer?.state || 'Tamil Nadu',
+      customerGST: this.invoice.customer?.gst || '',
 
-      items: (this.invoice.items || []).map((item: any) => ({
-        medicine: item.name || item.medicine,
-        batch: item.batch || '',
-        qty: Number(item.qty || 0),
-        price: Number(item.price || 0),
-        sellingPrice: Number(item.price || 0),
-        gst: Number(item.gst || 0),
-        total: Number(item.qty || 0) * Number(item.price || 0)
-      })),
+      date: this.invoice.date || new Date(),
 
-      subtotal: Number(this.invoice.subtotal || 0),
-      totalAmount: Number(this.invoice.total || 0),
+      items: safeItems,
 
-      paymentMethod: this.invoice.payment || "Cash"
+      subtotal: totalAmount,
+      cgst: Number(this.invoice.cgst || 0),
+      sgst: Number(this.invoice.sgst || 0),
+      igst: Number(this.invoice.igst || 0),
+
+      totalAmount: totalAmount,
+
+      paymentMethod: this.invoice.payment || 'Cash'
     };
 
-    console.log("📦 Updated Data:", updatedInvoice);
+    console.log("📦 FINAL PAYLOAD:", updatedInvoice);
 
-    /* 🔥 DELETE OLD INVOICE */
-    this.salesService.deleteInvoice(this.invoice._id).subscribe({
+    /* 🔥 STEP 1: ADD NEW */
+    this.salesService.addInvoice(updatedInvoice).subscribe({
 
       next: () => {
 
-        console.log("🗑️ Old invoice deleted");
+        console.log("✅ New invoice added");
 
-        /* 🔥 ADD UPDATED INVOICE */
-        this.salesService.addInvoice(updatedInvoice).subscribe({
+        /* 🔥 STEP 2: DELETE OLD */
+        this.salesService.deleteInvoice(originalInvoice._id).subscribe({
 
           next: () => {
             alert("✅ Invoice updated successfully");
-            this.router.navigate(['/invoices']); // ✅ FIXED ROUTE
+            this.router.navigate(['/invoices']);
           },
 
-          error: (err) => {
-            console.error("❌ Add Error:", err);
-            alert("Failed to save updated invoice");
+          error: () => {
+            alert("⚠️ New saved, but old delete failed");
           }
 
         });
@@ -107,12 +148,11 @@ export class EditInvoiceComponent implements OnInit {
       },
 
       error: (err) => {
-        console.error("❌ Delete Error:", err);
-        alert("Failed to update invoice");
+        console.error("❌ Add failed:", err);
+        alert("Update failed — old invoice NOT deleted");
       }
 
     });
-
   }
 
 }

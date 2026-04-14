@@ -68,7 +68,8 @@ exports.createBill = async (req, res) => {
         qty,
         price,
         sellingPrice,
-        gst
+        gst,
+        total: qty * sellingPrice // 🔥 FIX (NO LOGIC CHANGE)
       };
     });
 
@@ -95,7 +96,6 @@ exports.createBill = async (req, res) => {
         throw new Error(`Medicine not found: ${item.medicine}`);
       }
 
-      /* 🔥 FIX: prevent validation crash (NO LOGIC CHANGE) */
       if (med.price == null) {
         med.price = item.price || 0;
       }
@@ -110,7 +110,7 @@ exports.createBill = async (req, res) => {
 
       med.stock = (med.stock || 0) - item.qty;
 
-      await med.save({ session }); // now safe
+      await med.save({ session });
     }
 
     /* ================= COMMIT ================= */
@@ -201,7 +201,6 @@ exports.deleteBill = async (req, res) => {
 
       if (med) {
 
-        /* 🔥 SAME SAFETY FIX */
         if (med.price == null) med.price = 0;
         if (med.sellingPrice == null) med.sellingPrice = 0;
 

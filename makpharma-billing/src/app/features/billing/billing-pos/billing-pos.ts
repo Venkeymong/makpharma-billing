@@ -271,7 +271,12 @@ printBill(): void {
 
 this.salesService.addInvoice({
   invoiceNumber: this.invoiceNumber,
-  customer: { ...this.customer },
+
+  customerName: this.customer.name,
+  customerPhone: this.customer.phone,
+  customerState: this.customer.state || 'Tamil Nadu',
+  customerGST: '',
+
   totalAmount: this.grandTotal,
 
 items: this.cart.map(item => ({

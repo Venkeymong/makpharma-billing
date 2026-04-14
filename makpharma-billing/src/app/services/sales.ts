@@ -13,7 +13,7 @@ export class SalesService {
   invoices$ = this.invoicesSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    this.loadInvoices(); // ✅ kept (no logic change)
+    this.loadInvoices(); // ✅ no logic change
   }
 
   /* ================= TOKEN ================= */
@@ -29,14 +29,13 @@ export class SalesService {
   }
 
   /* ========================================
-     LOAD INVOICES (SAFE FIX)
+     LOAD INVOICES (🔥 FIXED CUSTOMER ISSUE)
   ======================================== */
 
   loadInvoices(): void {
 
     const token = localStorage.getItem('token');
 
-    /* 🔥 FIX: prevent empty load on refresh */
     if (!token) {
       console.warn("⚠️ No token, skipping invoice load");
       return;
@@ -54,11 +53,27 @@ export class SalesService {
 
           invoiceNumber: b.invoiceNumber || 'MISSING-INVOICE',
 
+          /* 🔥 FINAL FIX (NO WALK-IN + SUPPORT BOTH FORMATS) */
           customer: {
-            name: b.customerName || 'Walk-in',
-            phone: b.customerPhone || '-',
-            state: b.customerState || 'Tamil Nadu',
-            gst: b.customerGST || ''
+            name:
+              b.customerName ||
+              b.customer?.name ||
+              '',
+
+            phone:
+              b.customerPhone ||
+              b.customer?.phone ||
+              '',
+
+            state:
+              b.customerState ||
+              b.customer?.state ||
+              'Tamil Nadu',
+
+            gst:
+              b.customerGST ||
+              b.customer?.gst ||
+              ''
           },
 
           date: b.date ? new Date(b.date) : new Date(),
@@ -72,14 +87,16 @@ export class SalesService {
 
           payment: b.paymentMethod || 'Cash',
 
-          items: Array.isArray(b.items) ? b.items.map((item: any) => ({
-            name: item.medicine,
-            qty: Number(item.qty || 0),
-            price: Number(item.sellingPrice || item.price || 0),
-            gst: Number(item.gst || 0),
-            hsn: item.hsn || '-',
-            total: Number(item.total || (item.qty * (item.sellingPrice || item.price || 0)))
-          })) : []
+          items: Array.isArray(b.items)
+            ? b.items.map((item: any) => ({
+                name: item.medicine,
+                qty: Number(item.qty || 0),
+                price: Number(item.sellingPrice || item.price || 0),
+                gst: Number(item.gst || 0),
+                hsn: item.hsn || '-',
+                total: Number(item.total || (item.qty * (item.sellingPrice || item.price || 0)))
+              }))
+            : []
 
         }));
 
@@ -106,7 +123,7 @@ export class SalesService {
   }
 
   /* ========================================
-     ADD INVOICE
+     ADD INVOICE (🔥 SAFE FIX)
   ======================================== */
 
   addInvoice(invoice: any): Observable<any> {
@@ -115,42 +132,66 @@ export class SalesService {
 
       invoiceNumber: invoice.invoiceNumber,
 
-      customerName: invoice.customer?.name || 'Walk-in',
-      customerPhone: invoice.customer?.phone || '-',
-      customerState: invoice.customer?.state || 'Tamil Nadu',
-      customerGST: invoice.customer?.gst || '',
+      /* 🔥 SUPPORT BOTH STRUCTURES */
+      customerName:
+        invoice.customer?.name ||
+        invoice.customerName ||
+        '',
+
+      customerPhone:
+        invoice.customer?.phone ||
+        invoice.customerPhone ||
+        '',
+
+      customerState:
+        invoice.customer?.state ||
+        invoice.customerState ||
+        'Tamil Nadu',
+
+      customerGST:
+        invoice.customer?.gst ||
+        invoice.customerGST ||
+        '',
 
       date: invoice.date || new Date(),
 
-      items: Array.isArray(invoice.items) ? invoice.items.map((item: any) => ({
-        medicine: item.medicine || item.name,
-        batch: item.batch || '',
-        qty: Number(item.qty || 0),
+      items: Array.isArray(invoice.items)
+        ? invoice.items.map((item: any) => {
 
-        price: Number(item.price || 0),
-        sellingPrice: Number(item.sellingPrice || item.price || 0),
+            const price = Number(item.price || item.sellingPrice || 1);
+            const qty = Number(item.qty || 1);
 
-        gst: Number(item.gst || 0),
-        total: Number(item.qty || 0) * Number(item.sellingPrice || item.price || 0)
-      })) : [],
+            return {
+              medicine: item.medicine || item.name || '',
+              batch: item.batch || '',
+              qty,
+
+              price,
+              sellingPrice: price,
+
+              gst: Number(item.gst || 0),
+              total: qty * price
+            };
+          })
+        : [],
 
       subtotal: Number(invoice.subtotal || 0),
-      cgst: Number(invoice.cgstTotal || 0),
-      sgst: Number(invoice.sgstTotal || 0),
-      igst: Number(invoice.igstTotal || 0),
+      cgst: Number(invoice.cgstTotal || invoice.cgst || 0),
+      sgst: Number(invoice.sgstTotal || invoice.sgst || 0),
+      igst: Number(invoice.igstTotal || invoice.igst || 0),
 
       totalAmount: Number(invoice.totalAmount || invoice.total || 0),
 
-      paymentMethod: invoice.paymentMethod || "Cash"
+      paymentMethod: invoice.paymentMethod || invoice.payment || "Cash"
     };
 
-    console.log("🚀 BILL DATA:", billData);
+    console.log("🚀 FINAL BILL DATA:", billData);
 
     return this.http.post(`${this.baseUrl}/add`, billData, this.getHeaders()).pipe(
 
       tap(() => {
         console.log("✅ Invoice saved:", billData.invoiceNumber);
-        this.loadInvoices(); // 🔥 refresh
+        this.loadInvoices();
       }),
 
       catchError((err) => {
@@ -178,7 +219,7 @@ export class SalesService {
 
       tap(() => {
         console.log("✅ Invoice deleted:", id);
-        this.loadInvoices(); // 🔥 refresh list
+        this.loadInvoices();
       }),
 
       catchError((err) => {

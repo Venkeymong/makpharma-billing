@@ -1,8 +1,10 @@
-<div class="edit-page">
+<div class="edit-page" *ngIf="invoice">
 
   <h2>Edit Invoice</h2>
 
   <div class="form">
+
+    <!-- ================= CUSTOMER ================= -->
 
     <label>Customer Name</label>
     <input [(ngModel)]="invoice.customer.name" />
@@ -17,15 +19,32 @@
       <option>Card</option>
     </select>
 
+    <!-- ================= ITEMS ================= -->
+
     <h3>Items</h3>
 
-    <div *ngFor="let item of invoice.items">
+    <div *ngFor="let item of invoice.items; let i = index" class="item-row">
 
-      <input [(ngModel)]="item.name" placeholder="Medicine" />
-      <input type="number" [(ngModel)]="item.qty" />
-      <input type="number" [(ngModel)]="item.price" />
+      <input
+        [(ngModel)]="item.name"
+        placeholder="Medicine"
+      />
+
+      <input
+        type="number"
+        [(ngModel)]="item.qty"
+        placeholder="Qty"
+      />
+
+      <input
+        type="number"
+        [(ngModel)]="item.price"
+        placeholder="Price"
+      />
 
     </div>
+
+    <!-- ================= ACTION ================= -->
 
     <button (click)="saveInvoice()" class="btn save">
       Save Changes
@@ -33,4 +52,9 @@
 
   </div>
 
+</div>
+
+<!-- 🔥 LOADING STATE -->
+<div *ngIf="!invoice" class="loading">
+  Loading invoice...
 </div>

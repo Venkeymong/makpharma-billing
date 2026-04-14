@@ -11,7 +11,7 @@ import { SalesService } from '../../../services/sales';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './invoice-list.html',
-  styleUrl: './invoice-list.css'
+  styleUrls: ['./invoice-list.css']
 })
 export class InvoiceList implements OnInit, OnDestroy {
 
@@ -28,32 +28,44 @@ export class InvoiceList implements OnInit, OnDestroy {
     private router: Router
   ) {}
 
+  /* ========================================
+     INIT
+  ======================================== */
+
   ngOnInit(): void {
+
+    this.salesService.loadInvoices();
 
     this.sub.add(
       this.salesService.invoices$.subscribe(data => {
 
         this.invoices = (data || []).map((inv: any) => ({
-          ...inv,
 
           _id: inv._id,
 
           invoiceNumber: inv.invoiceNumber || 'N/A',
 
+          /* 🔥 FIX: USE CORRECT STRUCTURE */
           customer: {
-            name: inv.customerName || 'Walk-in',
-            phone: inv.customerPhone || '-'
+            name: inv.customer?.name || '',
+            phone: inv.customer?.phone || ''
           },
 
-          total: inv.totalAmount || 0,
-          payment: inv.paymentMethod || 'Cash',
+          total: Number(inv.total || 0),
+          payment: inv.payment || 'Cash',
 
-          date: inv.createdAt || new Date()
+          date: inv.date ? new Date(inv.date) : new Date()
         }));
+
+        console.log("🔥 FINAL INVOICE DATA:", this.invoices);
 
       })
     );
   }
+
+  /* ========================================
+     DESTROY
+  ======================================== */
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
@@ -64,11 +76,12 @@ export class InvoiceList implements OnInit, OnDestroy {
   ======================================== */
 
   get filteredInvoices() {
+
     const text = this.searchText.toLowerCase();
 
     return this.invoices.filter(inv =>
-      inv.customer.name.toLowerCase().includes(text) ||
-      inv.invoiceNumber.toLowerCase().includes(text)
+      (inv.customer?.name || '').toLowerCase().includes(text) ||
+      (inv.invoiceNumber || '').toLowerCase().includes(text)
     );
   }
 
@@ -110,9 +123,15 @@ export class InvoiceList implements OnInit, OnDestroy {
     });
   }
 
-editInvoice(invoice: any): void {
-  this.router.navigate(['/edit-invoice', invoice._id]);
-}
+  editInvoice(invoice: any): void {
+
+    if (!invoice?._id) {
+      alert("Invalid invoice ID");
+      return;
+    }
+
+    this.router.navigate(['/edit-invoice', invoice._id]);
+  }
 
   deleteInvoice(invoice: any): void {
 
@@ -126,12 +145,8 @@ editInvoice(invoice: any): void {
     this.salesService.deleteInvoice(invoice._id).subscribe({
 
       next: () => {
-
         alert("Invoice deleted successfully");
-
-        /* 🔥 REMOVE FROM UI */
         this.invoices = this.invoices.filter(i => i._id !== invoice._id);
-
       },
 
       error: (err) => {
@@ -148,9 +163,13 @@ editInvoice(invoice: any): void {
 
   getTotalSales(): number {
     return this.invoices.reduce(
-      (sum, inv) => sum + (inv.total || 0),
+      (sum: number, inv: any) => sum + Number(inv.total || 0),
       0
     );
+  }
+
+  trackById(index: number, item: any): string {
+    return item._id;
   }
 
 }

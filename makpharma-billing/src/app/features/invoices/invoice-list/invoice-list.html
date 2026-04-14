@@ -1,6 +1,6 @@
 <div class="invoice-page">
 
-  <!-- HEADER -->
+  <!-- ================= HEADER ================= -->
   <div class="header">
 
     <div>
@@ -15,8 +15,9 @@
 
   </div>
 
-  <!-- SEARCH -->
+  <!-- ================= SEARCH ================= -->
   <div class="controls">
+
     <input
       type="text"
       placeholder="Search by invoice or customer..."
@@ -24,9 +25,10 @@
       (input)="onSearchChange()"
       class="search"
     />
+
   </div>
 
-  <!-- TABLE -->
+  <!-- ================= TABLE ================= -->
   <div class="table-container">
 
     <table class="invoice-table">
@@ -44,46 +46,74 @@
 
       <tbody>
 
-        <tr *ngFor="let inv of paginatedInvoices">
+        <tr *ngFor="let inv of paginatedInvoices; trackBy: trackById">
 
+          <!-- Invoice -->
           <td class="invoice-no">
-            {{ inv.invoiceNumber }}
+            {{ inv?.invoiceNumber || '' }}
           </td>
 
+          <!-- Customer -->
           <td>
             <div class="customer">
-              <span class="name">{{ inv.customer.name }}</span>
-              <small class="phone">{{ inv.customer.phone }}</small>
+
+              <!-- 🔥 NO WALK-IN -->
+              <span class="name">
+                {{ inv?.customer?.name }}
+              </span>
+
+              <small class="phone">
+                {{ inv?.customer?.phone }}
+              </small>
+
             </div>
           </td>
 
+          <!-- Date -->
           <td>
-            {{ inv.date | date:'mediumDate' }}
+            {{ inv?.date | date:'mediumDate' }}
           </td>
 
+          <!-- Total -->
           <td class="amount">
-            ₹{{ inv.total | number:'1.0-2' }}
+            ₹{{ (inv?.total || 0) | number:'1.0-2' }}
           </td>
 
+          <!-- Payment -->
           <td>
-            <span class="payment">{{ inv.payment }}</span>
+            <span class="payment">
+              {{ inv?.payment }}
+            </span>
           </td>
 
+          <!-- Actions -->
           <td class="actions">
 
-            <button class="btn view" (click)="viewInvoice(inv)">
+            <button
+              class="btn view"
+              type="button"
+              (click)="viewInvoice(inv)">
               View
             </button>
 
-            <button class="btn print" (click)="printInvoice(inv)">
+            <button
+              class="btn print"
+              type="button"
+              (click)="printInvoice(inv)">
               Print
             </button>
 
-            <button class="btn edit" (click)="editInvoice(inv)">
+            <button
+              class="btn edit"
+              type="button"
+              (click)="editInvoice(inv)">
               Edit
             </button>
 
-            <button class="btn delete" (click)="deleteInvoice(inv)">
+            <button
+              class="btn delete"
+              type="button"
+              (click)="deleteInvoice(inv)">
               Delete
             </button>
 
@@ -91,6 +121,7 @@
 
         </tr>
 
+        <!-- EMPTY -->
         <tr *ngIf="paginatedInvoices.length === 0">
           <td colspan="6" class="no-data">
             No invoices found
@@ -103,11 +134,12 @@
 
   </div>
 
-  <!-- PAGINATION -->
+  <!-- ================= PAGINATION ================= -->
   <div class="pagination" *ngIf="totalPages > 1">
 
     <button
       class="page-btn"
+      type="button"
       [disabled]="currentPage === 1"
       (click)="changePage(currentPage - 1)">
       ← Prev
@@ -116,6 +148,7 @@
     <button
       *ngFor="let page of [].constructor(totalPages); let i = index"
       class="page-btn"
+      type="button"
       [class.active]="currentPage === i + 1"
       (click)="changePage(i + 1)">
       {{ i + 1 }}
@@ -123,6 +156,7 @@
 
     <button
       class="page-btn"
+      type="button"
       [disabled]="currentPage === totalPages"
       (click)="changePage(currentPage + 1)">
       Next →
