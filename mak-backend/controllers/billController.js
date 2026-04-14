@@ -3,7 +3,7 @@ const Bill = require("../models/bill");
 const Medicine = require("../models/medicine");
 
 /* =========================================
-   🧾 CREATE BILL (PRODUCTION SAFE)
+   🧾 CREATE BILL (SAFE + STABLE)
 ========================================= */
 
 exports.createBill = async (req, res) => {
@@ -45,6 +45,13 @@ exports.createBill = async (req, res) => {
       throw new Error("Items cannot be empty");
     }
 
+    /* ================= NORMALIZE ================= */
+
+    const normalize = (str) =>
+      String(str || "").toLowerCase().replace(/\s+/g, "");
+
+    const allMeds = await Medicine.find().session(session);
+
     /* ================= NORMALIZE ITEMS ================= */
 
     const normalizedItems = items.map(item => {
@@ -63,13 +70,13 @@ exports.createBill = async (req, res) => {
       }
 
       return {
-        medicine: item.medicine,
-        batch: item.batch || "",
+        medicine: item.medicine.trim(),
+        batch: item.batch?.trim() || "",
         qty,
         price,
         sellingPrice,
         gst,
-        total: qty * sellingPrice // 🔥 FIX (NO LOGIC CHANGE)
+        total: qty * sellingPrice
       };
     });
 
@@ -87,28 +94,25 @@ exports.createBill = async (req, res) => {
 
     for (const item of normalizedItems) {
 
-      const med = await Medicine.findOne({
-        name: item.medicine,
-        batch: item.batch || undefined
-      }).session(session);
+      /* 🔥 FINAL FIX: NORMALIZED MATCH */
+      const med = allMeds.find(m =>
+        normalize(m.name) === normalize(item.medicine)
+      );
 
       if (!med) {
         throw new Error(`Medicine not found: ${item.medicine}`);
       }
 
-      if (med.price == null) {
-        med.price = item.price || 0;
-      }
+      /* 🔒 SAFE NUMBERS */
+      med.price = Number(med.price || item.price || 0);
+      med.sellingPrice = Number(med.sellingPrice || item.sellingPrice || med.price || 0);
+      med.stock = Number(med.stock || 0);
 
-      if (med.sellingPrice == null) {
-        med.sellingPrice = item.sellingPrice || med.price || 0;
-      }
-
-      if ((med.stock || 0) < item.qty) {
+      if (med.stock < item.qty) {
         throw new Error(`Insufficient stock for ${item.medicine}`);
       }
 
-      med.stock = (med.stock || 0) - item.qty;
+      med.stock -= item.qty;
 
       await med.save({ session });
     }
@@ -129,8 +133,7 @@ exports.createBill = async (req, res) => {
     await session.abortTransaction();
     session.endSession();
 
-    console.error("❌ FULL ERROR:", error);
-    console.error("❌ STACK:", error.stack);
+    console.error("❌ FULL ERROR:", error.message);
 
     return res.status(500).json({
       success: false,
@@ -156,7 +159,7 @@ exports.getBills = async (req, res) => {
 
   } catch (error) {
 
-    console.error("❌ Get Bills Error:", error);
+    console.error("❌ Get Bills Error:", error.message);
 
     return res.status(500).json({
       success: false,
@@ -167,7 +170,7 @@ exports.getBills = async (req, res) => {
 
 
 /* =========================================
-   ❌ DELETE BILL (SAFE + RESTORE STOCK)
+   ❌ DELETE BILL (SAFE)
 ========================================= */
 
 exports.deleteBill = async (req, res) => {
@@ -190,21 +193,26 @@ exports.deleteBill = async (req, res) => {
       throw new Error("Bill not found");
     }
 
+    const normalize = (str) =>
+      String(str || "").toLowerCase().replace(/\s+/g, "");
+
+    const allMeds = await Medicine.find().session(session);
+
     /* ================= RESTORE STOCK ================= */
 
     for (const item of bill.items) {
 
-      const med = await Medicine.findOne({
-        name: item.medicine,
-        batch: item.batch || undefined
-      }).session(session);
+      const med = allMeds.find(m =>
+        normalize(m.name) === normalize(item.medicine)
+      );
 
       if (med) {
 
-        if (med.price == null) med.price = 0;
-        if (med.sellingPrice == null) med.sellingPrice = 0;
+        med.price = Number(med.price || 0);
+        med.sellingPrice = Number(med.sellingPrice || 0);
+        med.stock = Number(med.stock || 0);
 
-        med.stock = (med.stock || 0) + item.qty;
+        med.stock += item.qty;
 
         await med.save({ session });
       }
@@ -225,7 +233,7 @@ exports.deleteBill = async (req, res) => {
     await session.abortTransaction();
     session.endSession();
 
-    console.error("❌ Delete Bill Error:", error);
+    console.error("❌ Delete Bill Error:", error.message);
 
     return res.status(500).json({
       success: false,
