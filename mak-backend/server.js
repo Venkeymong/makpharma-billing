@@ -18,27 +18,29 @@ connectDB();
    ⚙️ GLOBAL MIDDLEWARE
 ========================================= */
 
-// 🔐 CORS (FULL SAFE - LOCAL + PRODUCTION)
+// 🔐 CORS (FINAL FIXED - NO CRASH)
 const allowedOrigins = [
-  "http://localhost:4200", // Angular local
+  "http://localhost:4200",
   "http://127.0.0.1:4200",
-  "https://makpharma-billing-final.onrender.com" // deployed frontend (change later if needed)
+  "https://makpharma-billing-final.onrender.com"
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
 
-    // allow tools like Postman / mobile apps
+    // allow Postman / mobile apps
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn("❌ Blocked by CORS:", origin);
-      callback(new Error("CORS not allowed"));
+      return callback(null, true);
     }
+
+    console.warn("❌ Blocked by CORS:", origin);
+
+    // 🔥 IMPORTANT: do NOT throw error
+    return callback(null, false);
   },
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
