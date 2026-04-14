@@ -6,7 +6,8 @@ const router = express.Router();
 const {
   createBill,
   getBills,
-  deleteBill
+  deleteBill,
+  updateBill // 🔥 ADDED
 } = require("../controllers/billController");
 
 /* ================= MIDDLEWARE ================= */
@@ -16,7 +17,7 @@ const roleMiddleware = require("../middleware/role");
 
 
 /* ======================================================
-   🧾 BILL ROUTES (SECURE + PRODUCTION)
+   🧾 BILL ROUTES (PRODUCTION READY)
 ====================================================== */
 
 /* 🔐 CREATE BILL (Admin + Staff) */
@@ -27,16 +28,26 @@ router.post(
   async (req, res, next) => {
     try {
 
-      // ✅ Basic validation
-      if (!req.body.items || !Array.isArray(req.body.items) || req.body.items.length === 0) {
-        return res.status(400).json({ message: "Bill items are required" });
+      const { items } = req.body;
+
+      /* ✅ VALIDATION */
+      if (!Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Bill items are required"
+        });
       }
 
       next();
 
-    } catch (err) {
-      console.error("❌ CREATE BILL ROUTE ERROR:", err.message);
-      res.status(500).json({ message: "Failed to process bill request" });
+    } catch (error) {
+
+      console.error("❌ CREATE BILL ROUTE ERROR:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Failed to process bill request"
+      });
     }
   },
   createBill
@@ -51,12 +62,50 @@ router.get(
   async (req, res, next) => {
     try {
       next();
-    } catch (err) {
-      console.error("❌ GET BILL ROUTE ERROR:", err.message);
-      res.status(500).json({ message: "Failed to fetch bills" });
+    } catch (error) {
+
+      console.error("❌ GET BILL ROUTE ERROR:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch bills"
+      });
     }
   },
   getBills
+);
+
+
+/* 🔥 UPDATE BILL (Admin + Staff) */
+router.put(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("admin", "staff"),
+  async (req, res, next) => {
+    try {
+
+      const { id } = req.params;
+
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          message: "Bill ID is required"
+        });
+      }
+
+      next();
+
+    } catch (error) {
+
+      console.error("❌ UPDATE BILL ROUTE ERROR:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update bill"
+      });
+    }
+  },
+  updateBill
 );
 
 
@@ -71,14 +120,22 @@ router.delete(
       const { id } = req.params;
 
       if (!id) {
-        return res.status(400).json({ message: "Bill ID is required" });
+        return res.status(400).json({
+          success: false,
+          message: "Bill ID is required"
+        });
       }
 
       next();
 
-    } catch (err) {
-      console.error("❌ DELETE BILL ROUTE ERROR:", err.message);
-      res.status(500).json({ message: "Failed to delete bill" });
+    } catch (error) {
+
+      console.error("❌ DELETE BILL ROUTE ERROR:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Failed to delete bill"
+      });
     }
   },
   deleteBill

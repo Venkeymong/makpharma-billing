@@ -3,7 +3,7 @@ const Bill = require("../models/bill");
 const Medicine = require("../models/medicine");
 
 /* =========================================
-   🧾 CREATE BILL (SAFE + STABLE)
+   🧾 CREATE BILL
 ========================================= */
 
 exports.createBill = async (req, res) => {
@@ -16,8 +16,6 @@ exports.createBill = async (req, res) => {
 
     const year = new Date().getFullYear();
 
-    /* ================= INVOICE GENERATION ================= */
-
     const lastBill = await Bill.findOne({
       invoiceNumber: { $regex: `^MAK-${year}-` }
     })
@@ -29,15 +27,10 @@ exports.createBill = async (req, res) => {
     if (lastBill?.invoiceNumber) {
       const parts = lastBill.invoiceNumber.split("-");
       const lastNumber = parseInt(parts[2]);
-
-      if (!isNaN(lastNumber)) {
-        nextNumber = lastNumber + 1;
-      }
+      if (!isNaN(lastNumber)) nextNumber = lastNumber + 1;
     }
 
     const invoiceNumber = `MAK-${year}-${String(nextNumber).padStart(4, "0")}`;
-
-    /* ================= VALIDATION ================= */
 
     const { items } = req.body;
 
@@ -45,14 +38,10 @@ exports.createBill = async (req, res) => {
       throw new Error("Items cannot be empty");
     }
 
-    /* ================= NORMALIZE ================= */
-
     const normalize = (str) =>
       String(str || "").toLowerCase().replace(/\s+/g, "");
 
     const allMeds = await Medicine.find().session(session);
-
-    /* ================= NORMALIZE ITEMS ================= */
 
     const normalizedItems = items.map(item => {
 
@@ -80,8 +69,6 @@ exports.createBill = async (req, res) => {
       };
     });
 
-    /* ================= CREATE BILL ================= */
-
     const bill = new Bill({
       ...req.body,
       items: normalizedItems,
@@ -90,11 +77,8 @@ exports.createBill = async (req, res) => {
 
     await bill.save({ session });
 
-    /* ================= STOCK REDUCTION ================= */
-
     for (const item of normalizedItems) {
 
-      /* 🔥 FINAL FIX: NORMALIZED MATCH */
       const med = allMeds.find(m =>
         normalize(m.name) === normalize(item.medicine)
       );
@@ -103,24 +87,15 @@ exports.createBill = async (req, res) => {
         throw new Error(`Medicine not found: ${item.medicine}`);
       }
 
-      /* 🔒 SAFE NUMBERS */
-      med.price = Number(med.price || item.price || 0);
-      med.sellingPrice = Number(med.sellingPrice || item.sellingPrice || med.price || 0);
-      med.stock = Number(med.stock || 0);
-
       if (med.stock < item.qty) {
         throw new Error(`Insufficient stock for ${item.medicine}`);
       }
 
       med.stock -= item.qty;
-
       await med.save({ session });
     }
 
-    /* ================= COMMIT ================= */
-
     await session.commitTransaction();
-    session.endSession();
 
     return res.status(201).json({
       success: true,
@@ -131,14 +106,16 @@ exports.createBill = async (req, res) => {
   } catch (error) {
 
     await session.abortTransaction();
-    session.endSession();
 
-    console.error("❌ FULL ERROR:", error.message);
+    console.error("❌ CREATE BILL ERROR:", error);
 
     return res.status(500).json({
       success: false,
       message: error.message || "Failed to create bill"
     });
+
+  } finally {
+    session.endSession();
   }
 };
 
@@ -159,7 +136,7 @@ exports.getBills = async (req, res) => {
 
   } catch (error) {
 
-    console.error("❌ Get Bills Error:", error.message);
+    console.error("❌ GET BILLS ERROR:", error);
 
     return res.status(500).json({
       success: false,
@@ -170,7 +147,7 @@ exports.getBills = async (req, res) => {
 
 
 /* =========================================
-   ❌ DELETE BILL (SAFE)
+   ❌ DELETE BILL
 ========================================= */
 
 exports.deleteBill = async (req, res) => {
@@ -183,10 +160,6 @@ exports.deleteBill = async (req, res) => {
 
     const { id } = req.params;
 
-    if (!id) {
-      throw new Error("Invalid bill ID");
-    }
-
     const bill = await Bill.findById(id).session(session);
 
     if (!bill) {
@@ -198,8 +171,6 @@ exports.deleteBill = async (req, res) => {
 
     const allMeds = await Medicine.find().session(session);
 
-    /* ================= RESTORE STOCK ================= */
-
     for (const item of bill.items) {
 
       const med = allMeds.find(m =>
@@ -207,13 +178,7 @@ exports.deleteBill = async (req, res) => {
       );
 
       if (med) {
-
-        med.price = Number(med.price || 0);
-        med.sellingPrice = Number(med.sellingPrice || 0);
-        med.stock = Number(med.stock || 0);
-
         med.stock += item.qty;
-
         await med.save({ session });
       }
     }
@@ -221,7 +186,6 @@ exports.deleteBill = async (req, res) => {
     await Bill.findByIdAndDelete(id).session(session);
 
     await session.commitTransaction();
-    session.endSession();
 
     return res.json({
       success: true,
@@ -231,13 +195,63 @@ exports.deleteBill = async (req, res) => {
   } catch (error) {
 
     await session.abortTransaction();
-    session.endSession();
 
-    console.error("❌ Delete Bill Error:", error.message);
+    console.error("❌ DELETE BILL ERROR:", error);
 
     return res.status(500).json({
       success: false,
       message: error.message || "Failed to delete bill"
+    });
+
+  } finally {
+    session.endSession();
+  }
+};
+
+
+/* =========================================
+   🔥 UPDATE BILL (FIXED PROPERLY)
+========================================= */
+
+exports.updateBill = async (req, res) => {
+
+  try {
+
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Bill ID is required"
+      });
+    }
+
+    const updatedBill = await Bill.findByIdAndUpdate(
+      id,
+      req.body,
+      { new: true }
+    );
+
+    if (!updatedBill) {
+      return res.status(404).json({
+        success: false,
+        message: "Invoice not found"
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Invoice updated successfully",
+      data: updatedBill
+    });
+
+  } catch (error) {
+
+    console.error("❌ UPDATE BILL ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update invoice"
     });
   }
 };

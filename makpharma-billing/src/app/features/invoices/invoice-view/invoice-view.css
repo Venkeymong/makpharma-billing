@@ -1,17 +1,19 @@
 /* =========================================
-🔥 INVOICE VIEW - PRO + PRINT PERFECT
+🔥 ULTRA PRO INVOICE VIEW (FINAL)
 ========================================= */
 
 .invoice-wrapper {
   max-width: 900px;
   margin: 20px auto;
-  background: #fff;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  background: #ffffff;
+  padding: 28px;
+  border-radius: 14px;
+
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  border: 1px solid #e5e7eb;
 
   font-family: 'Inter','Segoe UI',sans-serif;
-  color: #000;
+  color: #111827;
 }
 
 /* =========================================
@@ -22,23 +24,31 @@ HEADER
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  flex-wrap: wrap; /* 🔥 mobile fix */
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .company h1 {
-  font-size: 22px;
+  font-size: 24px;
   margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .company p {
   font-size: 12px;
-  margin: 2px 0;
+  margin: 3px 0;
+  color: #4b5563;
 }
 
 .invoice-meta {
   text-align: right;
   font-size: 12px;
+  color: #374151;
+}
+
+.invoice-meta p {
+  margin: 2px 0;
 }
 
 /* =========================================
@@ -46,8 +56,8 @@ DIVIDER
 ========================================= */
 
 .divider {
-  border-bottom: 1px solid #ddd;
-  margin: 15px 0;
+  border-bottom: 1px dashed #d1d5db;
+  margin: 18px 0;
 }
 
 /* =========================================
@@ -55,40 +65,56 @@ CUSTOMER
 ========================================= */
 
 .customer-box h3 {
-  font-size: 16px;
+  font-size: 15px;
   margin-bottom: 8px;
+  font-weight: 600;
 }
 
 .customer-grid {
   display: flex;
   justify-content: space-between;
-  gap: 15px;
-  flex-wrap: wrap; /* 🔥 mobile fix */
-  font-size: 12px;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #374151;
+}
+
+.customer-grid p {
+  margin: 3px 0;
 }
 
 /* =========================================
-TABLE (CRITICAL FIX)
+TABLE
 ========================================= */
 
 .invoice-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
-  min-width: 600px; /* 🔥 prevents breaking */
+  margin-top: 18px;
+  min-width: 600px;
 }
 
 .invoice-table th {
-  background: #f3f4f6;
-  padding: 8px;
+  background: #f1f5f9;
+  padding: 10px;
   font-size: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid #e5e7eb;
+  font-weight: 600;
 }
 
 .invoice-table td {
-  padding: 8px;
-  border: 1px solid #eee;
+  padding: 10px;
+  border: 1px solid #f1f5f9;
   font-size: 12px;
+  color: #111827;
+}
+
+.invoice-table tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.invoice-table tbody tr:hover {
+  background: #f3f4f6;
 }
 
 .name {
@@ -102,29 +128,32 @@ TOTALS
 .totals {
   display: flex;
   justify-content: flex-end;
-  margin-top: 15px;
+  margin-top: 20px;
 }
 
 .totals-box {
-  width: 250px;
-  border: 1px solid #ddd;
-  padding: 10px;
-  border-radius: 8px;
-  background: #fafafa;
+  width: 260px;
+  border: 1px solid #e5e7eb;
+  padding: 14px;
+  border-radius: 10px;
+  background: #f9fafb;
 }
 
 .row {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 13px;
+  padding: 4px 0;
+  color: #374151;
 }
 
 .grand {
   font-weight: 700;
-  font-size: 14px;
-  border-top: 1px solid #ddd;
+  font-size: 15px;
+  border-top: 2px solid #d1d5db;
   padding-top: 8px;
-  margin-top: 8px;
+  margin-top: 6px;
+  color: #000;
 }
 
 /* =========================================
@@ -132,47 +161,57 @@ FOOTER
 ========================================= */
 
 .invoice-footer {
-  margin-top: 20px;
+  margin-top: 25px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  flex-wrap: wrap; /* 🔥 mobile fix */
+  flex-wrap: wrap;
   font-size: 12px;
 }
 
 .footer-center {
   text-align: center;
   width: 100%;
+  color: #6b7280;
 }
 
 .signature {
-  min-width: 150px;
+  min-width: 160px;
   text-align: right;
 }
 
 .signature p {
-  border-top: 1px solid #000;
+  border-top: 1px solid #111;
   display: inline-block;
-  padding-top: 5px;
+  padding-top: 6px;
+  margin-top: 25px;
+  font-weight: 500;
 }
 
 /* =========================================
-ACTIONS
+BUTTONS
 ========================================= */
 
 .invoice-actions {
-  margin-top: 15px;
+  margin-top: 20px;
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .btn {
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 9px 16px;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
 }
 
 .back {
@@ -186,28 +225,36 @@ ACTIONS
 }
 
 /* =========================================
-📱 MOBILE FIX
+📱 MOBILE RESPONSIVE
 ========================================= */
 
 @media (max-width: 768px) {
 
   .invoice-wrapper {
-    padding: 15px;
+    padding: 18px;
   }
 
   .invoice-meta {
     text-align: left;
   }
 
+  .customer-grid {
+    flex-direction: column;
+  }
+
   .invoice-table {
     display: block;
-    overflow-x: auto; /* 🔥 critical */
+    overflow-x: auto;
+  }
+
+  .totals {
+    justify-content: center;
   }
 
 }
 
 /* =========================================
-🖨️ PRINT (FINAL PERFECT)
+🖨️ PRINT (ULTRA CLEAN)
 ========================================= */
 
 @media print {
@@ -228,10 +275,11 @@ ACTIONS
     width: 100%;
 
     margin: 0;
-    padding: 10px;
+    padding: 12px;
 
     box-shadow: none;
     border-radius: 0;
+    border: none;
   }
 
   .invoice-actions,
@@ -239,4 +287,111 @@ ACTIONS
     display: none !important;
   }
 
+}
+/* =========================================
+📱 ULTRA MOBILE RESPONSIVE (FINAL FIX)
+========================================= */
+
+@media (max-width: 768px) {
+
+  /* WRAPPER */
+  .invoice-wrapper {
+    padding: 14px;
+    margin: 10px;
+    border-radius: 10px;
+  }
+
+  /* HEADER STACK */
+  .invoice-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .invoice-meta {
+    text-align: left;
+    width: 100%;
+  }
+
+  /* CUSTOMER */
+  .customer-grid {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* 🔥 TABLE → CARD VIEW */
+  .invoice-table {
+    display: block;
+    overflow-x: auto;
+    border: none;
+  }
+
+  .invoice-table thead {
+    display: none; /* hide header */
+  }
+
+  .invoice-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .invoice-table tr {
+    display: block;
+    background: #f9fafb;
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+  }
+
+  .invoice-table td {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 6px 0;
+    border: none;
+  }
+
+  /* 🔥 LABELS */
+  .invoice-table td::before {
+    font-weight: 600;
+    color: #6b7280;
+  }
+
+  .invoice-table td:nth-child(1)::before { content: "S.No"; }
+  .invoice-table td:nth-child(2)::before { content: "Medicine"; }
+  .invoice-table td:nth-child(3)::before { content: "HSN"; }
+  .invoice-table td:nth-child(4)::before { content: "Qty"; }
+  .invoice-table td:nth-child(5)::before { content: "Rate"; }
+  .invoice-table td:nth-child(6)::before { content: "GST"; }
+  .invoice-table td:nth-child(7)::before { content: "Total"; }
+
+  /* TOTAL BOX CENTER */
+  .totals {
+    justify-content: center;
+  }
+
+  .totals-box {
+    width: 100%;
+  }
+
+  /* FOOTER */
+  .invoice-footer {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .signature {
+    text-align: center;
+  }
+
+  /* BUTTONS */
+  .invoice-actions {
+    justify-content: center;
+  }
+
+  .btn {
+    width: 100%;
+    text-align: center;
+  }
 }

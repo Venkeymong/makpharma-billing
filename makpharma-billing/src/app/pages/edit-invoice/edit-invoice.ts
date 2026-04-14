@@ -60,7 +60,7 @@ export class EditInvoiceComponent implements OnInit {
   }
 
   /* ========================================
-     SAVE INVOICE (FINAL FIX)
+     SAVE INVOICE (🔥 FIXED TO UPDATE)
   ======================================== */
 
   saveInvoice(): void {
@@ -72,8 +72,6 @@ export class EditInvoiceComponent implements OnInit {
 
     console.log("🛠️ Editing Invoice:", this.invoice);
 
-    const originalInvoice = { ...this.invoice };
-
     /* 🔥 SAFE ITEMS */
     const safeItems = (this.invoice.items || []).map((item: any) => {
 
@@ -83,25 +81,23 @@ export class EditInvoiceComponent implements OnInit {
       return {
         medicine: item.name || item.medicine || '',
         batch: item.batch || '',
-        qty: qty,
-
-        price: price,
+        qty,
+        price,
         sellingPrice: price,
-
         gst: Number(item.gst || 0),
         total: qty * price
       };
     });
 
-    /* 🔥 AUTO CALCULATE TOTAL */
-   const totalAmount = safeItems.reduce(
-  (sum: number, i: any) => sum + Number(i.total || 0),
-  0
-);
+    /* 🔥 CALCULATE TOTAL */
+    const totalAmount = safeItems.reduce(
+      (sum: number, i: any) => sum + Number(i.total || 0),
+      0
+    );
 
     const updatedInvoice = {
 
-      invoiceNumber: this.invoice.invoiceNumber,
+      invoiceNumber: this.invoice.invoiceNumber, // 🔥 stays SAME
 
       customerName: this.invoice.customer?.name || 'Walk-in',
       customerPhone: this.invoice.customer?.phone || '-',
@@ -122,34 +118,19 @@ export class EditInvoiceComponent implements OnInit {
       paymentMethod: this.invoice.payment || 'Cash'
     };
 
-    console.log("📦 FINAL PAYLOAD:", updatedInvoice);
+    console.log("📦 FINAL UPDATE DATA:", updatedInvoice);
 
-    /* 🔥 STEP 1: ADD NEW */
-    this.salesService.addInvoice(updatedInvoice).subscribe({
+    /* 🔥 FINAL: UPDATE (NO DELETE, NO ADD) */
+    this.salesService.updateInvoice(this.invoice._id, updatedInvoice).subscribe({
 
       next: () => {
-
-        console.log("✅ New invoice added");
-
-        /* 🔥 STEP 2: DELETE OLD */
-        this.salesService.deleteInvoice(originalInvoice._id).subscribe({
-
-          next: () => {
-            alert("✅ Invoice updated successfully");
-            this.router.navigate(['/invoices']);
-          },
-
-          error: () => {
-            alert("⚠️ New saved, but old delete failed");
-          }
-
-        });
-
+        alert("✅ Invoice updated successfully");
+        this.router.navigate(['/invoices']);
       },
 
       error: (err) => {
-        console.error("❌ Add failed:", err);
-        alert("Update failed — old invoice NOT deleted");
+        console.error("❌ Update Error:", err);
+        alert("Failed to update invoice");
       }
 
     });

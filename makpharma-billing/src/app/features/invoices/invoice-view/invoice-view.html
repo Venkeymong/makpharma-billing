@@ -28,12 +28,12 @@
     <div class="customer-grid">
 
       <div>
-        <p><strong>Name :</strong> {{invoice.customer?.name}}</p>
+        <p><strong>Name :</strong> {{invoice.customer?.name || '-'}}</p>
         <p><strong>Phone :</strong> {{invoice.customer?.phone || '-'}}</p>
       </div>
 
       <div>
-        <p><strong>State :</strong> {{invoice.customer?.state}}</p>
+        <p><strong>State :</strong> {{invoice.customer?.state || '-'}}</p>
         <p *ngIf="invoice.customer?.gst">
           <strong>GST :</strong> {{invoice.customer?.gst}}
         </p>
@@ -61,13 +61,13 @@
     <tbody>
 
       <tr *ngFor="let item of invoice.items; let i = index">
-        <td>{{i+1}}</td>
+        <td>{{i + 1}}</td>
         <td class="name">{{item.name}}</td>
         <td>{{item.hsn || '-'}}</td>
         <td>{{item.qty}}</td>
-        <td>₹{{item.price}}</td>
+        <td>₹{{item.price | number:'1.2-2'}}</td>
         <td>{{item.gst}}%</td>
-        <td>₹{{item.total}}</td>
+        <td>₹{{item.total | number:'1.2-2'}}</td>
       </tr>
 
     </tbody>
@@ -79,30 +79,47 @@
 
     <div class="totals-box">
 
+      <!-- SUBTOTAL -->
       <div class="row">
         <span>Subtotal</span>
-        <span>₹{{invoice.subtotal || 0}}</span>
+        <span>₹{{ getSubtotal() | number:'1.2-2' }}</span>
       </div>
 
-      <!-- 🔥 GST SECTION FIX -->
-      <div class="row" *ngIf="invoice.cgst !== undefined">
+      <!-- GST -->
+      <div class="row" *ngIf="invoice.cgst">
         <span>CGST</span>
-        <span>₹{{invoice.cgst || 0}}</span>
+        <span>₹{{invoice.cgst | number:'1.2-2'}}</span>
       </div>
 
-      <div class="row" *ngIf="invoice.sgst !== undefined">
+      <div class="row" *ngIf="invoice.sgst">
         <span>SGST</span>
-        <span>₹{{invoice.sgst || 0}}</span>
+        <span>₹{{invoice.sgst | number:'1.2-2'}}</span>
       </div>
 
-      <div class="row" *ngIf="invoice.igst !== undefined">
+      <div class="row" *ngIf="invoice.igst">
         <span>IGST</span>
-        <span>₹{{invoice.igst || 0}}</span>
+        <span>₹{{invoice.igst | number:'1.2-2'}}</span>
       </div>
 
+      <!-- 🔥 ROUND OFF (FIXED CORRECTLY) -->
+      <div class="row">
+        <span>Round Off</span>
+        <span>₹{{ getRoundOff() | number:'1.2-2' }}</span>
+      </div>
+
+      <!-- 🔥 FINAL TOTAL -->
       <div class="grand">
         <span>Grand Total</span>
-        <span>₹{{invoice.total}}</span>
+        <span>
+          ₹{{
+            (getSubtotal() +
+            (invoice.cgst || 0) +
+            (invoice.sgst || 0) +
+            (invoice.igst || 0) +
+            getRoundOff())
+            | number:'1.2-2'
+          }}
+        </span>
       </div>
 
     </div>
@@ -111,7 +128,7 @@
 
   <div class="divider"></div>
 
-  <!-- ================= FOOTER (CENTERED PRINT) ================= -->
+  <!-- ================= FOOTER ================= -->
   <div class="invoice-footer">
 
     <div class="footer-center">
@@ -128,7 +145,7 @@
   <!-- ================= ACTIONS ================= -->
   <div class="invoice-actions no-print">
 
-    <button class="btn back" routerLink="/invoices">
+    <button class="btn back" (click)="goBack()">
       Back
     </button>
 
@@ -141,8 +158,8 @@
 </div>
 
 
-<!-- NO INVOICE -->
+<!-- ================= NO DATA ================= -->
 <div *ngIf="!invoice" class="no-invoice">
   <h2>No Invoice Found</h2>
-  <button routerLink="/invoices">Back to Invoices</button>
+  <button (click)="goBack()">Back to Invoices</button>
 </div>

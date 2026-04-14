@@ -13,7 +13,7 @@ export class SalesService {
   invoices$ = this.invoicesSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    this.loadInvoices(); // ✅ no logic change
+    this.loadInvoices();
   }
 
   /* ================= TOKEN ================= */
@@ -29,7 +29,7 @@ export class SalesService {
   }
 
   /* ========================================
-     LOAD INVOICES (🔥 FIXED CUSTOMER ISSUE)
+     LOAD INVOICES
   ======================================== */
 
   loadInvoices(): void {
@@ -41,77 +41,66 @@ export class SalesService {
       return;
     }
 
-    this.http.get<any>(this.baseUrl, this.getHeaders()).pipe(
+    this.http.get<any>(this.baseUrl, this.getHeaders())
+      .pipe(
 
-      tap((res: any) => {
+        tap((res: any) => {
 
-        const data = Array.isArray(res?.data) ? res.data : [];
+          const data = Array.isArray(res?.data) ? res.data : [];
 
-        const formatted = data.map((b: any) => ({
+          const formatted = data.map((b: any) => ({
 
-          _id: b._id,
+            _id: b._id,
 
-          invoiceNumber: b.invoiceNumber || 'MISSING-INVOICE',
+            invoiceNumber: b.invoiceNumber || 'MISSING-INVOICE',
 
-          /* 🔥 FINAL FIX (NO WALK-IN + SUPPORT BOTH FORMATS) */
-          customer: {
-            name:
-              b.customerName ||
-              b.customer?.name ||
-              '',
+            customer: {
+              name: b.customerName || b.customer?.name || '',
+              phone: b.customerPhone || b.customer?.phone || '',
+              state: b.customerState || b.customer?.state || 'Tamil Nadu',
+              gst: b.customerGST || b.customer?.gst || ''
+            },
 
-            phone:
-              b.customerPhone ||
-              b.customer?.phone ||
-              '',
+            date: b.date ? new Date(b.date) : new Date(),
 
-            state:
-              b.customerState ||
-              b.customer?.state ||
-              'Tamil Nadu',
+            subtotal: Number(b.subtotal || 0),
+            total: Number(b.totalAmount || 0),
 
-            gst:
-              b.customerGST ||
-              b.customer?.gst ||
-              ''
-          },
+            cgst: Number(b.cgst || 0),
+            sgst: Number(b.sgst || 0),
+            igst: Number(b.igst || 0),
 
-          date: b.date ? new Date(b.date) : new Date(),
+            payment: b.paymentMethod || 'Cash',
 
-          subtotal: Number(b.subtotal || 0),
-          total: Number(b.totalAmount || 0),
+            items: Array.isArray(b.items)
+              ? b.items.map((item: any) => ({
+                  name: item.medicine,
+                  qty: Number(item.qty || 0),
+                  price: Number(item.sellingPrice || item.price || 0),
+                  gst: Number(item.gst || 0),
+                  hsn: item.hsn || '-',
+                  total: Number(
+                    item.total ||
+                    (item.qty * (item.sellingPrice || item.price || 0))
+                  )
+                }))
+              : []
 
-          cgst: Number(b.cgst || 0),
-          sgst: Number(b.sgst || 0),
-          igst: Number(b.igst || 0),
+          }));
 
-          payment: b.paymentMethod || 'Cash',
+          console.log("✅ Loaded Invoices:", formatted);
 
-          items: Array.isArray(b.items)
-            ? b.items.map((item: any) => ({
-                name: item.medicine,
-                qty: Number(item.qty || 0),
-                price: Number(item.sellingPrice || item.price || 0),
-                gst: Number(item.gst || 0),
-                hsn: item.hsn || '-',
-                total: Number(item.total || (item.qty * (item.sellingPrice || item.price || 0)))
-              }))
-            : []
+          this.invoicesSubject.next(formatted);
 
-        }));
+        }),
 
-        console.log("✅ Loaded Invoices:", formatted);
+        catchError((error) => {
+          console.error("❌ Load Error:", error);
+          return throwError(() => error);
+        })
 
-        this.invoicesSubject.next(formatted);
-
-      }),
-
-      catchError((err) => {
-        console.error("❌ Load Error:", err);
-        return throwError(() => err);
-      })
-
-    ).subscribe();
+      )
+      .subscribe();
   }
 
   /* ========================================
@@ -123,35 +112,97 @@ export class SalesService {
   }
 
   /* ========================================
-     ADD INVOICE (🔥 SAFE FIX)
+     ADD INVOICE
   ======================================== */
 
   addInvoice(invoice: any): Observable<any> {
 
-    const billData = {
+    const billData = this.formatInvoiceData(invoice);
+
+    return this.http.post(`${this.baseUrl}/add`, billData, this.getHeaders())
+      .pipe(
+
+        tap(() => {
+          console.log("✅ Invoice saved:", billData.invoiceNumber);
+          this.loadInvoices();
+        }),
+
+        catchError((error) => {
+          console.error("❌ Add Invoice Error:", error);
+          return throwError(() => error);
+        })
+
+      );
+  }
+
+  /* ========================================
+     🔥 UPDATE INVOICE (NEW - IMPORTANT)
+  ======================================== */
+
+  updateInvoice(id: string, invoice: any): Observable<any> {
+
+    if (!id) {
+      return throwError(() => new Error("Invalid ID"));
+    }
+
+    const billData = this.formatInvoiceData(invoice);
+
+    return this.http.put(`${this.baseUrl}/${id}`, billData, this.getHeaders())
+      .pipe(
+
+        tap(() => {
+          console.log("✅ Invoice updated:", id);
+          this.loadInvoices();
+        }),
+
+        catchError((error) => {
+          console.error("❌ Update Error:", error);
+          return throwError(() => error);
+        })
+
+      );
+  }
+
+  /* ========================================
+     DELETE INVOICE
+  ======================================== */
+
+  deleteInvoice(id: string): Observable<any> {
+
+    if (!id) {
+      return throwError(() => new Error("Invalid ID"));
+    }
+
+    return this.http.delete(`${this.baseUrl}/${id}`, this.getHeaders())
+      .pipe(
+
+        tap(() => {
+          console.log("✅ Invoice deleted:", id);
+          this.loadInvoices();
+        }),
+
+        catchError((error) => {
+          console.error("❌ Delete Error:", error);
+          return throwError(() => error);
+        })
+
+      );
+  }
+
+  /* ========================================
+     🔥 COMMON FORMATTER (PRO LEVEL)
+  ======================================== */
+
+  private formatInvoiceData(invoice: any) {
+
+    return {
 
       invoiceNumber: invoice.invoiceNumber,
 
-      /* 🔥 SUPPORT BOTH STRUCTURES */
-      customerName:
-        invoice.customer?.name ||
-        invoice.customerName ||
-        '',
-
-      customerPhone:
-        invoice.customer?.phone ||
-        invoice.customerPhone ||
-        '',
-
-      customerState:
-        invoice.customer?.state ||
-        invoice.customerState ||
-        'Tamil Nadu',
-
-      customerGST:
-        invoice.customer?.gst ||
-        invoice.customerGST ||
-        '',
+      customerName: invoice.customer?.name || invoice.customerName || '',
+      customerPhone: invoice.customer?.phone || invoice.customerPhone || '',
+      customerState: invoice.customer?.state || invoice.customerState || 'Tamil Nadu',
+      customerGST: invoice.customer?.gst || invoice.customerGST || '',
 
       date: invoice.date || new Date(),
 
@@ -165,10 +216,8 @@ export class SalesService {
               medicine: item.medicine || item.name || '',
               batch: item.batch || '',
               qty,
-
               price,
               sellingPrice: price,
-
               gst: Number(item.gst || 0),
               total: qty * price
             };
@@ -184,50 +233,6 @@ export class SalesService {
 
       paymentMethod: invoice.paymentMethod || invoice.payment || "Cash"
     };
-
-    console.log("🚀 FINAL BILL DATA:", billData);
-
-    return this.http.post(`${this.baseUrl}/add`, billData, this.getHeaders()).pipe(
-
-      tap(() => {
-        console.log("✅ Invoice saved:", billData.invoiceNumber);
-        this.loadInvoices();
-      }),
-
-      catchError((err) => {
-        console.error("❌ Add Invoice Error:", err);
-        return throwError(() => err);
-      })
-
-    );
-  }
-
-  /* ========================================
-     DELETE INVOICE
-  ======================================== */
-
-  deleteInvoice(id: string): Observable<any> {
-
-    if (!id) {
-      console.error("❌ Invalid ID");
-      return throwError(() => new Error("Invalid ID"));
-    }
-
-    console.log("🗑️ Deleting Invoice:", id);
-
-    return this.http.delete(`${this.baseUrl}/${id}`, this.getHeaders()).pipe(
-
-      tap(() => {
-        console.log("✅ Invoice deleted:", id);
-        this.loadInvoices();
-      }),
-
-      catchError((err) => {
-        console.error("❌ Delete Error:", err);
-        return throwError(() => err);
-      })
-
-    );
   }
 
   /* ========================================
