@@ -8,19 +8,18 @@ if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
   console.warn("⚠️ Email credentials missing in .env");
 }
 
-
 /* =========================================
-   🚀 CREATE TRANSPORTER
+   🚀 CREATE TRANSPORTER (FIXED)
 ========================================= */
 
 const transporter = nodemailer.createTransport({
-  service: "gmail", // cleaner than host/port
+  service: "gmail",
+  family: 4, // 🔥 FIX: force IPv4 (Render issue)
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   }
 });
-
 
 /* =========================================
    📩 SEND OTP EMAIL
@@ -86,11 +85,9 @@ const sendOTPEmail = async (to, otp) => {
 
     console.error("❌ EMAIL ERROR:", err.message);
 
-    // 🔥 never crash app
-    return false;
+    return false; // 🔒 same logic
   }
 };
-
 
 /* =========================================
    🚀 EXPORT

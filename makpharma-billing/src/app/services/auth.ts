@@ -7,17 +7,19 @@ import { firstValueFrom } from 'rxjs';
 })
 export class AuthService {
 
+  // =============================
+  // 🌐 API
+  // =============================
   private baseUrl = 'https://makpharma-billing-final.onrender.com/api/auth';
 
   constructor(private http: HttpClient) {}
 
-  /* ======================================================
-     🔐 TOKEN MANAGEMENT (CENTRALIZED)
-  ====================================================== */
-
-  private TOKEN_KEY = 'token';
-  private USER_KEY = 'user';
-  private EXPIRY_KEY = 'tokenExpiry';
+  // =============================
+  // 🔐 TOKEN MANAGEMENT
+  // =============================
+  private readonly TOKEN_KEY = 'token';
+  private readonly USER_KEY = 'user';
+  private readonly EXPIRY_KEY = 'tokenExpiry';
 
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
@@ -26,7 +28,7 @@ export class AuthService {
   private setToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
 
-    // 1 hour expiry
+    // ⏱ 1 hour expiry (same logic)
     const expiry = Date.now() + (60 * 60 * 1000);
     localStorage.setItem(this.EXPIRY_KEY, expiry.toString());
   }
@@ -45,55 +47,58 @@ export class AuthService {
     return Date.now() < Number(expiry);
   }
 
-  /* ======================================================
-     🔑 LOGIN
-  ====================================================== */
-
+  // =============================
+  // 🔑 LOGIN
+  // =============================
   async login(username: string, password: string): Promise<boolean> {
+
     try {
 
+      const payload = {
+        username: username.trim(),
+        password: password.trim()
+      };
+
       const res: any = await firstValueFrom(
-        this.http.post(`${this.baseUrl}/login`, {
-          username: username.trim(),
-          password: password.trim()
-        })
+        this.http.post(`${this.baseUrl}/login`, payload)
       );
 
       if (!res?.token || !res?.user) return false;
 
+      // ✅ Store token
       this.setToken(res.token);
 
+      // ✅ Store user (same logic)
       const user = {
         ...res.user,
-        actionPassword: res.user.actionPassword || ''
+        actionPassword: res.user?.actionPassword || ''
       };
 
       localStorage.setItem(this.USER_KEY, JSON.stringify(user));
 
       return true;
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('❌ Login Error:', err);
-      return false;
+      return false; // 🔒 keep same logic
     }
   }
 
-  /* ======================================================
-     🚪 LOGOUT
-  ====================================================== */
-
+  // =============================
+  // 🚪 LOGOUT
+  // =============================
   logout(): void {
     this.clearToken();
     localStorage.removeItem(this.USER_KEY);
   }
 
-  /* ======================================================
-     👤 USER
-  ====================================================== */
-
+  // =============================
+  // 👤 USER
+  // =============================
   getUser(): any {
     try {
-      return JSON.parse(localStorage.getItem(this.USER_KEY) || 'null');
+      const data = localStorage.getItem(this.USER_KEY);
+      return data ? JSON.parse(data) : null;
     } catch {
       return null;
     }
@@ -103,10 +108,9 @@ export class AuthService {
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
   }
 
-  /* ======================================================
-     🔒 ACTION PASSWORD (LOCAL SECURITY)
-  ====================================================== */
-
+  // =============================
+  // 🔒 ACTION PASSWORD
+  // =============================
   getActionPassword(): string {
     return this.getUser()?.actionPassword || '';
   }
@@ -123,17 +127,16 @@ export class AuthService {
     const actual = this.getActionPassword();
 
     if (!actual) {
-      alert("Set action password in profile first!");
+      alert('Set action password in profile first!');
       return false;
     }
 
     return input === actual;
   }
 
-  /* ======================================================
-     🌐 PROFILE API
-  ====================================================== */
-
+  // =============================
+  // 🌐 HEADERS
+  // =============================
   private getHeaders() {
     const token = this.getToken();
 
@@ -144,6 +147,9 @@ export class AuthService {
     };
   }
 
+  // =============================
+  // 👤 PROFILE API
+  // =============================
   getProfile() {
     return this.http.get(`${this.baseUrl}/profile`, this.getHeaders());
   }
@@ -152,32 +158,36 @@ export class AuthService {
     return this.http.put(`${this.baseUrl}/profile`, data, this.getHeaders());
   }
 
-  /* ======================================================
-     🔁 OTP FLOW
-  ====================================================== */
-
+  // =============================
+  // 🔁 OTP FLOW
+  // =============================
   async sendOtp(email: string): Promise<any> {
     return await firstValueFrom(
-      this.http.post(`${this.baseUrl}/send-otp`, { email })
+      this.http.post(`${this.baseUrl}/send-otp`, { email: email.trim() })
     );
   }
 
   async verifyOtp(email: string, otp: string): Promise<any> {
     return await firstValueFrom(
-      this.http.post(`${this.baseUrl}/verify-otp`, { email, otp })
+      this.http.post(`${this.baseUrl}/verify-otp`, {
+        email: email.trim(),
+        otp: otp.trim()
+      })
     );
   }
 
   async resetPassword(email: string, password: string): Promise<any> {
     return await firstValueFrom(
-      this.http.post(`${this.baseUrl}/reset-password`, { email, password })
+      this.http.post(`${this.baseUrl}/reset-password`, {
+        email: email.trim(),
+        password: password.trim()
+      })
     );
   }
 
-  /* ======================================================
-     ✅ SESSION CHECK (IMPROVED)
-  ====================================================== */
-
+  // =============================
+  // ✅ SESSION CHECK
+  // =============================
   isLoggedIn(): boolean {
     const user = this.getUser();
 

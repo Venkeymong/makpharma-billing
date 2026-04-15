@@ -212,5 +212,24 @@ export class MedicineService {
 
     this.medicinesSubject.next(updated);
   }
+  deletePurchase(id: string): Observable<any> {
+
+  if (!id) {
+    return throwError(() => new Error('Invalid Purchase ID'));
+  }
+
+  return this.http.delete(`${this.purchaseUrl}/${id}`).pipe(
+
+    tap(() => {
+      console.log("✅ Purchase deleted");
+    }),
+
+    catchError((err) => {
+      console.error('❌ Delete Purchase Error:', err);
+      return throwError(() => err);
+    })
+
+  );
+}
 
 }

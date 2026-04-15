@@ -13,6 +13,9 @@ import { AuthService } from '../../../services/auth';
 })
 export class Login implements OnInit, OnDestroy {
 
+  // =============================
+  // 🔐 LOGIN
+  // =============================
   username = '';
   password = '';
   showPassword = false;
@@ -20,6 +23,9 @@ export class Login implements OnInit, OnDestroy {
   loginError = '';
   loading = false;
 
+  // =============================
+  // 🔁 FORGOT PASSWORD
+  // =============================
   showForgot = false;
   step = 1;
 
@@ -36,8 +42,11 @@ export class Login implements OnInit, OnDestroy {
   verifyLoading = false;
   resetLoading = false;
 
+  // =============================
+  // ⏱ TIMER
+  // =============================
   timer = 60;
-  interval: any;
+  interval: ReturnType<typeof setInterval> | null = null;
   canResend = false;
 
   constructor(
@@ -45,21 +54,27 @@ export class Login implements OnInit, OnDestroy {
     private router: Router
   ) {}
 
-  /* =========================================
-     INIT
-  ========================================= */
+  // =============================
+  // 🚀 INIT
+  // =============================
   ngOnInit(): void {
     const token = localStorage.getItem('token');
-    if (token) this.router.navigate(['/dashboard']);
+
+    // 🔥 Wake up backend (Render cold start fix)
+    fetch('https://makpharma-billing-final.onrender.com');
+
+    if (token) {
+      this.router.navigate(['/dashboard']);
+    }
   }
 
   ngOnDestroy(): void {
     this.stopTimer();
   }
 
-  /* =========================================
-     LOGIN (FAST + SAFE)
-  ========================================= */
+  // =============================
+  // 🔑 LOGIN
+  // =============================
   async login() {
 
     if (this.loading) return;
@@ -78,7 +93,6 @@ export class Login implements OnInit, OnDestroy {
 
     try {
 
-      // 🔥 TIMEOUT PROTECTION
       const loginPromise = this.auth.login(username, password);
 
       const timeoutPromise = new Promise((_, reject) =>
@@ -106,9 +120,9 @@ export class Login implements OnInit, OnDestroy {
     }
   }
 
-  /* =========================================
-     FORGOT PASSWORD MODAL
-  ========================================= */
+  // =============================
+  // 🔐 MODAL CONTROL
+  // =============================
   openForgot() {
     this.showForgot = true;
     this.resetState();
@@ -119,8 +133,9 @@ export class Login implements OnInit, OnDestroy {
     this.resetState();
   }
 
-  resetState() {
+  private resetState() {
     this.step = 1;
+
     this.email = '';
     this.otp = '';
     this.newPassword = '';
@@ -133,15 +148,19 @@ export class Login implements OnInit, OnDestroy {
     this.stopTimer();
   }
 
-  /* =========================================
-     TIMER
-  ========================================= */
+  // =============================
+  // ⏱ TIMER CONTROL
+  // =============================
   startTimer() {
+
+    this.stopTimer(); // 🔥 prevent multiple timers
+
     this.timer = 60;
     this.canResend = false;
 
     this.interval = setInterval(() => {
       this.timer--;
+
       if (this.timer <= 0) {
         this.stopTimer();
         this.canResend = true;
@@ -156,9 +175,9 @@ export class Login implements OnInit, OnDestroy {
     }
   }
 
-  /* =========================================
-     SEND OTP
-  ========================================= */
+  // =============================
+  // 📧 SEND OTP
+  // =============================
   async sendOtp() {
 
     if (this.otpLoading) return;
@@ -186,9 +205,9 @@ export class Login implements OnInit, OnDestroy {
     }
   }
 
-  /* =========================================
-     VERIFY OTP
-  ========================================= */
+  // =============================
+  // 🔢 VERIFY OTP
+  // =============================
   async verifyOtp() {
 
     if (this.verifyLoading) return;
@@ -214,9 +233,9 @@ export class Login implements OnInit, OnDestroy {
     }
   }
 
-  /* =========================================
-     RESET PASSWORD
-  ========================================= */
+  // =============================
+  // 🔄 RESET PASSWORD
+  // =============================
   async resetPassword() {
 
     if (this.resetLoading) return;
@@ -251,11 +270,12 @@ export class Login implements OnInit, OnDestroy {
     }
   }
 
-  /* =========================================
-     RESEND OTP
-  ========================================= */
+  // =============================
+  // 🔁 RESEND OTP
+  // =============================
   resendOtp() {
     if (!this.canResend) return;
     this.sendOtp();
   }
+
 }

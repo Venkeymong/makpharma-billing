@@ -1,6 +1,7 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const sendOTPEmail = require("../utils/mailer");
 
 /* =========================================
    🔐 LOGIN (PRODUCTION READY)
@@ -8,7 +9,6 @@ const jwt = require("jsonwebtoken");
 
 exports.login = async (req, res) => {
   try {
-
     const { username, password } = req.body;
 
     /* ================= VALIDATION ================= */
@@ -25,7 +25,7 @@ exports.login = async (req, res) => {
 
     if (!user) {
       return res.status(401).json({
-        message: "Invalid username or password" // 🔥 secure message
+        message: "Invalid username or password"
       });
     }
 
@@ -41,11 +41,13 @@ exports.login = async (req, res) => {
 
     /* ================= ROLE ================= */
 
-    const role = user.role || "admin";
+    const role = user?.role || "admin";
 
     /* ================= TOKEN ================= */
 
-    if (!process.env.JWT_SECRET) {
+    const jwtSecret = process.env.JWT_SECRET;
+
+    if (!jwtSecret) {
       throw new Error("JWT_SECRET not defined");
     }
 
@@ -55,7 +57,7 @@ exports.login = async (req, res) => {
         username: user.username,
         role: role
       },
-      process.env.JWT_SECRET,
+      jwtSecret,
       {
         expiresIn: "1d"
       }
@@ -63,7 +65,7 @@ exports.login = async (req, res) => {
 
     /* ================= RESPONSE ================= */
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Login successful",
       token,
       user: {
@@ -74,12 +76,56 @@ exports.login = async (req, res) => {
     });
 
   } catch (err) {
-
     console.error("❌ Login Error:", err);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Server error"
     });
+  }
+};
 
+/* =========================================
+   🔁 SEND OTP (FIXED)
+========================================= */
+
+exports.sendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    /* ================= VALIDATION ================= */
+
+    if (!email) {
+      return res.status(400).json({
+        message: "Email is required"
+      });
+    }
+
+    /* ================= GENERATE OTP ================= */
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    /* ================= SEND EMAIL ================= */
+
+    await sendOTPEmail(email, otp);
+
+    console.log("✅ OTP Email Sent");
+
+    /* ================= RESPONSE ================= */
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent successfully"
+    });
+
+  } catch (err) {
+
+    console.error("❌ EMAIL ERROR:", err);
+
+    /* ================= ERROR RESPONSE ================= */
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to send OTP"
+    });
   }
 };

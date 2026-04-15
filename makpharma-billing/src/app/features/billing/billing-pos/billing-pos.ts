@@ -248,10 +248,10 @@ printBill(): void {
     return;
   }
 
-  if (this.isPrinted) {
-    alert("⚠️ Bill already generated!");
-    return;
-  }
+ if (this.isPrinted) {
+  alert("⚠️ Bill already generated. Please refresh for new bill.");
+  return;
+}
 
   /* ================= CONFIRMATION ================= */
 
@@ -300,9 +300,20 @@ items: this.cart.map(item => ({
 
   /* ================= REDUCE STOCK (SAFE) ================= */
 
-  this.cart.forEach(item => {
-    this.medicineService.reduceStock(item.name, item.qty);
-  });
+ this.cart.forEach(item => {
+
+  const med = this.medicines.find(m => m.name === item.name);
+
+  if (med && med._id) {
+    this.medicineService.updateMedicine(med._id, {
+      ...med,
+      stock: Math.max((med.stock || 0) - item.qty, 0)
+    }).subscribe({
+      error: (err: any) => console.error("Stock update error:", err)
+    });
+  }
+
+});
 
   /* ================= LOCK PRINT ================= */
 

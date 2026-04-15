@@ -55,7 +55,6 @@ export class MedicineList implements OnInit, OnDestroy {
       })
     );
 
-    // 🔥 FIX: load from backend instead of localStorage
     this.loadPurchasesFromBackend();
   }
 
@@ -67,9 +66,14 @@ export class MedicineList implements OnInit, OnDestroy {
 
   loadPurchasesFromBackend(): void {
     this.medicineService.getPurchases().subscribe({
-      next: (data: any) => {
-        this.purchaseOrders = data || [];
-        this.paginatedPurchaseOrders = this.purchaseOrders;
+      next: (res: any) => {
+
+        const data = res?.data || res || [];
+
+        this.purchaseOrders = Array.isArray(data) ? data : [];
+
+        this.applyFilter(); // 🔥 ensures UI updates instantly
+
       },
       error: (err) => console.error("❌ Load purchase error:", err)
     });
@@ -85,6 +89,9 @@ export class MedicineList implements OnInit, OnDestroy {
     );
 
     this.paginatedMedicines = this.filteredMedicines;
+
+    // 🔥 ALWAYS SYNC PURCHASE UI
+    this.paginatedPurchaseOrders = [...this.purchaseOrders];
   }
 
   /* ================= HELPERS ================= */
@@ -194,13 +201,35 @@ export class MedicineList implements OnInit, OnDestroy {
       next: () => {
         this.medicineService.loadMedicines();
 
-        // 🔥 FIX: reload from backend
-        this.loadPurchasesFromBackend();
+        this.loadPurchasesFromBackend(); // 🔥 FIX
 
         this.resetPurchaseForm();
       },
       error: err => console.error("❌ Save purchase error:", err)
     });
+  }
+
+  /* ================= PURCHASE ACTIONS ================= */
+
+  deletePurchaseDirect(id: string) {
+    this.medicineService.deletePurchase(id).subscribe({
+      next: () => this.loadPurchasesFromBackend(),
+      error: err => console.error(err)
+    });
+  }
+
+  editPurchaseDirect(order: any) {
+
+    this.purchase = {
+      supplier: order.supplier,
+      invoice: order.invoice,
+      date: order.date
+    };
+
+    this.purchaseItems = [...order.items];
+    this.uploadedBill = order.billFile || null;
+
+    this.showPurchaseForm = true;
   }
 
   /* ================= AUTH ================= */
@@ -245,7 +274,7 @@ export class MedicineList implements OnInit, OnDestroy {
     this.showPurchaseForm = false;
   }
 
-  /* ================= DIRECT BUTTON FIX ================= */
+  /* ================= MEDICINE ACTIONS ================= */
 
   deleteMedicineDirect(id: string) {
     this.medicineService.deleteMedicine(id).subscribe(() => {

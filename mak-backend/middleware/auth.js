@@ -40,7 +40,9 @@ const authMiddleware = (req, res, next) => {
 
     /* ================= SECRET CHECK ================= */
 
-    if (!process.env.JWT_SECRET) {
+    const jwtSecret = process.env.JWT_SECRET;
+
+    if (!jwtSecret) {
       console.error("❌ JWT_SECRET missing");
       return res.status(500).json({
         success: false,
@@ -50,7 +52,7 @@ const authMiddleware = (req, res, next) => {
 
     /* ================= VERIFY TOKEN ================= */
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, jwtSecret);
 
     /* ================= ATTACH USER ================= */
 
@@ -60,7 +62,7 @@ const authMiddleware = (req, res, next) => {
       role: decoded.role || "admin"
     };
 
-    next();
+    return next();
 
   } catch (error) {
 
