@@ -40,7 +40,7 @@ export class MedicineService {
   }
 
   /* =========================================
-     LOAD FROM BACKEND (SAFE)
+     LOAD MEDICINES FROM BACKEND
   ========================================= */
 
   loadMedicines(): void {
@@ -151,7 +151,7 @@ export class MedicineService {
   }
 
   /* =========================================
-     🔥 ADD PURCHASE (NEW - REQUIRED FIX)
+     🔥 ADD PURCHASE
   ========================================= */
 
   addPurchase(data: any): Observable<any> {
@@ -164,6 +164,26 @@ export class MedicineService {
 
       catchError((err) => {
         console.error('❌ Add Purchase Error:', err);
+        return throwError(() => err);
+      })
+
+    );
+  }
+
+  /* =========================================
+     🔥 GET PURCHASES (NEW - UI FIX)
+  ========================================= */
+
+  getPurchases(): Observable<any> {
+
+    return this.http.get(`${this.purchaseUrl}`).pipe(
+
+      tap((res) => {
+        console.log("🔥 Purchases fetched:", res);
+      }),
+
+      catchError((err) => {
+        console.error('❌ Get Purchases Error:', err);
         return throwError(() => err);
       })
 

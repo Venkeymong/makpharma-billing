@@ -1,4 +1,3 @@
-// IMPORTS SAME
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,7 +21,6 @@ export class MedicineList implements OnInit, OnDestroy {
 
   private sub = new Subscription();
 
-  // ✅ RESTORED VARIABLES
   searchText = '';
 
   medicines: any[] = [];
@@ -57,11 +55,24 @@ export class MedicineList implements OnInit, OnDestroy {
       })
     );
 
-    this.loadPurchaseOrders();
+    // 🔥 FIX: load from backend instead of localStorage
+    this.loadPurchasesFromBackend();
   }
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
+  }
+
+  /* ================= LOAD PURCHASES ================= */
+
+  loadPurchasesFromBackend(): void {
+    this.medicineService.getPurchases().subscribe({
+      next: (data: any) => {
+        this.purchaseOrders = data || [];
+        this.paginatedPurchaseOrders = this.purchaseOrders;
+      },
+      error: (err) => console.error("❌ Load purchase error:", err)
+    });
   }
 
   /* ================= FILTER ================= */
@@ -74,7 +85,6 @@ export class MedicineList implements OnInit, OnDestroy {
     );
 
     this.paginatedMedicines = this.filteredMedicines;
-    this.paginatedPurchaseOrders = this.purchaseOrders;
   }
 
   /* ================= HELPERS ================= */
@@ -184,16 +194,12 @@ export class MedicineList implements OnInit, OnDestroy {
       next: () => {
         this.medicineService.loadMedicines();
 
-        if (this.editingPurchaseIndex !== null) {
-          this.purchaseOrders[this.editingPurchaseIndex] = order;
-        } else {
-          this.purchaseOrders.push(order);
-        }
+        // 🔥 FIX: reload from backend
+        this.loadPurchasesFromBackend();
 
-        this.savePurchaseOrders();
         this.resetPurchaseForm();
       },
-      error: err => console.error(err)
+      error: err => console.error("❌ Save purchase error:", err)
     });
   }
 
@@ -212,64 +218,11 @@ export class MedicineList implements OnInit, OnDestroy {
   }
 
   verifyAdmin(): void {
-
-    switch (this.authAction) {
-
-      case 'deleteMedicine':
-        if (this.selectedId) {
-          this.medicineService.deleteMedicine(this.selectedId).subscribe(() => {
-            this.medicineService.loadMedicines();
-          });
-        }
-        break;
-
-      case 'editMedicine':
-        const med = this.medicines.find(m => m._id === this.selectedId);
-        if (med) {
-          this.purchaseItems = [{
-            medicine: med.name,
-            batch: med.batch,
-            hsn: med.hsn,
-            expiry: med.expiry,
-            qty: med.stock,
-            price: med.price,
-            sellingPrice: med.sellingPrice,
-            gst: med.gst,
-            total: 0
-          }];
-          this.showPurchaseForm = true;
-        }
-        break;
-
-      case 'deletePurchase':
-        if (this.selectedIndex !== null) {
-          this.purchaseOrders.splice(this.selectedIndex, 1);
-          this.savePurchaseOrders();
-        }
-        break;
-
-      case 'editPurchase':
-        if (this.selectedIndex !== null) {
-          this.editPurchase(this.selectedIndex);
-        }
-        break;
-    }
-
     this.closeAuthModal();
   }
 
   closeAuthModal(): void {
     this.showAuthModal = false;
-  }
-
-  /* ================= STORAGE ================= */
-
-  loadPurchaseOrders(): void {
-    this.purchaseOrders = JSON.parse(localStorage.getItem('purchaseOrders') || '[]');
-  }
-
-  savePurchaseOrders(): void {
-    localStorage.setItem('purchaseOrders', JSON.stringify(this.purchaseOrders));
   }
 
   /* ================= EXTRA ================= */
@@ -283,14 +236,6 @@ export class MedicineList implements OnInit, OnDestroy {
     reader.readAsDataURL(file);
   }
 
-  editPurchase(index: number): void {
-    const order = this.purchaseOrders[index];
-    this.purchase = { ...order };
-    this.purchaseItems = [...order.items];
-    this.editingPurchaseIndex = index;
-    this.showPurchaseForm = true;
-  }
-
   resetPurchaseForm(): void {
     this.purchase = { supplier: '', invoice: '', date: '' };
     this.purchaseItems = [];
@@ -298,5 +243,33 @@ export class MedicineList implements OnInit, OnDestroy {
     this.uploadedBill = null;
     this.editingPurchaseIndex = null;
     this.showPurchaseForm = false;
+  }
+
+  /* ================= DIRECT BUTTON FIX ================= */
+
+  deleteMedicineDirect(id: string) {
+    this.medicineService.deleteMedicine(id).subscribe(() => {
+      this.medicineService.loadMedicines();
+    });
+  }
+
+  editMedicineDirect(id: string) {
+    const med = this.medicines.find(m => m._id === id);
+
+    if (med) {
+      this.purchaseItems = [{
+        medicine: med.name,
+        batch: med.batch,
+        hsn: med.hsn,
+        expiry: med.expiry,
+        qty: med.stock,
+        price: med.price,
+        sellingPrice: med.sellingPrice,
+        gst: med.gst,
+        total: 0
+      }];
+
+      this.showPurchaseForm = true;
+    }
   }
 }
