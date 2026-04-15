@@ -28,7 +28,9 @@ export interface Medicine {
 })
 export class MedicineService {
 
+  /* 🔥 BASE URLs */
   private readonly baseUrl = 'https://makpharma-billing-final.onrender.com/api/medicines';
+  private readonly purchaseUrl = 'https://makpharma-billing-final.onrender.com/api/purchases';
 
   private medicinesSubject = new BehaviorSubject<Medicine[]>([]);
   medicines$ = this.medicinesSubject.asObservable();
@@ -38,7 +40,7 @@ export class MedicineService {
   }
 
   /* =========================================
-     LOAD FROM BACKEND (FIXED)
+     LOAD FROM BACKEND (SAFE)
   ========================================= */
 
   loadMedicines(): void {
@@ -47,7 +49,7 @@ export class MedicineService {
 
       tap((res) => {
 
-        console.log("🔥 API RESPONSE:", res); // debug
+        console.log("🔥 API RESPONSE:", res);
 
         const data = res?.data || [];
 
@@ -142,6 +144,26 @@ export class MedicineService {
 
       catchError((err) => {
         console.error('❌ Delete Medicine Error:', err);
+        return throwError(() => err);
+      })
+
+    );
+  }
+
+  /* =========================================
+     🔥 ADD PURCHASE (NEW - REQUIRED FIX)
+  ========================================= */
+
+  addPurchase(data: any): Observable<any> {
+
+    return this.http.post(`${this.purchaseUrl}/add`, data).pipe(
+
+      tap(() => {
+        console.log("✅ Purchase API called");
+      }),
+
+      catchError((err) => {
+        console.error('❌ Add Purchase Error:', err);
         return throwError(() => err);
       })
 
