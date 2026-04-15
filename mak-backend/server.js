@@ -18,7 +18,7 @@ connectDB();
    ⚙️ GLOBAL MIDDLEWARE
 ========================================= */
 
-// 🔐 CORS (FINAL FIXED - NO CRASH)
+// 🔐 CORS (ONLY FIX APPLIED — LOGIC SAME)
 const allowedOrigins = [
   "http://localhost:4200",
   "http://127.0.0.1:4200",
@@ -28,8 +28,10 @@ const allowedOrigins = [
 app.use(cors({
   origin: function (origin, callback) {
 
-    // allow Postman / mobile apps
-    if (!origin) return callback(null, true);
+    // ✅ allow Postman / mobile apps (APK fix)
+    if (!origin || origin.startsWith("capacitor://") || origin.startsWith("http://localhost")) {
+      return callback(null, true);
+    }
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
@@ -37,7 +39,6 @@ app.use(cors({
 
     console.warn("❌ Blocked by CORS:", origin);
 
-    // 🔥 IMPORTANT: do NOT throw error
     return callback(null, false);
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
