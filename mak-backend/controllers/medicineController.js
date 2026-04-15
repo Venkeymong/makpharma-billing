@@ -7,7 +7,11 @@ const Medicine = require("../models/medicine");
 exports.addMedicine = async (req, res) => {
   try {
 
-    const { name, price, sellingPrice, batch } = req.body;
+    let { name, price, sellingPrice, batch } = req.body;
+
+    /* 🔒 NORMALIZE INPUT */
+    name = name?.trim();
+    batch = batch?.trim() || "";
 
     /* 🔒 VALIDATION */
     if (!name || price == null || sellingPrice == null) {
@@ -17,10 +21,10 @@ exports.addMedicine = async (req, res) => {
       });
     }
 
-    /* 🔒 CHECK DUPLICATE (IMPORTANT) */
+    /* 🔒 CHECK DUPLICATE */
     const existing = await Medicine.findOne({
-      name: name.trim(),
-      batch: batch?.trim() || ""
+      name,
+      batch
     });
 
     if (existing) {
@@ -30,7 +34,12 @@ exports.addMedicine = async (req, res) => {
       });
     }
 
-    const medicine = new Medicine(req.body);
+    /* ✅ CREATE */
+    const medicine = new Medicine({
+      ...req.body,
+      name,
+      batch
+    });
 
     const saved = await medicine.save();
 
@@ -44,7 +53,6 @@ exports.addMedicine = async (req, res) => {
 
     console.error("❌ Add Medicine Error:", error);
 
-    /* 🔥 HANDLE DUPLICATE INDEX ERROR */
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
@@ -67,7 +75,8 @@ exports.addMedicine = async (req, res) => {
 exports.getMedicines = async (req, res) => {
   try {
 
-    const medicines = await Medicine.find().sort({ createdAt: -1 });
+    const medicines = await Medicine.find()
+      .sort({ createdAt: -1 });
 
     return res.json({
       success: true,
@@ -102,10 +111,21 @@ exports.updateMedicine = async (req, res) => {
       });
     }
 
+    /* 🔒 NORMALIZE INPUT */
+    let updateData = { ...req.body };
+
+    if (updateData.name) {
+      updateData.name = updateData.name.trim();
+    }
+
+    if (updateData.batch) {
+      updateData.batch = updateData.batch.trim();
+    }
+
     /* 🔒 SAFE UPDATE */
     const updated = await Medicine.findByIdAndUpdate(
       id,
-      req.body,
+      updateData,
       {
         new: true,
         runValidators: true
@@ -128,6 +148,13 @@ exports.updateMedicine = async (req, res) => {
   } catch (error) {
 
     console.error("❌ Update Medicine Error:", error);
+
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "Duplicate medicine entry"
+      });
+    }
 
     return res.status(500).json({
       success: false,

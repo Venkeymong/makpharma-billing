@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 /* =========================================
-   💊 MEDICINE SCHEMA (PRODUCTION READY)
+   💊 MEDICINE SCHEMA (PRODUCTION SAFE)
 ========================================= */
 
 const medicineSchema = new mongoose.Schema({
@@ -45,7 +45,7 @@ const medicineSchema = new mongoose.Schema({
   price: {
     type: Number,
     required: true,
-    default: 0,   // 🔥 SAFE FIX (no logic change)
+    default: 0,
     min: 0
   },
 
@@ -53,7 +53,7 @@ const medicineSchema = new mongoose.Schema({
   sellingPrice: {
     type: Number,
     required: true,
-    default: 0,   // 🔥 SAFE FIX
+    default: 0,
     min: 0
   },
 
@@ -92,16 +92,16 @@ medicineSchema.index(
 
 
 /* =========================================
-   🔥 PRE-SAVE (SAFE + MODERN)
+   🔥 PRE-SAVE (SAFE NORMALIZATION)
 ========================================= */
 
 medicineSchema.pre("save", function () {
 
-  // ✅ Clean strings
-  this.name = this.name?.trim();
-  this.batch = this.batch?.trim();
+  /* ✅ SAFE STRING CLEANING */
+  this.name = (this.name || "").trim();
+  this.batch = (this.batch || "").trim();
 
-  // ✅ Normalize numbers (NO LOGIC CHANGE)
+  /* ✅ SAFE NUMBER NORMALIZATION */
   this.price = Number(this.price) || 0;
   this.sellingPrice = Number(this.sellingPrice) || 0;
   this.mrp = Number(this.mrp) || this.sellingPrice;
@@ -112,10 +112,10 @@ medicineSchema.pre("save", function () {
 
 
 /* =========================================
-   🔥 STATIC METHODS (BONUS PRO FEATURE)
+   🔥 STATIC METHODS
 ========================================= */
 
-// Safe stock reduction
+// Reduce stock safely
 medicineSchema.statics.reduceStock = async function (name, batch, qty, session) {
 
   const med = await this.findOne({ name, batch }).session(session);
@@ -136,14 +136,13 @@ medicineSchema.statics.reduceStock = async function (name, batch, qty, session) 
 };
 
 
-// Restore stock
+// Restore stock safely
 medicineSchema.statics.restoreStock = async function (name, batch, qty, session) {
 
   const med = await this.findOne({ name, batch }).session(session);
 
   if (med) {
 
-    // 🔥 SAFE FIX (prevents crash, no logic change)
     med.price = Number(med.price) || 0;
     med.sellingPrice = Number(med.sellingPrice) || 0;
 

@@ -19,14 +19,15 @@ const roleMiddleware = require("../middleware/role");
    🧾 PURCHASE ROUTES (PRODUCTION READY)
 ====================================================== */
 
+
 /* 🔐 ADD PURCHASE (Admin ONLY) */
 router.post(
   "/add",
   authMiddleware,
   roleMiddleware("admin"),
-  async (req, res, next) => {
-    try {
+  (req, res, next) => {
 
+    try {
       const { supplier, items } = req.body;
 
       if (!supplier) {
@@ -41,9 +42,14 @@ router.post(
         });
       }
 
-      // 🔥 Validate each item
-      for (let item of items) {
-        if (!item.medicine || item.qty == null || item.price == null || item.sellingPrice == null) {
+      /* 🔥 VALIDATE EACH ITEM */
+      for (const item of items) {
+        if (
+          !item.medicine ||
+          item.qty == null ||
+          item.price == null ||
+          item.sellingPrice == null
+        ) {
           return res.status(400).json({
             message: "Each item must have medicine, qty, purchase price, and selling price"
           });
@@ -54,7 +60,9 @@ router.post(
 
     } catch (err) {
       console.error("❌ ADD PURCHASE ROUTE ERROR:", err.message);
-      res.status(500).json({ message: "Failed to add purchase" });
+      return res.status(500).json({
+        message: "Failed to add purchase"
+      });
     }
   },
   addPurchase
@@ -66,12 +74,15 @@ router.get(
   "/",
   authMiddleware,
   roleMiddleware("admin", "staff"),
-  async (req, res, next) => {
+  (req, res, next) => {
+
     try {
       next();
     } catch (err) {
       console.error("❌ GET PURCHASE ROUTE ERROR:", err.message);
-      res.status(500).json({ message: "Failed to fetch purchases" });
+      return res.status(500).json({
+        message: "Failed to fetch purchases"
+      });
     }
   },
   getPurchases
@@ -83,9 +94,9 @@ router.delete(
   "/:id",
   authMiddleware,
   roleMiddleware("admin"),
-  async (req, res, next) => {
-    try {
+  (req, res, next) => {
 
+    try {
       const { id } = req.params;
 
       if (!id) {
@@ -98,7 +109,9 @@ router.delete(
 
     } catch (err) {
       console.error("❌ DELETE PURCHASE ROUTE ERROR:", err.message);
-      res.status(500).json({ message: "Failed to delete purchase" });
+      return res.status(500).json({
+        message: "Failed to delete purchase"
+      });
     }
   },
   deletePurchase

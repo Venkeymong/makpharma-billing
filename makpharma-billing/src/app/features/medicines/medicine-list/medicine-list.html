@@ -29,6 +29,7 @@
 
     <div class="card-body">
 
+      <!-- TOP FORM -->
       <div class="form-grid">
         <div>
           <label>Supplier Name</label>
@@ -46,6 +47,7 @@
         </div>
       </div>
 
+      <!-- ITEM FORM -->
       <div class="form-grid">
 
         <div>
@@ -136,6 +138,7 @@
         </table>
       </div>
 
+      <!-- ACTION BUTTONS -->
       <div class="actions">
         <button class="btn btn-primary" (click)="savePurchase()">Save Purchase</button>
         <button class="btn btn-secondary" (click)="showPurchaseForm=false">Cancel</button>
@@ -182,18 +185,18 @@
             <td>{{ med.gst }}%</td>
 
             <td class="actions">
-              <!-- 🔥 FIXED -->
-             <button class="btn btn-primary btn-sm"
-        (click)="openAuthModal('editMedicine', med._id); verifyAdmin()">
-  Edit
-</button>
+              
+              <!-- SAFE BUTTONS -->
+              <button class="btn btn-primary btn-sm"
+                      (click)="openAuthModal('editMedicine', med._id)">
+                Edit
+              </button>
 
-<button class="btn btn-danger btn-sm"
-        (click)="openAuthModal('deleteMedicine', med._id); verifyAdmin()">
-  Delete
-</button>
+              <button class="btn btn-danger btn-sm"
+                      (click)="openAuthModal('deleteMedicine', med._id)">
+                Delete
+              </button>
 
-         
             </td>
 
           </tr>
@@ -234,16 +237,20 @@
 
             <td class="actions">
               <button class="btn btn-primary btn-sm"
-                      (click)="editPurchase(i)">
+                      (click)="openAuthModal('editPurchase', i)">
                 Edit
               </button>
 
               <button class="btn btn-danger btn-sm"
-                      (click)="verifyAdmin(); openAuthModal('deletePurchase', i)">
+                      (click)="openAuthModal('deletePurchase', i)">
                 Delete
               </button>
             </td>
 
+          </tr>
+
+          <tr *ngIf="paginatedPurchaseOrders.length === 0">
+            <td colspan="5" class="empty">No purchase history</td>
           </tr>
 
         </tbody>

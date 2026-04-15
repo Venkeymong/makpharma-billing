@@ -1,50 +1,95 @@
-<div class="edit-page" *ngIf="invoice">
+<div class="edit-wrapper" *ngIf="invoice">
 
-  <h2>Edit Invoice</h2>
+  <!-- ================= HEADER ================= -->
+  <div class="edit-header">
+    <div class="company">
+      <h1>Edit Invoice</h1>
+      <p>Modify invoice details</p>
+    </div>
+  </div>
 
-  <div class="form">
+  <div class="divider"></div>
 
-    <!-- ================= CUSTOMER ================= -->
+  <!-- ================= CUSTOMER ================= -->
+  <div class="customer-box">
 
-    <label>Customer Name</label>
-    <input [(ngModel)]="invoice.customer.name" />
+    <h3>Customer Details</h3>
 
-    <label>Phone</label>
-    <input [(ngModel)]="invoice.customer.phone" />
+    <div class="customer-grid">
 
-    <label>Payment</label>
-    <select [(ngModel)]="invoice.payment">
-      <option>Cash</option>
-      <option>UPI</option>
-      <option>Card</option>
-    </select>
+      <div>
+        <label>Name</label>
+        <input [(ngModel)]="invoice.customer.name" />
+      </div>
 
-    <!-- ================= ITEMS ================= -->
+      <div>
+        <label>Phone</label>
+        <input [(ngModel)]="invoice.customer.phone" />
+      </div>
 
-    <h3>Items</h3>
-
-    <div *ngFor="let item of invoice.items; let i = index" class="item-row">
-
-      <input
-        [(ngModel)]="item.name"
-        placeholder="Medicine"
-      />
-
-      <input
-        type="number"
-        [(ngModel)]="item.qty"
-        placeholder="Qty"
-      />
-
-      <input
-        type="number"
-        [(ngModel)]="item.price"
-        placeholder="Price"
-      />
+      <div>
+        <label>Payment</label>
+        <select [(ngModel)]="invoice.payment">
+          <option>Cash</option>
+          <option>UPI</option>
+          <option>Card</option>
+        </select>
+      </div>
 
     </div>
 
-    <!-- ================= ACTION ================= -->
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ================= ITEMS ================= -->
+  <h3>Items</h3>
+
+  <div class="table-wrapper">
+
+    <table class="invoice-table">
+
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Medicine</th>
+          <th>Qty</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let item of invoice.items; let i = index">
+
+          <td>{{ i + 1 }}</td>
+
+          <td>
+            <input [(ngModel)]="item.name" />
+          </td>
+
+          <td>
+            <input type="number" [(ngModel)]="item.qty" />
+          </td>
+
+          <td>
+            <input type="number" [(ngModel)]="item.price" />
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+  <!-- ================= ACTIONS ================= -->
+  <div class="edit-actions">
+
+    <button class="btn back" routerLink="/invoices">
+      Back
+    </button>
 
     <button (click)="saveInvoice()" class="btn save">
       Save Changes
@@ -54,7 +99,7 @@
 
 </div>
 
-<!-- 🔥 LOADING STATE -->
+<!-- LOADING -->
 <div *ngIf="!invoice" class="loading">
   Loading invoice...
 </div>

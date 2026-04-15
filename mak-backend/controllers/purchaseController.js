@@ -28,46 +28,59 @@ exports.addPurchase = async (req, res) => {
 
     for (const item of items) {
 
-      const name = item.medicine?.trim();
-      const batch = item.batch?.trim() || "";
+      try {
 
-      let med = await Medicine.findOne({ name, batch });
+        const name = item.medicine?.trim();
+        const batch = item.batch?.trim() || "";
 
-      if (med) {
+        const qty = Number(item.qty) || 0;
+        const price = Number(item.price) || 0;
+        const sellingPrice = Number(item.sellingPrice) || price;
+        const gst = Number(item.gst) || 0;
 
-        /* ✅ UPDATE EXISTING MEDICINE */
+        let med = await Medicine.findOne({ name, batch });
 
-        med.stock = (med.stock || 0) + Number(item.qty || 0);
+        if (med) {
 
-        // 🔥 ALWAYS UPDATE LATEST PRICES
-        med.price = Number(item.price) || med.price;
-        med.sellingPrice = Number(item.sellingPrice) || med.sellingPrice;
+          /* ✅ UPDATE EXISTING */
 
-        if (item.hsn) med.hsn = item.hsn;
-        if (item.expiry) med.expiry = item.expiry;
-        if (item.gst != null) med.gst = item.gst;
+          med.stock = (med.stock || 0) + qty;
 
-        await med.save();
+          med.price = price || med.price;
+          med.sellingPrice = sellingPrice || med.sellingPrice;
 
-      } else {
+          if (item.hsn) med.hsn = item.hsn;
+          if (item.expiry) med.expiry = item.expiry;
+          if (item.gst != null) med.gst = gst;
 
-        /* ✅ CREATE NEW MEDICINE */
+          await med.save();
 
-        await Medicine.create({
-          name,
-          batch,
-          hsn: item.hsn || "",
-          expiry: item.expiry || "",
-          price: Number(item.price) || 0,
-          sellingPrice: Number(item.sellingPrice) || Number(item.price) || 0,
-          gst: Number(item.gst) || 0,
-          stock: Number(item.qty) || 0
-        });
+          console.log(`✅ Updated medicine: ${name}`);
 
+        } else {
+
+          /* ✅ CREATE NEW */
+
+          await Medicine.create({
+            name,
+            batch,
+            hsn: item.hsn || "",
+            expiry: item.expiry || "",
+            price: price,
+            sellingPrice: sellingPrice,
+            gst: gst,
+            stock: qty
+          });
+
+          console.log(`🆕 Created medicine: ${name}`);
+        }
+
+      } catch (itemError) {
+        console.error("❌ Item Processing Error:", itemError.message);
       }
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Purchase added successfully",
       purchase
     });
@@ -76,7 +89,7 @@ exports.addPurchase = async (req, res) => {
 
     console.error("❌ Add Purchase Error:", error.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: error.message || "Failed to add purchase"
     });
   }
@@ -90,15 +103,16 @@ exports.addPurchase = async (req, res) => {
 exports.getPurchases = async (req, res) => {
   try {
 
-    const data = await Purchase.find().sort({ createdAt: -1 });
+    const data = await Purchase.find()
+      .sort({ createdAt: -1 });
 
-    res.json(data);
+    return res.json(data);
 
   } catch (error) {
 
     console.error("❌ Get Purchase Error:", error.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to fetch purchases"
     });
   }
@@ -132,20 +146,30 @@ exports.deletePurchase = async (req, res) => {
 
     for (const item of purchase.items) {
 
-      const name = item.medicine?.trim();
-      const batch = item.batch?.trim() || "";
+      try {
 
-      const med = await Medicine.findOne({ name, batch });
+        const name = item.medicine?.trim();
+        const batch = item.batch?.trim() || "";
 
-      if (med) {
-        med.stock = Math.max((med.stock || 0) - Number(item.qty || 0), 0);
-        await med.save();
+        const qty = Number(item.qty) || 0;
+
+        const med = await Medicine.findOne({ name, batch });
+
+        if (med) {
+          med.stock = Math.max((med.stock || 0) - qty, 0);
+          await med.save();
+
+          console.log(`🔄 Restored stock: ${name}`);
+        }
+
+      } catch (itemError) {
+        console.error("❌ Restore Item Error:", itemError.message);
       }
     }
 
     await Purchase.findByIdAndDelete(id);
 
-    res.json({
+    return res.json({
       message: "Purchase deleted & stock restored"
     });
 
@@ -153,7 +177,7 @@ exports.deletePurchase = async (req, res) => {
 
     console.error("❌ Delete Purchase Error:", error.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to delete purchase"
     });
   }

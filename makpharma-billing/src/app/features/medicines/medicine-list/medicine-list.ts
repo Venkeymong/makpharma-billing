@@ -177,14 +177,19 @@ export class MedicineList implements OnInit, OnDestroy {
 
       if (existing && existing._id) {
 
-        requests.push(
-          this.medicineService.updateMedicine(existing._id, {
-            ...existing,
-            price: item.price,
-            sellingPrice: item.sellingPrice,
-            stock: existing.stock + item.qty
-          })
-        );
+      requests.push(
+  this.medicineService.updateMedicine(existing._id, {
+    name: existing.name,
+    batch: existing.batch,
+    hsn: existing.hsn,
+    expiry: existing.expiry,
+    gst: existing.gst,
+    mrp: existing.mrp,
+    price: item.price,
+    sellingPrice: item.sellingPrice,
+    stock: existing.stock + item.qty
+  })
+);
 
       } else {
 
@@ -203,11 +208,19 @@ export class MedicineList implements OnInit, OnDestroy {
       }
     });
 
-    /* 🔥 FIXED: forkJoin instead of toPromise */
-    forkJoin(requests).subscribe({
-      next: () => this.medicineService.loadMedicines(),
-      error: err => console.error(err)
-    });
+    /* 🔥 SAFE EXECUTION */
+    if (requests.length > 0) {
+      forkJoin(requests).subscribe({
+        next: () => {
+          this.medicineService.loadMedicines();
+        },
+        error: (err: any) => {
+          console.error("❌ Purchase Save Error:", err);
+        }
+      });
+    } else {
+      this.medicineService.loadMedicines();
+    }
 
     if (this.editingPurchaseIndex !== null) {
       this.purchaseOrders[this.editingPurchaseIndex] = order;
@@ -233,61 +246,56 @@ export class MedicineList implements OnInit, OnDestroy {
     this.showAuthModal = true;
   }
 
- verifyAdmin(): void {
+  verifyAdmin(): void {
 
-  console.log("🔥 ACTION:", this.authAction);
+    switch (this.authAction) {
 
-  switch (this.authAction) {
-
-    case 'deleteMedicine':
-      if (this.selectedId) {
-        this.medicineService.deleteMedicine(this.selectedId).subscribe(() => {
-          console.log("✅ Deleted");
-          this.medicineService.loadMedicines(); // refresh
-        });
-      }
-      break;
-
-    case 'editMedicine':
-      if (this.selectedId) {
-        const med = this.medicines.find(m => m._id === this.selectedId);
-
-        if (med) {
-          console.log("✅ Editing:", med);
-
-          this.purchaseItems = [{
-            medicine: med.name,
-            batch: med.batch || '',
-            hsn: med.hsn || '',
-            expiry: med.expiry || '',
-            qty: med.stock,
-            price: med.price,
-            sellingPrice: med.sellingPrice,
-            gst: med.gst || 0,
-            total: 0
-          }];
-
-          this.showPurchaseForm = true;
+      case 'deleteMedicine':
+        if (this.selectedId) {
+          this.medicineService.deleteMedicine(this.selectedId).subscribe(() => {
+            this.medicineService.loadMedicines();
+          });
         }
-      }
-      break;
+        break;
 
-    case 'deletePurchase':
-      if (this.selectedIndex !== null) {
-        this.purchaseOrders.splice(this.selectedIndex, 1);
-        this.savePurchaseOrders();
-      }
-      break;
+      case 'editMedicine':
+        if (this.selectedId) {
+          const med = this.medicines.find(m => m._id === this.selectedId);
 
-    case 'editPurchase':
-      if (this.selectedIndex !== null) {
-        this.editPurchase(this.selectedIndex);
-      }
-      break;
+          if (med) {
+            this.purchaseItems = [{
+              medicine: med.name,
+              batch: med.batch || '',
+              hsn: med.hsn || '',
+              expiry: med.expiry || '',
+              qty: med.stock,
+              price: med.price,
+              sellingPrice: med.sellingPrice,
+              gst: med.gst || 0,
+              total: 0
+            }];
+
+            this.showPurchaseForm = true;
+          }
+        }
+        break;
+
+      case 'deletePurchase':
+        if (this.selectedIndex !== null) {
+          this.purchaseOrders.splice(this.selectedIndex, 1);
+          this.savePurchaseOrders();
+        }
+        break;
+
+      case 'editPurchase':
+        if (this.selectedIndex !== null) {
+          this.editPurchase(this.selectedIndex);
+        }
+        break;
+    }
+
+    this.closeAuthModal();
   }
-
-  this.closeAuthModal();
-}
 
   closeAuthModal(): void {
     this.showAuthModal = false;

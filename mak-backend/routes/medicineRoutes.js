@@ -20,14 +20,15 @@ const roleMiddleware = require("../middleware/role");
    💊 MEDICINE ROUTES (PRODUCTION READY)
 ====================================================== */
 
+
 /* 🔐 ADD MEDICINE (Admin ONLY) */
 router.post(
   "/add",
   authMiddleware,
   roleMiddleware("admin"),
-  async (req, res, next) => {
-    try {
+  (req, res, next) => {
 
+    try {
       const { name, price, sellingPrice } = req.body;
 
       if (!name || price == null || sellingPrice == null) {
@@ -46,7 +47,7 @@ router.post(
 
     } catch (err) {
       console.error("❌ ADD MEDICINE ROUTE ERROR:", err.message);
-      res.status(500).json({ message: "Failed to add medicine" });
+      return res.status(500).json({ message: "Failed to add medicine" });
     }
   },
   addMedicine
@@ -58,12 +59,13 @@ router.get(
   "/",
   authMiddleware,
   roleMiddleware("admin", "staff"),
-  async (req, res, next) => {
+  (req, res, next) => {
+
     try {
       next();
     } catch (err) {
       console.error("❌ GET MEDICINE ROUTE ERROR:", err.message);
-      res.status(500).json({ message: "Failed to fetch medicines" });
+      return res.status(500).json({ message: "Failed to fetch medicines" });
     }
   },
   getMedicines
@@ -75,20 +77,22 @@ router.put(
   "/:id",
   authMiddleware,
   roleMiddleware("admin"),
-  async (req, res, next) => {
-    try {
+  (req, res, next) => {
 
+    try {
       const { id } = req.params;
 
       if (!id) {
-        return res.status(400).json({ message: "Medicine ID is required" });
+        return res.status(400).json({
+          message: "Medicine ID is required"
+        });
       }
 
       next();
 
     } catch (err) {
       console.error("❌ UPDATE MEDICINE ROUTE ERROR:", err.message);
-      res.status(500).json({ message: "Failed to update medicine" });
+      return res.status(500).json({ message: "Failed to update medicine" });
     }
   },
   updateMedicine
@@ -100,20 +104,22 @@ router.delete(
   "/:id",
   authMiddleware,
   roleMiddleware("admin"),
-  async (req, res, next) => {
-    try {
+  (req, res, next) => {
 
+    try {
       const { id } = req.params;
 
       if (!id) {
-        return res.status(400).json({ message: "Medicine ID is required" });
+        return res.status(400).json({
+          message: "Medicine ID is required"
+        });
       }
 
       next();
 
     } catch (err) {
       console.error("❌ DELETE MEDICINE ROUTE ERROR:", err.message);
-      res.status(500).json({ message: "Failed to delete medicine" });
+      return res.status(500).json({ message: "Failed to delete medicine" });
     }
   },
   deleteMedicine

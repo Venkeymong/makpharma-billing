@@ -1,17 +1,20 @@
 /* =========================================
-🔥 EDIT INVOICE - SAME THEME (PRO)
+🔥 EDIT INVOICE - DARK PRO THEME
 ========================================= */
 
 .edit-wrapper {
   max-width: 900px;
   margin: 20px auto;
-  background: #fff;
+
+  background: #0f172a; /* 🔥 DARK BG */
+  color: #e5e7eb;
+
   padding: 25px;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
 
   font-family: 'Inter','Segoe UI',sans-serif;
-  color: #000;
 }
 
 /* =========================================
@@ -29,16 +32,19 @@ HEADER
 .company h1 {
   font-size: 22px;
   margin: 0;
+  color: #f9fafb;
 }
 
 .company p {
   font-size: 12px;
   margin: 2px 0;
+  color: #9ca3af;
 }
 
 .invoice-meta {
   text-align: right;
   font-size: 12px;
+  color: #cbd5f5;
 }
 
 /* =========================================
@@ -46,7 +52,7 @@ DIVIDER
 ========================================= */
 
 .divider {
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #1f2937;
   margin: 15px 0;
 }
 
@@ -57,6 +63,7 @@ CUSTOMER FORM
 .customer-box h3 {
   font-size: 16px;
   margin-bottom: 8px;
+  color: #f1f5f9;
 }
 
 .customer-grid {
@@ -67,17 +74,29 @@ CUSTOMER FORM
   font-size: 12px;
 }
 
+/* INPUTS */
 .customer-grid input,
 .customer-grid select {
   width: 100%;
   padding: 8px;
+
+  background: #1e293b;
+  color: #e5e7eb;
+
   border-radius: 6px;
-  border: 1px solid #ddd;
+  border: 1px solid #334155;
+
   font-size: 12px;
 }
 
+.customer-grid input:focus,
+.customer-grid select:focus {
+  outline: none;
+  border-color: #38bdf8;
+}
+
 /* =========================================
-TABLE (EDITABLE)
+TABLE
 ========================================= */
 
 .table-wrapper {
@@ -91,26 +110,40 @@ TABLE (EDITABLE)
   min-width: 600px;
 }
 
+/* TABLE HEADER */
 .invoice-table th {
-  background: #f3f4f6;
+  background: #1e293b;
+  color: #e2e8f0;
+
   padding: 8px;
   font-size: 12px;
-  border: 1px solid #ddd;
+
+  border: 1px solid #334155;
 }
 
+/* TABLE DATA */
 .invoice-table td {
   padding: 6px;
-  border: 1px solid #eee;
+  border: 1px solid #1f2937;
   font-size: 12px;
+  color: #cbd5f5;
 }
 
 /* INPUT INSIDE TABLE */
 .invoice-table input {
   width: 100%;
   padding: 6px;
-  font-size: 12px;
-  border: 1px solid #ddd;
+
+  background: #0f172a;
+  color: #e5e7eb;
+
+  border: 1px solid #334155;
   border-radius: 4px;
+}
+
+.invoice-table input:focus {
+  outline: none;
+  border-color: #22c55e;
 }
 
 .name {
@@ -128,25 +161,31 @@ TOTALS
 }
 
 .totals-box {
-  width: 250px;
-  border: 1px solid #ddd;
-  padding: 10px;
-  border-radius: 8px;
-  background: #fafafa;
+  width: 260px;
+
+  border: 1px solid #334155;
+  padding: 12px;
+  border-radius: 10px;
+
+  background: #1e293b;
 }
 
 .row {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
+  color: #cbd5f5;
 }
 
 .grand {
   font-weight: 700;
   font-size: 14px;
-  border-top: 1px solid #ddd;
+
+  border-top: 1px solid #475569;
   padding-top: 8px;
   margin-top: 8px;
+
+  color: #facc15;
 }
 
 /* =========================================
@@ -160,6 +199,7 @@ FOOTER
   align-items: flex-end;
   flex-wrap: wrap;
   font-size: 12px;
+  color: #94a3b8;
 }
 
 .signature {
@@ -168,7 +208,7 @@ FOOTER
 }
 
 .signature p {
-  border-top: 1px solid #000;
+  border-top: 1px solid #94a3b8;
   display: inline-block;
   padding-top: 5px;
 }
@@ -178,7 +218,7 @@ ACTIONS
 ========================================= */
 
 .edit-actions {
-  margin-top: 15px;
+  margin-top: 20px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -191,6 +231,7 @@ ACTIONS
   border: none;
   cursor: pointer;
   font-size: 13px;
+  transition: 0.2s ease;
 }
 
 /* BUTTON COLORS */
@@ -209,23 +250,33 @@ ACTIONS
   color: #fff;
 }
 
-/* HOVER EFFECT */
 .btn:hover {
+  transform: translateY(-1px);
   opacity: 0.9;
 }
 
 /* =========================================
-📱 MOBILE
+📱 MOBILE RESPONSIVE (IMPORTANT)
 ========================================= */
 
 @media (max-width: 768px) {
 
   .edit-wrapper {
     padding: 15px;
+    margin: 10px;
+  }
+
+  .edit-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .invoice-meta {
     text-align: left;
+  }
+
+  .customer-grid {
+    flex-direction: column;
   }
 
   .invoice-table {
@@ -233,13 +284,35 @@ ACTIONS
     overflow-x: auto;
   }
 
+  .totals {
+    justify-content: center;
+  }
+
+  .totals-box {
+    width: 100%;
+  }
+
+  .edit-actions {
+    justify-content: center;
+  }
+
 }
 
 /* =========================================
-🖨️ PRINT (HIDE INPUTS)
+🖨️ PRINT
 ========================================= */
 
 @media print {
+
+  body {
+    background: #fff;
+  }
+
+  .edit-wrapper {
+    background: #fff;
+    color: #000;
+    box-shadow: none;
+  }
 
   input,
   select,

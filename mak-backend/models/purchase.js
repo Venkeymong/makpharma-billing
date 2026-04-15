@@ -84,7 +84,7 @@ const purchaseSchema = new mongoose.Schema({
   items: {
     type: [purchaseItemSchema],
     required: true,
-    validate: v => v.length > 0
+    validate: v => Array.isArray(v) && v.length > 0
   },
 
   totalAmount: {
@@ -104,26 +104,31 @@ const purchaseSchema = new mongoose.Schema({
 
 
 /* =========================================
-   🔥 PRE-SAVE (AUTO CALCULATION + SAFE)
+   🔥 PRE-SAVE (SAFE + NORMALIZED)
 ========================================= */
 
 purchaseSchema.pre("save", function () {
 
   let totalAmount = 0;
 
-  this.items = this.items.map(item => {
+  /* ✅ SAFE ITEMS HANDLING */
+  this.items = (this.items || []).map(item => {
 
     const qty = Number(item.qty) || 0;
     const price = Number(item.price) || 0;
     const sellingPrice = Number(item.sellingPrice) || price;
     const gst = Number(item.gst) || 0;
 
+    /* 🔥 SAME LOGIC (NO CHANGE) */
     const total = qty * price;
 
     totalAmount += total;
 
     return {
       ...item,
+      medicine: (item.medicine || "").trim(),
+      batch: (item.batch || "").trim(),
+      hsn: (item.hsn || "").trim(),
       qty,
       price,
       sellingPrice,
