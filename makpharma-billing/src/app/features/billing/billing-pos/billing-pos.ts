@@ -236,8 +236,6 @@ isPrinted = false;
 
 printBill(): void {
 
-  /* ================= VALIDATION ================= */
-
   if (!this.customer.name) {
     alert("Please select customer");
     return;
@@ -253,112 +251,84 @@ printBill(): void {
     return;
   }
 
-  /* ================= CONFIRMATION ================= */
-
   const confirmPrint = confirm("Do you want to generate and print this bill?");
-
   if (!confirmPrint) return;
 
-  /* ================= CALCULATE WORDS ================= */
-
   const amountWords = this.numberToWords(this.grandTotal) + " Only";
-
-  /* ================= LOGO ================= */
-
   const logo = window.location.origin + "/assets/makpharma.png";
 
-  /* ================= SAVE INVOICE ================= */
+  this.salesService.addInvoice({
+    invoiceNumber: this.invoiceNumber,
+    customerName: this.customer.name,
+    customerPhone: this.customer.phone,
+    customerState: this.customer.state || 'Tamil Nadu',
+    customerGST: '',
+    totalAmount: this.grandTotal,
 
-this.salesService.addInvoice({
-  invoiceNumber: this.invoiceNumber,
+    items: this.cart.map(item => ({
+      medicine: item.name || item.medicine,
+      batch: item.batch || '',
+      qty: item.qty,
+      price: item.price || 0,
+      sellingPrice: item.sellingPrice || item.price || 0,
+      gst: item.gst || 0,
+      total: item.qty * (item.sellingPrice || item.price || 0)
+    })),
 
-  customerName: this.customer.name,
-  customerPhone: this.customer.phone,
-  customerState: this.customer.state || 'Tamil Nadu',
-  customerGST: '',
+    date: new Date(),
+    paymentMethod: this.paymentMethod
 
-  totalAmount: this.grandTotal,
+  }).subscribe({
 
-items: this.cart.map(item => ({
-  medicine: item.name || item.medicine, // ✅ FIX
-  batch: item.batch || '',
-  qty: item.qty,
+    next: () => {
 
-  price: item.price || 0,
-  sellingPrice: item.sellingPrice || item.price || 0,
+      console.log("✅ BILL SAVED SUCCESS");
 
-  gst: item.gst || 0,
-  total: item.qty * (item.sellingPrice || item.price || 0)
-})),
+      // ✅ STOCK UPDATE
+      this.cart.forEach(item => {
+        const med = this.medicines.find(m => m.name === item.name);
 
-  date: new Date(),
-  paymentMethod: this.paymentMethod
-}).subscribe({
-  next: () => console.log("✅ BILL SUCCESS"),
-  error: (err) => console.error("❌ BILL ERROR:", err)
-});
+        if (med && med._id) {
+          this.medicineService.updateMedicine(med._id, {
+            ...med,
+            stock: Math.max((med.stock || 0) - item.qty, 0)
+          }).subscribe({
+            error: (err: any) => console.error("Stock update error:", err)
+          });
+        }
+      });
 
-  /* ================= REDUCE STOCK (SAFE) ================= */
+      this.isPrinted = true;
 
- this.cart.forEach(item => {
+      // ✅ ONLY ONE POPUP (FIXED)
+      const popup = window.open('', '', 'width=1000,height=900');
 
-  const med = this.medicines.find(m => m.name === item.name);
+      if (!popup) {
+        alert("Popup blocked! Please allow popups.");
+        return;
+      }
 
-  if (med && med._id) {
-    this.medicineService.updateMedicine(med._id, {
-      ...med,
-      stock: Math.max((med.stock || 0) - item.qty, 0)
-    }).subscribe({
-      error: (err: any) => console.error("Stock update error:", err)
-    });
-  }
+      popup.document.write(`
 
-});
+      <!-- ✅ YOUR ORIGINAL FULL HTML (NO CHANGE) -->
 
-  /* ================= LOCK PRINT ================= */
-
-  this.isPrinted = true;
-
-  /* ================= OPEN PRINT WINDOW ================= */
-
-  const popup = window.open('', '', 'width=1000,height=900');
-
-  if (!popup) {
-    alert("Popup blocked! Please allow popups.");
-    return;
-  }
-popup.document.write(`
 <html>
 <head>
 <title>Invoice</title>
 
 <style>
-@page {
-  size: A4;
-  margin: 0;
-}
-
-body {
-  margin: 0;
-  padding: 10px;
-  background: #fff;
-  font-family: 'Segoe UI', Arial;
-}
+@page { size: A4; margin: 0; }
+body { margin: 0; padding: 10px; background: #fff; font-family: 'Segoe UI', Arial; }
 
 /* 🔥 PAGE */
 .page {
   position: relative;
-
   width: calc(100% - 20px);
   height: calc(297mm - 20px);
-
   border: 2px solid #000;
-
   padding: 8mm;
   box-sizing: border-box;
-
   margin: auto;
-
   display: flex;
   flex-direction: column;
 }
@@ -369,21 +339,14 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 420px;
+  width: 520px;
   opacity: 0.06;
   z-index: 0;
 }
 
-/* CONTENT ABOVE */
-.page > *:not(.watermark) {
-  position: relative;
-  z-index: 2;
-}
+.page > *:not(.watermark) { position: relative; z-index: 2; }
 
-/* 🔥 CONTENT WRAPPER */
-.content {
-  flex: 1;
-}
+.content { flex: 1; }
 
 /* HEADER */
 .header {
@@ -396,15 +359,9 @@ body {
 
 .logo { height: 70px; }
 
-.company {
-  font-size: 14px;
-  line-height: 1.4;
-}
+.company { font-size: 14px; line-height: 1.4; }
 
-.title {
-  font-size: 26px;
-  font-weight: bold;
-}
+.title { font-size: 26px; font-weight: bold; }
 
 /* INFO */
 .info {
@@ -435,9 +392,7 @@ th, td {
   font-size: 12px;
 }
 
-td.left {
-  text-align: left;
-}
+td.left { text-align: left; }
 
 /* TOTAL */
 .totals {
@@ -454,14 +409,9 @@ td.left {
   border-bottom: 1px solid #ddd;
 }
 
-.row:last-child {
-  border-bottom: none;
-}
+.row:last-child { border-bottom: none; }
 
-.grand {
-  font-weight: bold;
-  background: #f1f5f9;
-}
+.grand { font-weight: bold; background: #f1f5f9; }
 
 /* WORDS */
 .words {
@@ -496,20 +446,16 @@ td.left {
 
   <div class="content">
 
-    <!-- HEADER -->
     <div class="header">
       <img src="${logo}" class="logo"/>
-
       <div class="company">
         <strong>MAK PHARMA</strong><br>
         Chennai - 600037<br>
         Phone: 9092700152
       </div>
-
       <div class="title">TAX INVOICE</div>
     </div>
 
-    <!-- INFO -->
     <div class="info">
       <div>
         <strong>Invoice No:</strong> ${this.invoiceNumber}<br>
@@ -523,7 +469,6 @@ td.left {
       </div>
     </div>
 
-    <!-- TABLE -->
     <table>
       <tr>
         <th>#</th>
@@ -546,7 +491,6 @@ td.left {
       `).join('')}
     </table>
 
-    <!-- TOTAL -->
     <div class="totals">
 
       <div class="row">
@@ -577,14 +521,12 @@ td.left {
 
     </div>
 
-    <!-- WORDS -->
     <div class="words">
       <strong>Total in Words:</strong> ${amountWords}
     </div>
 
   </div>
 
-  <!-- FOOTER -->
   <div class="footer">
     <div>Thank you for your business</div>
     <div class="signature">Authorized Signature</div>
@@ -594,15 +536,28 @@ td.left {
 
 </body>
 </html>
-`);
+      `);
 
-  popup.document.close();
+      popup.document.close();
 
-  /* ================= SUCCESS MESSAGE ================= */
+      // ✅ RESET
+      this.cart = [];
+      this.generateInvoiceNumber();
 
-  setTimeout(() => {
-    alert("✅ Bill generated successfully!");
-  }, 500);
+      setTimeout(() => {
+        alert("✅ Bill generated successfully!");
+      }, 500);
+
+    },
+
+    error: (err: any) => {
+      console.error("❌ BILL ERROR:", err);
+      alert("❌ Bill not saved!");
+    }
+
+
+  });
+
 }
 
 async downloadPDF() {

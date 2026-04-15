@@ -92,211 +92,279 @@ export class InvoiceView implements OnInit, OnDestroy {
 
   print() {
 
-    if (!this.invoice) {
-      alert("Invoice not loaded");
-      return;
-    }
-
-    const confirmPrint = confirm("Do you want to print this invoice?");
-    if (!confirmPrint) return;
-
-    const subtotal = this.getSubtotal();
-    const roundOff = this.getRoundOff();
-    const finalTotal = Number(this.invoice.total || 0);
-
-    const amountWords = this.numberToWords(Math.round(finalTotal)) + " Only";
-
-    const logo = window.location.origin + "/assets/makpharma.png";
-
-    const popup = window.open('', '', 'width=1000,height=900');
-
-    if (!popup) {
-      alert("Popup blocked");
-      return;
-    }
-
-    popup.document.write(`
-    <html>
-    <head>
-      <title>Invoice</title>
-
-      <style>
-        @page { size: A4; margin: 8mm; }
-
-        body {
-          font-family: Arial;
-          margin: 0;
-        }
-
-        .invoice {
-          border: 2px solid #000;
-          padding: 12px;
-        }
-
-        .header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border-bottom: 2px solid #000;
-          padding-bottom: 10px;
-        }
-
-        .logo { height: 65px; }
-
-        .title {
-          font-size: 22px;
-          font-weight: bold;
-        }
-
-        .info {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 10px;
-          border-bottom: 1px solid #000;
-          padding-bottom: 8px;
-          font-size: 13px;
-        }
-
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 10px;
-        }
-
-        th, td {
-          border: 1px solid #000;
-          padding: 6px;
-          font-size: 12px;
-          text-align: center;
-        }
-
-        td.left { text-align: left; }
-
-        .totals {
-          width: 40%;
-          margin-left: auto;
-          margin-top: 12px;
-          font-size: 13px;
-        }
-
-        .row {
-          display: flex;
-          justify-content: space-between;
-          padding: 3px 0;
-        }
-
-        .grand {
-          border-top: 2px solid #000;
-          font-weight: bold;
-          font-size: 14px;
-        }
-
-        .words {
-          margin-top: 10px;
-          border-top: 1px solid #000;
-          padding-top: 6px;
-          font-size: 13px;
-        }
-
-        .footer {
-          margin-top: 35px;
-          display: flex;
-          justify-content: space-between;
-          font-size: 13px;
-        }
-      </style>
-
-    </head>
-
-    <body onload="setTimeout(()=>{window.print();window.close();},300)">
-
-      <div class="invoice">
-
-        <div class="header">
-          <img src="${logo}" class="logo"/>
-
-          <div>
-            <strong>MAK PHARMA</strong><br>
-            Chennai - 600037<br>
-            Phone: 9092700152
-          </div>
-
-          <div class="title">TAX INVOICE</div>
-        </div>
-
-        <div class="info">
-          <div>
-            Invoice: ${this.invoice.invoiceNumber}<br>
-            Date: ${new Date(this.invoice.date).toLocaleDateString()}
-          </div>
-
-          <div>
-            <strong>Bill To:</strong><br>
-            ${this.invoice.customer?.name || ''}<br>
-            ${this.invoice.customer?.phone || ''}
-          </div>
-        </div>
-
-        <table>
-          <tr>
-            <th>#</th>
-            <th>Description</th>
-            <th>Rate</th>
-            <th>Qty</th>
-            <th>GST%</th>
-            <th>Amount</th>
-          </tr>
-
-          ${this.invoice.items.map((item:any,i:number)=>`
-          <tr>
-            <td>${i+1}</td>
-            <td class="left">${item.name}</td>
-            <td>${item.price.toFixed(2)}</td>
-            <td>${item.qty}</td>
-            <td>${item.gst}%</td>
-            <td>${(item.qty * item.price).toFixed(2)}</td>
-          </tr>
-          `).join('')}
-        </table>
-
-        <div class="totals">
-
-          <div class="row">
-            <span>Subtotal</span>
-            <span>₹${subtotal.toFixed(2)}</span>
-          </div>
-
-          <div class="row">
-            <span>Round Off</span>
-            <span>₹${roundOff.toFixed(2)}</span>
-          </div>
-
-          <div class="row grand">
-            <span>Grand Total</span>
-            <span>₹${finalTotal.toFixed(2)}</span>
-          </div>
-
-        </div>
-
-        <div class="words">
-          <strong>Total In Words:</strong><br>
-          ${amountWords}
-        </div>
-
-        <div class="footer">
-          <div>Thank you for your business</div>
-          <div>Authorized Signature</div>
-        </div>
-
-      </div>
-
-    </body>
-    </html>
-    `);
-
-    popup.document.close();
+  if (!this.invoice) {
+    alert("Invoice not loaded");
+    return;
   }
 
+  const confirmPrint = confirm("Do you want to print this invoice?");
+  if (!confirmPrint) return;
+
+  const logo = window.location.origin + "/assets/makpharma.png";
+
+  // ✅ REBUILD CART (LIKE POS)
+  const cart = (this.invoice.items || []).map((item: any) => ({
+    name: item.medicine || item.name || 'Item',
+    qty: item.qty || 0,
+    price: item.price || 0,
+    sellingPrice: item.sellingPrice || item.price || 0,
+    gst: item.gst || 0
+  }));
+
+  // ✅ CALCULATIONS (EXACT POS LOGIC)
+  let subtotal = 0;
+  let cgstTotal = 0;
+  let sgstTotal = 0;
+  let igstTotal = 0;
+  let discountTotal = 0;
+
+  cart.forEach((item: any) => {
+    const rate = item.sellingPrice || item.price;
+    const base = rate * item.qty;
+    const gstAmount = (base * item.gst) / 100;
+
+    subtotal += base;
+
+    if ((this.invoice.customerState || 'Tamil Nadu') === 'Tamil Nadu') {
+      cgstTotal += gstAmount / 2;
+      sgstTotal += gstAmount / 2;
+    } else {
+      igstTotal += gstAmount;
+    }
+  });
+
+  const grandTotal = Math.round(subtotal + cgstTotal + sgstTotal + igstTotal - discountTotal);
+
+  const amountWords = this.numberToWords(grandTotal) + " Only";
+
+  const popup = window.open('', '', 'width=1000,height=900');
+
+  if (!popup) {
+    alert("Popup blocked! Please allow popups.");
+    return;
+  }
+
+  popup.document.write(`
+
+<html>
+<head>
+<title>Invoice</title>
+
+<style>
+@page { size: A4; margin: 0; }
+body { margin: 0; padding: 10px; background: #fff; font-family: 'Segoe UI', Arial; }
+
+.page {
+  position: relative;
+  width: calc(100% - 20px);
+  height: calc(297mm - 20px);
+  border: 2px solid #000;
+  padding: 8mm;
+  box-sizing: border-box;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 520px;
+  opacity: 0.06;
+  z-index: 0;
+}
+
+.page > *:not(.watermark) { position: relative; z-index: 2; }
+
+.content { flex: 1; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #000;
+  padding-bottom: 10px;
+}
+
+.logo { height: 70px; }
+
+.company { font-size: 14px; line-height: 1.4; }
+
+.title { font-size: 26px; font-weight: bold; }
+
+.info {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  border-bottom: 1px solid #000;
+  padding-bottom: 8px;
+  font-size: 13px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th {
+  background: #f1f5f9;
+  font-size: 13px;
+}
+
+th, td {
+  border: 1px solid #000;
+  padding: 6px;
+  text-align: center;
+  font-size: 12px;
+}
+
+td.left { text-align: left; }
+
+.totals {
+  width: 280px;
+  margin-left: auto;
+  margin-top: 12px;
+  border: 1px solid #000;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.row:last-child { border-bottom: none; }
+
+.grand { font-weight: bold; background: #f1f5f9; }
+
+.words {
+  margin-top: 12px;
+  border-top: 1px dashed #000;
+  padding-top: 6px;
+  font-size: 13px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.signature {
+  border-top: 1px solid #000;
+  width: 200px;
+  text-align: center;
+  padding-top: 5px;
+}
+</style>
+</head>
+
+<body onload="setTimeout(()=>{window.print();window.close();},300)">
+
+<div class="page">
+
+<img src="${logo}" class="watermark" />
+
+<div class="content">
+
+<div class="header">
+  <img src="${logo}" class="logo"/>
+  <div class="company">
+    <strong>MAK PHARMA</strong><br>
+    Chennai - 600037<br>
+    Phone: 9092700152
+  </div>
+  <div class="title">TAX INVOICE</div>
+</div>
+
+<div class="info">
+  <div>
+    <strong>Invoice No:</strong> ${this.invoice.invoiceNumber}<br>
+    <strong>Date:</strong> ${new Date(this.invoice.date).toLocaleDateString()}
+  </div>
+
+  <div>
+    <strong>Bill To:</strong><br>
+    ${this.invoice.customerName || this.invoice.customer?.name}<br>
+    ${this.invoice.customerPhone || this.invoice.customer?.phone}
+  </div>
+</div>
+
+<table>
+<tr>
+  <th>#</th>
+  <th>Description</th>
+  <th>Rate</th>
+  <th>Qty</th>
+  <th>GST%</th>
+  <th>Amount</th>
+</tr>
+
+${cart.map((item:any,i:number)=>`
+<tr>
+  <td>${i+1}</td>
+  <td class="left">${item.name}</td>
+  <td>${(item.sellingPrice || item.price).toFixed(2)}</td>
+  <td>${item.qty}</td>
+  <td>${item.gst}%</td>
+  <td>${(item.qty * (item.sellingPrice || item.price)).toFixed(2)}</td>
+</tr>
+`).join('')}
+</table>
+
+<div class="totals">
+
+<div class="row">
+  <span>Subtotal</span>
+  <span>₹${subtotal.toFixed(2)}</span>
+</div>
+
+${
+  (this.invoice.customerState || 'Tamil Nadu') === 'Tamil Nadu'
+  ? `
+  <div class="row"><span>CGST</span><span>₹${cgstTotal.toFixed(2)}</span></div>
+  <div class="row"><span>SGST</span><span>₹${sgstTotal.toFixed(2)}</span></div>
+  `
+  : `
+  <div class="row"><span>IGST</span><span>₹${igstTotal.toFixed(2)}</span></div>
+  `
+}
+
+<div class="row">
+  <span>Discount</span>
+  <span>- ₹${discountTotal.toFixed(2)}</span>
+</div>
+
+<div class="row grand">
+  <span>Grand Total</span>
+  <span>₹${grandTotal.toFixed(2)}</span>
+</div>
+
+</div>
+
+<div class="words">
+<strong>Total in Words:</strong> ${amountWords}
+</div>
+
+</div>
+
+<div class="footer">
+  <div>Thank you for your business</div>
+  <div class="signature">Authorized Signature</div>
+</div>
+
+</div>
+
+</body>
+</html>
+  `);
+
+  popup.document.close();
+}
   /* ================= WORDS ================= */
 
   numberToWords(num: number): string {
