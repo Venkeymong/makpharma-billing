@@ -248,10 +248,10 @@ printBill(): void {
     return;
   }
 
- if (this.isPrinted) {
-  alert("⚠️ Bill already generated. Please refresh for new bill.");
-  return;
-}
+  if (this.isPrinted) {
+    alert("⚠️ Bill already generated!");
+    return;
+  }
 
   /* ================= CONFIRMATION ================= */
 
