@@ -91,23 +91,26 @@ export class Login implements OnInit, OnDestroy {
 
     this.loading = true;
 
-    try {
+   try {
 
-      const loginPromise = this.auth.login(username, password);
+  // 🔥 Wake backend (important for APK)
+  await fetch('https://makpharma-billing-final.onrender.com');
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 8000)
-      );
+  const loginPromise = this.auth.login(username, password);
 
-      const success: any = await Promise.race([loginPromise, timeoutPromise]);
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('timeout')), 15000)
+  );
 
-      if (success) {
-        this.router.navigate(['/dashboard']);
-      } else {
-        this.loginError = 'Invalid username or password';
-      }
+  const success: any = await Promise.race([loginPromise, timeoutPromise]);
 
-    } catch (err: any) {
+  if (success) {
+    this.router.navigate(['/dashboard']);
+  } else {
+    this.loginError = 'Invalid username or password';
+  }
+
+} catch (err: any) {
 
       if (err.message === 'timeout') {
         this.loginError = 'Server is slow. Please try again.';
