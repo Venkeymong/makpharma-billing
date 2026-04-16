@@ -15,48 +15,50 @@ const app = express();
 connectDB();
 
 /* =========================================
-   ⚙️ GLOBAL MIDDLEWARE
+   ⚙️ CORS FIX (PRODUCTION READY)
 ========================================= */
 
-// 🔐 CORS (ONLY FIX APPLIED — LOGIC SAME)
 const allowedOrigins = [
   "http://localhost:4200",
   "http://127.0.0.1:4200",
-  "https://makpharma-billing-final.onrender.com"
+  "https://grand-dusk-63a35e.netlify.app" // ✅ YOUR FRONTEND
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-
-    // ✅ allow Postman / mobile apps (APK fix)
-    if (!origin || origin.startsWith("capacitor://") || origin.startsWith("http://localhost")) {
-      return callback(null, true);
-    }
+    // allow tools like Postman
+    if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
 
     console.warn("❌ Blocked by CORS:", origin);
-
-    return callback(null, false);
+    return callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
-// 🔄 JSON parser
+// 🔥 IMPORTANT: handle preflight requests
+app.options("*", cors());
+
+/* =========================================
+   🔄 BODY PARSER
+========================================= */
 app.use(express.json());
 
-// 🚫 CACHE CONTROL
+/* =========================================
+   🚫 CACHE CONTROL
+========================================= */
 app.use((req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
 
 /* =========================================
-   🔥 HEALTH CHECK ROUTES
+   🔥 HEALTH ROUTES
 ========================================= */
 
 app.get("/", (req, res) => {
@@ -72,7 +74,7 @@ app.get("/api/auth/check", (req, res) => {
 });
 
 /* =========================================
-   📦 ROUTES IMPORT
+   📦 ROUTES
 ========================================= */
 
 const medicineRoutes = require("./routes/medicineRoutes");
@@ -82,10 +84,6 @@ const customerRoutes = require("./routes/customerRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const authRoutes = require("./routes/authRoutes");
-
-/* =========================================
-   📌 ROUTES
-========================================= */
 
 app.use("/api/medicines", medicineRoutes);
 app.use("/api/purchases", purchaseRoutes);
@@ -98,7 +96,6 @@ app.use("/api/auth", authRoutes);
 /* =========================================
    ❌ 404 HANDLER
 ========================================= */
-
 app.use((req, res) => {
   console.warn("❌ 404:", req.method, req.url);
 
@@ -111,7 +108,6 @@ app.use((req, res) => {
 /* =========================================
    ❌ GLOBAL ERROR HANDLER
 ========================================= */
-
 app.use((err, req, res, next) => {
   console.error("🔥 SERVER ERROR:", err.message);
 

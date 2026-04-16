@@ -72,10 +72,11 @@
 
         <!-- ================= SUBMIT ================= -->
         <button
-          type="submit"
-          class="btn-login"
-          [disabled]="loading || !username || !password"
-        >
+  type="button"
+  class="btn-login"
+  (click)="login()"
+  [disabled]="loading || !username || !password"
+>
           <span *ngIf="!loading">Login</span>
           <span *ngIf="loading" class="loader"></span>
         </button>

@@ -28,7 +28,7 @@ export class AuthService {
   private setToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
 
-    // ⏱ 1 hour expiry (same logic)
+    // ⏱ 1 hour expiry
     const expiry = Date.now() + (60 * 60 * 1000);
     localStorage.setItem(this.EXPIRY_KEY, expiry.toString());
   }
@@ -50,40 +50,45 @@ export class AuthService {
   // =============================
   // 🔑 LOGIN
   // =============================
-  async login(username: string, password: string): Promise<boolean> {
+ async login(username: string, password: string): Promise<boolean> {
 
-    try {
+  try {
 
-      const payload = {
+    const res = await fetch(`${this.baseUrl}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
         username: username.trim(),
         password: password.trim()
-      };
+      })
+    });
 
-      const res: any = await firstValueFrom(
-        this.http.post(`${this.baseUrl}/login`, payload)
-      );
+    const data = await res.json();
 
-      if (!res?.token || !res?.user) return false;
+    console.log("🔥 LOGIN RESPONSE:", data);
 
-      // ✅ Store token
-      this.setToken(res.token);
+    if (!data?.token || !data?.user) return false;
 
-      // ✅ Store user (same logic)
-      const user = {
-        ...res.user,
-        actionPassword: res.user?.actionPassword || ''
-      };
+    // ✅ Store token
+    this.setToken(data.token);
 
-      localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    // ✅ Store user
+    const user = {
+      ...data.user,
+      actionPassword: data.user?.actionPassword || ''
+    };
 
-      return true;
+    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
 
-    } catch (err: any) {
-      console.error('❌ Login Error:', err);
-      return false; // 🔒 keep same logic
-    }
+    return true;
+
+  } catch (err: any) {
+    console.error("❌ LOGIN ERROR:", err);
+    return false;
   }
-
+}
   // =============================
   // 🚪 LOGOUT
   // =============================
@@ -142,7 +147,8 @@ export class AuthService {
 
     return {
       headers: new HttpHeaders({
-        Authorization: `Bearer ${token || ''}`
+        Authorization: `Bearer ${token || ''}`,
+        'Content-Type': 'application/json'
       })
     };
   }
@@ -163,7 +169,11 @@ export class AuthService {
   // =============================
   async sendOtp(email: string): Promise<any> {
     return await firstValueFrom(
-      this.http.post(`${this.baseUrl}/send-otp`, { email: email.trim() })
+      this.http.post(`${this.baseUrl}/send-otp`, { email: email.trim() }, {
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json'
+        })
+      })
     );
   }
 
@@ -172,6 +182,10 @@ export class AuthService {
       this.http.post(`${this.baseUrl}/verify-otp`, {
         email: email.trim(),
         otp: otp.trim()
+      }, {
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json'
+        })
       })
     );
   }
@@ -181,6 +195,10 @@ export class AuthService {
       this.http.post(`${this.baseUrl}/reset-password`, {
         email: email.trim(),
         password: password.trim()
+      }, {
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json'
+        })
       })
     );
   }

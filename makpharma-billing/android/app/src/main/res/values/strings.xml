@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">makpharma</string>
-    <string name="title_activity_main">MakPharma</string>
+    <string name="title_activity_main">makpharma</string>
     <string name="package_name">com.makpharma.app</string>
     <string name="custom_url_scheme">com.makpharma.app</string>
 </resources>
