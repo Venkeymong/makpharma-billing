@@ -99,7 +99,7 @@ export class Login implements OnInit, OnDestroy {
   const loginPromise = this.auth.login(username, password);
 
   const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('timeout')), 15000)
+    setTimeout(() => reject(new Error('timeout')), 30000)
   );
 
   const success: any = await Promise.race([loginPromise, timeoutPromise]);
