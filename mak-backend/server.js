@@ -15,18 +15,18 @@ const app = express();
 connectDB();
 
 /* =========================================
-   ⚙️ CORS FIX (PRODUCTION READY)
+   ⚙️ CORS (SAFE PRODUCTION VERSION)
 ========================================= */
 
 const allowedOrigins = [
   "http://localhost:4200",
   "http://127.0.0.1:4200",
-  "https://grand-dusk-63a35e.netlify.app" // ✅ YOUR FRONTEND
+  "https://grand-dusk-63a35e.netlify.app"
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow tools like Postman
+    // allow server-to-server / Postman
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
@@ -34,16 +34,15 @@ app.use(cors({
     }
 
     console.warn("❌ Blocked by CORS:", origin);
-    return callback(new Error("Not allowed by CORS"));
+    return callback(null, false);
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
-// 🔥 IMPORTANT: handle preflight requests
-app.options("*", cors());
-
+// ✅ Proper preflight handling
+app.options(/.*/, cors());
 /* =========================================
    🔄 BODY PARSER
 ========================================= */
