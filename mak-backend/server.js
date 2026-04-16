@@ -26,7 +26,6 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow server-to-server / Postman
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
@@ -40,6 +39,9 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
+
+// ✅ SAFE preflight handling (IMPORTANT FIX)
+app.options(/.*/, cors());
 
 // ✅ Proper preflight handling
 app.options(/.*/, cors());
