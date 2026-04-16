@@ -21,7 +21,7 @@ connectDB();
 const allowedOrigins = [
   "http://localhost:4200",
   "http://127.0.0.1:4200",
-  "https://grand-dusk-63a35e.netlify.app"
+  "https://bright-griffin-b14319.netlify.app"
 ];
 
 app.use(cors({
