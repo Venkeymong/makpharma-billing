@@ -1,5 +1,3 @@
-
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -30,6 +28,13 @@ export class BillingPos implements OnInit {
 
   cart: any[] = [];
 
+  /* ================= COMPANY DETAILS ================= */
+
+  companyName = 'MAK PHARMA';
+  companyGST = '33BRVPA8905M1ZA';
+  companyPhone = '9092700152';
+  companyAddress = '1st Floor, 560, LIG Type, 8th Street, Mogappair Eri Scheme, Mugappair West, Chennai, Tamil Nadu - 600037';
+
   /* ================= SEARCH ================= */
 
   searchText = '';
@@ -58,6 +63,7 @@ export class BillingPos implements OnInit {
   customer = {
     name: '',
     phone: '',
+    address: '',
     state: 'Tamil Nadu'
   };
 
@@ -119,6 +125,7 @@ export class BillingPos implements OnInit {
     this.customer = {
       name: c.name,
       phone: c.phone,
+      address: c.address || '',
       state: c.state || 'Tamil Nadu'
     };
 
@@ -153,17 +160,15 @@ export class BillingPos implements OnInit {
 
     } else {
 
-     this.cart.push({
-  name: med.name,
-  hsn: med.hsn,
-  batch: med.batch, // 🔥 IMPORTANT
-
-  price: med.price,                 // 💰 purchase price (hidden)
-  sellingPrice: med.sellingPrice,   // 💰 customer price
-
-  gst: med.gst,
-  qty: 1
-});
+      this.cart.push({
+        name: med.name,
+        hsn: med.hsn,
+        batch: med.batch,
+        price: med.price,
+        sellingPrice: med.sellingPrice,
+        gst: med.gst,
+        qty: 1
+      });
 
     }
 
@@ -200,7 +205,7 @@ export class BillingPos implements OnInit {
 
     for (let item of this.cart) {
 
-     const base = item.qty * item.sellingPrice;
+      const base = item.qty * item.sellingPrice;
       const gstAmount = (base * item.gst) / 100;
 
       subtotal += base;
@@ -230,88 +235,84 @@ export class BillingPos implements OnInit {
     this.roundOff = Number((rounded - total).toFixed(2));
     this.grandTotal = rounded;
   }
-  paymentMethod: string = 'Cash'; // default selected
 
-isPrinted = false;
+  paymentMethod: string = 'Cash';
+  isPrinted = false;
 
-printBill(): void {
+  printBill(): void {
 
-  if (!this.customer.name) {
-    alert("Please select customer");
-    return;
-  }
+    if (!this.customer.name) {
+      alert("Please select customer");
+      return;
+    }
 
-  if (this.cart.length === 0) {
-    alert("Cart is empty");
-    return;
-  }
+    if (this.cart.length === 0) {
+      alert("Cart is empty");
+      return;
+    }
 
-  if (this.isPrinted) {
-    alert("⚠️ Bill already generated!");
-    return;
-  }
+    if (this.isPrinted) {
+      alert("⚠️ Bill already generated!");
+      return;
+    }
 
-  const confirmPrint = confirm("Do you want to generate and print this bill?");
-  if (!confirmPrint) return;
+    const confirmPrint = confirm("Do you want to generate and print this bill?");
+    if (!confirmPrint) return;
 
-  const amountWords = this.numberToWords(this.grandTotal) + " Only";
-  const logo = window.location.origin + "/assets/makpharma.png";
+    const amountWords = this.numberToWords(this.grandTotal) + " Only";
+    const logo = window.location.origin + "/assets/makpharma.png";
 
-  this.salesService.addInvoice({
-    invoiceNumber: this.invoiceNumber,
-    customerName: this.customer.name,
-    customerPhone: this.customer.phone,
-    customerState: this.customer.state || 'Tamil Nadu',
-    customerGST: '',
-    totalAmount: this.grandTotal,
+    this.salesService.addInvoice({
+      invoiceNumber: this.invoiceNumber,
+      customerName: this.customer.name,
+      customerPhone: this.customer.phone,
+      customerAddress: this.customer.address || '',
+      customerState: this.customer.state || 'Tamil Nadu',
+      customerGST: '',
+      totalAmount: this.grandTotal,
 
-    items: this.cart.map(item => ({
-      medicine: item.name || item.medicine,
-      batch: item.batch || '',
-      qty: item.qty,
-      price: item.price || 0,
-      sellingPrice: item.sellingPrice || item.price || 0,
-      gst: item.gst || 0,
-      total: item.qty * (item.sellingPrice || item.price || 0)
-    })),
+      items: this.cart.map(item => ({
+        medicine: item.name || item.medicine,
+        batch: item.batch || '',
+        qty: item.qty,
+        price: item.price || 0,
+        sellingPrice: item.sellingPrice || item.price || 0,
+        gst: item.gst || 0,
+        total: item.qty * (item.sellingPrice || item.price || 0)
+      })),
 
-    date: new Date(),
-    paymentMethod: this.paymentMethod
+      date: new Date(),
+      paymentMethod: this.paymentMethod
 
-  }).subscribe({
+    }).subscribe({
 
-    next: () => {
+      next: () => {
 
-      console.log("✅ BILL SAVED SUCCESS");
+        console.log("✅ BILL SAVED SUCCESS");
 
-      // ✅ STOCK UPDATE
-      this.cart.forEach(item => {
-        const med = this.medicines.find(m => m.name === item.name);
+        this.cart.forEach(item => {
+          const med = this.medicines.find(m => m.name === item.name);
 
-        if (med && med._id) {
-          this.medicineService.updateMedicine(med._id, {
-            ...med,
-            stock: Math.max((med.stock || 0) - item.qty, 0)
-          }).subscribe({
-            error: (err: any) => console.error("Stock update error:", err)
-          });
+          if (med && med._id) {
+            this.medicineService.updateMedicine(med._id, {
+              ...med,
+              stock: Math.max((med.stock || 0) - item.qty, 0)
+            }).subscribe({
+              error: (err: any) => console.error("Stock update error:", err)
+            });
+          }
+        });
+
+        this.isPrinted = true;
+
+        const popup = window.open('', '', 'width=1000,height=900');
+
+        if (!popup) {
+          alert("Popup blocked! Please allow popups.");
+          return;
         }
-      });
 
-      this.isPrinted = true;
-
-      // ✅ ONLY ONE POPUP (FIXED)
-      const popup = window.open('', '', 'width=1000,height=900');
-
-      if (!popup) {
-        alert("Popup blocked! Please allow popups.");
-        return;
-      }
-
-      popup.document.write(`
-
-      <!-- ✅ YOUR ORIGINAL FULL HTML (NO CHANGE) -->
-
+        popup.document.write(`
 <html>
 <head>
 <title>Invoice</title>
@@ -320,7 +321,6 @@ printBill(): void {
 @page { size: A4; margin: 0; }
 body { margin: 0; padding: 10px; background: #fff; font-family: 'Segoe UI', Arial; }
 
-/* 🔥 PAGE */
 .page {
   position: relative;
   width: calc(100% - 20px);
@@ -333,7 +333,6 @@ body { margin: 0; padding: 10px; background: #fff; font-family: 'Segoe UI', Aria
   flex-direction: column;
 }
 
-/* 🔥 WATERMARK */
 .watermark {
   position: absolute;
   top: 50%;
@@ -348,32 +347,44 @@ body { margin: 0; padding: 10px; background: #fff; font-family: 'Segoe UI', Aria
 
 .content { flex: 1; }
 
-/* HEADER */
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   border-bottom: 2px solid #000;
   padding-bottom: 10px;
+  gap: 12px;
 }
 
 .logo { height: 70px; }
 
-.company { font-size: 14px; line-height: 1.4; }
+.company {
+  font-size: 13px;
+  line-height: 1.5;
+  flex: 1;
+}
 
-.title { font-size: 26px; font-weight: bold; }
+.title {
+  font-size: 26px;
+  font-weight: bold;
+  white-space: nowrap;
+}
 
-/* INFO */
 .info {
   display: flex;
   justify-content: space-between;
+  gap: 20px;
   margin-top: 10px;
   border-bottom: 1px solid #000;
   padding-bottom: 8px;
   font-size: 13px;
 }
 
-/* TABLE */
+.info-box {
+  width: 48%;
+  line-height: 1.5;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -394,7 +405,6 @@ th, td {
 
 td.left { text-align: left; }
 
-/* TOTAL */
 .totals {
   width: 280px;
   margin-left: auto;
@@ -413,7 +423,6 @@ td.left { text-align: left; }
 
 .grand { font-weight: bold; background: #f1f5f9; }
 
-/* WORDS */
 .words {
   margin-top: 12px;
   border-top: 1px dashed #000;
@@ -421,7 +430,6 @@ td.left { text-align: left; }
   font-size: 13px;
 }
 
-/* FOOTER */
 .footer {
   display: flex;
   justify-content: space-between;
@@ -434,7 +442,6 @@ td.left { text-align: left; }
   text-align: center;
   padding-top: 5px;
 }
-
 </style>
 </head>
 
@@ -449,23 +456,27 @@ td.left { text-align: left; }
     <div class="header">
       <img src="${logo}" class="logo"/>
       <div class="company">
-        <strong>MAK PHARMA</strong><br>
-        Chennai - 600037<br>
-        Phone: 9092700152
+        <strong>${this.companyName}</strong><br>
+        
+        GSTIN: ${this.companyGST}<br>
+        ${this.companyAddress}<br>
+        Phone: ${this.companyPhone}
       </div>
       <div class="title">TAX INVOICE</div>
     </div>
 
     <div class="info">
-      <div>
+      <div class="info-box">
         <strong>Invoice No:</strong> ${this.invoiceNumber}<br>
         <strong>Date:</strong> ${new Date().toLocaleDateString()}
       </div>
 
-      <div>
+      <div class="info-box">
         <strong>Bill To:</strong><br>
         ${this.customer.name}<br>
-        ${this.customer.phone}
+        ${this.customer.phone}<br>
+        ${this.customer.address ? this.customer.address + '<br>' : ''}
+        ${this.customer.state}
       </div>
     </div>
 
@@ -536,89 +547,87 @@ td.left { text-align: left; }
 
 </body>
 </html>
-      `);
+        `);
 
-      popup.document.close();
+        popup.document.close();
 
-      // ✅ RESET
-      this.cart = [];
-      this.generateInvoiceNumber();
+        this.cart = [];
+        this.generateInvoiceNumber();
 
-      setTimeout(() => {
-        alert("✅ Bill generated successfully!");
-      }, 500);
+        setTimeout(() => {
+          alert("✅ Bill generated successfully!");
+        }, 500);
 
-    },
+      },
 
-    error: (err: any) => {
-      console.error("❌ BILL ERROR:", err);
-      alert("❌ Bill not saved!");
-    }
+      error: (err: any) => {
+        console.error("❌ BILL ERROR:", err);
+        alert("❌ Bill not saved!");
+      }
 
-
-  });
-
-}
-
-async downloadPDF() {
-
-  try {
-
-    const element = document.getElementById('invoice-print');
-
-    if (!element) {
-      alert("Invoice not found");
-      return;
-    }
-
-    const canvas = await html2canvas(element, {
-      scale: 2
     });
-
-    const imgData = canvas.toDataURL('image/png');
-
-    const pdf = new jsPDF('p', 'mm', 'a4');
-
-    const imgWidth = 210;
-    const imgHeight = canvas.height * imgWidth / canvas.width;
-
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
-    pdf.save(`Invoice-${this.invoiceNumber}.pdf`);
-
-  } catch (error) {
-
-    console.error("PDF Error:", error);
-    alert("PDF failed");
 
   }
 
-}
+  async downloadPDF() {
 
-numberToWords(num: number): string {
+    try {
 
-  const ones = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
-  "Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+      const element = document.getElementById('invoice-print');
 
-  const tens = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+      if (!element) {
+        alert("Invoice not found");
+        return;
+      }
 
-  if (num === 0) return "Zero";
+      const canvas = await html2canvas(element, {
+        scale: 2
+      });
 
-  if (num < 20) return ones[num];
+      const imgData = canvas.toDataURL('image/png');
 
-  if (num < 100)
-    return tens[Math.floor(num/10)] + " " + ones[num%10];
+      const pdf = new jsPDF('p', 'mm', 'a4');
 
-  if (num < 1000)
-    return ones[Math.floor(num/100)] + " Hundred " + this.numberToWords(num%100);
+      const imgWidth = 210;
+      const imgHeight = canvas.height * imgWidth / canvas.width;
 
-  if (num < 100000)
-    return this.numberToWords(Math.floor(num/1000)) + " Thousand " + this.numberToWords(num%1000);
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
 
-  if (num < 10000000)
-    return this.numberToWords(Math.floor(num/100000)) + " Lakh " + this.numberToWords(num%100000);
+      pdf.save(`Invoice-${this.invoiceNumber}.pdf`);
 
-  return this.numberToWords(Math.floor(num/10000000)) + " Crore " + this.numberToWords(num%10000000);
-}
+    } catch (error) {
+
+      console.error("PDF Error:", error);
+      alert("PDF failed");
+
+    }
+
+  }
+
+  numberToWords(num: number): string {
+
+    const ones = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
+    "Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+
+    const tens = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+
+    if (num === 0) return "Zero";
+
+    if (num < 20) return ones[num];
+
+    if (num < 100)
+      return tens[Math.floor(num/10)] + " " + ones[num%10];
+
+    if (num < 1000)
+      return ones[Math.floor(num/100)] + " Hundred " + this.numberToWords(num%100);
+
+    if (num < 100000)
+      return this.numberToWords(Math.floor(num/1000)) + " Thousand " + this.numberToWords(num%1000);
+
+    if (num < 10000000)
+      return this.numberToWords(Math.floor(num/100000)) + " Lakh " + this.numberToWords(num%100000);
+
+    return this.numberToWords(Math.floor(num/10000000)) + " Crore " + this.numberToWords(num%10000000);
+  }
 
 }
