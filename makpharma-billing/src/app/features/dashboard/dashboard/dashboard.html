@@ -5,7 +5,6 @@
     ⚠️ Low Stock Medicines Available!
   </div>
 
-
   <!-- ================= HEADER ================= -->
   <div class="dashboard-header">
 
@@ -17,7 +16,6 @@
     </div>
 
   </div>
-
 
   <!-- ================= KPI CARDS ================= -->
   <div class="cards">
@@ -42,19 +40,19 @@
 
     <div class="card green">
       <h3>Total Revenue</h3>
-      <p>₹{{ totalSales }}</p>
+      <p>₹{{ totalSales | number:'1.2-2' }}</p>
       <span class="card-label">Overall Business</span>
     </div>
 
     <div class="card purple">
       <h3>Today's Sales</h3>
-      <p>₹{{ todaySales }}</p>
+      <p>₹{{ todaySales | number:'1.2-2' }}</p>
       <span class="card-label">Daily Performance</span>
     </div>
 
     <div class="card teal">
       <h3>Inventory Value</h3>
-      <p>₹{{ inventoryValue }}</p>
+      <p>₹{{ inventoryValue | number:'1.2-2' }}</p>
       <span class="card-label">Stock Worth</span>
     </div>
 
@@ -66,12 +64,17 @@
 
     <div class="card gold">
       <h3>Avg Daily Sales</h3>
-      <p>₹{{ averageDailySales }}</p>
+      <p>₹{{ averageDailySales | number:'1.2-2' }}</p>
       <span class="card-label">Sales Trend</span>
     </div>
 
-  </div>
+    <div class="card blue">
+      <h3>Total Round Off</h3>
+      <p>₹{{ totalRoundOff | number:'1.2-2' }}</p>
+      <span class="card-label">Invoice Adjustments</span>
+    </div>
 
+  </div>
 
   <!-- ================= ANALYTICS ================= -->
   <div class="section">
@@ -80,7 +83,6 @@
       <h3>📊 Analytics Overview</h3>
     </div>
 
-    <!-- ROW 1 -->
     <div class="charts">
 
       <div class="chart-box">
@@ -95,7 +97,6 @@
 
     </div>
 
-    <!-- ROW 2 -->
     <div class="charts">
 
       <div class="chart-box">
@@ -111,7 +112,6 @@
     </div>
 
   </div>
-
 
   <!-- ================= ALERTS ================= -->
   <div class="section">
@@ -144,7 +144,7 @@
               </td>
             </tr>
 
-            <tr *ngFor="let m of lowStockList">
+            <tr *ngFor="let m of paginatedLowStockList">
               <td>{{ m.name }}</td>
               <td class="stock-count">{{ m.stock }}</td>
             </tr>
@@ -159,8 +159,21 @@
 
         </table>
 
-      </div>
+        <div class="pagination" *ngIf="lowStockList.length > lowStockPageSize">
+          <button class="btn" [disabled]="lowStockPage === 1" (click)="changeLowStockPage(lowStockPage - 1)">Prev</button>
 
+          <button
+            *ngFor="let page of getPageArray(lowStockTotalPages)"
+            class="btn"
+            [class.active]="lowStockPage === page"
+            (click)="changeLowStockPage(page)">
+            {{ page }}
+          </button>
+
+          <button class="btn" [disabled]="lowStockPage === lowStockTotalPages" (click)="changeLowStockPage(lowStockPage + 1)">Next</button>
+        </div>
+
+      </div>
 
       <!-- EXPIRY -->
       <div class="alert-box">
@@ -184,7 +197,7 @@
               </td>
             </tr>
 
-            <tr *ngFor="let m of expirySoonList">
+            <tr *ngFor="let m of paginatedExpirySoonList">
               <td>{{ m.name }}</td>
               <td class="expiry-date">{{ m.expiry }}</td>
             </tr>
@@ -199,12 +212,25 @@
 
         </table>
 
+        <div class="pagination" *ngIf="expirySoonList.length > expiryPageSize">
+          <button class="btn" [disabled]="expiryPage === 1" (click)="changeExpiryPage(expiryPage - 1)">Prev</button>
+
+          <button
+            *ngFor="let page of getPageArray(expiryTotalPages)"
+            class="btn"
+            [class.active]="expiryPage === page"
+            (click)="changeExpiryPage(page)">
+            {{ page }}
+          </button>
+
+          <button class="btn" [disabled]="expiryPage === expiryTotalPages" (click)="changeExpiryPage(expiryPage + 1)">Next</button>
+        </div>
+
       </div>
 
     </div>
 
   </div>
-
 
   <!-- ================= INVENTORY ================= -->
   <div class="section">
@@ -236,7 +262,7 @@
             </td>
           </tr>
 
-          <tr *ngFor="let m of medicines">
+          <tr *ngFor="let m of paginatedMedicines">
 
             <td>{{ m.name }}</td>
             <td>{{ m.stock }}</td>
@@ -259,6 +285,20 @@
         </tbody>
 
       </table>
+
+      <div class="pagination" *ngIf="medicines.length > inventoryPageSize">
+        <button class="btn" [disabled]="inventoryPage === 1" (click)="changeInventoryPage(inventoryPage - 1)">Prev</button>
+
+        <button
+          *ngFor="let page of getPageArray(inventoryTotalPages)"
+          class="btn"
+          [class.active]="inventoryPage === page"
+          (click)="changeInventoryPage(page)">
+          {{ page }}
+        </button>
+
+        <button class="btn" [disabled]="inventoryPage === inventoryTotalPages" (click)="changeInventoryPage(inventoryPage + 1)">Next</button>
+      </div>
 
     </div>
 

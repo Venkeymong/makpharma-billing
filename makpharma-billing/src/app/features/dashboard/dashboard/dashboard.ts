@@ -32,6 +32,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   totalSales = 0;
   todaySales = 0;
+  totalRoundOff = 0;
 
   inventoryValue = 0;
   todayInvoices = 0;
@@ -42,7 +43,18 @@ export class Dashboard implements OnInit, OnDestroy {
   showAlert = false;
   alertTriggered = false;
 
-  /* ================= CHARTS (FIXED TYPE) ================= */
+  /* ================= PAGINATION ================= */
+
+  inventoryPage = 1;
+  inventoryPageSize = 5;
+
+  lowStockPage = 1;
+  lowStockPageSize = 5;
+
+  expiryPage = 1;
+  expiryPageSize = 5;
+
+  /* ================= CHARTS ================= */
 
   salesChart: any;
   stockChart: any;
@@ -90,43 +102,43 @@ export class Dashboard implements OnInit, OnDestroy {
 
     if (!this.medicines || !this.invoices) return;
 
-    /* SORT */
     this.invoices = [...this.invoices].sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
-    /* FILTER */
-    this.lowStockList = this.medicines.filter(m => m.stock < 10);
+    this.lowStockList = this.medicines.filter(m => (m.stock || 0) < 10);
     this.expirySoonList = this.medicines.filter(m => this.isExpiringSoon(m.expiry));
-
-    /* KPI */
 
     this.totalMedicines = this.medicines.length;
     this.lowStock = this.lowStockList.length;
     this.expirySoon = this.expirySoonList.length;
 
     this.totalSales = this.invoices.reduce(
-      (sum, i) => sum + (i.total || 0), 0
+      (sum, i) => sum + this.getInvoiceAmount(i),
+      0
+    );
+
+    this.totalRoundOff = this.invoices.reduce(
+      (sum, i) => sum + (Number(i.roundOff) || 0),
+      0
     );
 
     const todayStr = new Date().toDateString();
 
     this.todaySales = this.invoices
       .filter(i => new Date(i.date).toDateString() === todayStr)
-      .reduce((sum, i) => sum + (i.total || 0), 0);
+      .reduce((sum, i) => sum + this.getInvoiceAmount(i), 0);
 
     this.inventoryValue = this.medicines.reduce(
-      (sum, m) => sum + ((m.stock || 0) * (m.sellingPrice || 0)), 0
+      (sum, m) => sum + ((m.stock || 0) * (m.sellingPrice || m.price || 0)),
+      0
     );
 
     this.todayInvoices = this.invoices.filter(
       i => new Date(i.date).toDateString() === todayStr
     ).length;
 
-    /* AVERAGE */
-
     if (this.invoices.length > 0) {
-
       const firstDate = new Date(this.invoices[0].date);
       const now = new Date();
 
@@ -136,16 +148,16 @@ export class Dashboard implements OnInit, OnDestroy {
       );
 
       this.averageDailySales = Math.round(this.totalSales / days);
+    } else {
+      this.averageDailySales = 0;
     }
 
-    /* ALERT */
+    this.ensureValidPages();
 
     if (this.lowStock > 0 && !this.alertTriggered) {
       this.triggerAlert();
       this.alertTriggered = true;
     }
-
-    /* CHART RENDER */
 
     clearTimeout(this.chartTimeout);
 
@@ -154,7 +166,23 @@ export class Dashboard implements OnInit, OnDestroy {
     }, 150);
   }
 
-  /* ================= ALERT ================= */
+  /* ================= HELPERS ================= */
+
+  getInvoiceAmount(invoice: any): number {
+    return Number(invoice?.totalAmount ?? invoice?.total ?? 0);
+  }
+
+  isExpiringSoon(expiryDate: string): boolean {
+
+    if (!expiryDate) return false;
+
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+
+    const days = (expiry.getTime() - today.getTime()) / (1000 * 3600 * 24);
+
+    return days < 30 && days > 0;
+  }
 
   triggerAlert(): void {
 
@@ -170,18 +198,69 @@ export class Dashboard implements OnInit, OnDestroy {
     }, 3000);
   }
 
-  /* ================= HELPERS ================= */
+  /* ================= PAGINATION HELPERS ================= */
 
-  isExpiringSoon(expiryDate: string): boolean {
+  get paginatedLowStockList(): any[] {
+    const start = (this.lowStockPage - 1) * this.lowStockPageSize;
+    return this.lowStockList.slice(start, start + this.lowStockPageSize);
+  }
 
-    if (!expiryDate) return false;
+  get paginatedExpirySoonList(): any[] {
+    const start = (this.expiryPage - 1) * this.expiryPageSize;
+    return this.expirySoonList.slice(start, start + this.expiryPageSize);
+  }
 
-    const today = new Date();
-    const expiry = new Date(expiryDate);
+  get paginatedMedicines(): any[] {
+    const start = (this.inventoryPage - 1) * this.inventoryPageSize;
+    return this.medicines.slice(start, start + this.inventoryPageSize);
+  }
 
-    const days = (expiry.getTime() - today.getTime()) / (1000 * 3600 * 24);
+  get lowStockTotalPages(): number {
+    return Math.max(1, Math.ceil(this.lowStockList.length / this.lowStockPageSize));
+  }
 
-    return days < 30 && days > 0;
+  get expiryTotalPages(): number {
+    return Math.max(1, Math.ceil(this.expirySoonList.length / this.expiryPageSize));
+  }
+
+  get inventoryTotalPages(): number {
+    return Math.max(1, Math.ceil(this.medicines.length / this.inventoryPageSize));
+  }
+
+  changeLowStockPage(page: number): void {
+    if (page >= 1 && page <= this.lowStockTotalPages) {
+      this.lowStockPage = page;
+    }
+  }
+
+  changeExpiryPage(page: number): void {
+    if (page >= 1 && page <= this.expiryTotalPages) {
+      this.expiryPage = page;
+    }
+  }
+
+  changeInventoryPage(page: number): void {
+    if (page >= 1 && page <= this.inventoryTotalPages) {
+      this.inventoryPage = page;
+    }
+  }
+
+  ensureValidPages(): void {
+    if (this.lowStockPage > this.lowStockTotalPages) {
+      this.lowStockPage = this.lowStockTotalPages;
+    }
+
+    if (this.expiryPage > this.expiryTotalPages) {
+      this.expiryPage = this.expiryTotalPages;
+    }
+
+    if (this.inventoryPage > this.inventoryTotalPages) {
+      this.inventoryPage = this.inventoryTotalPages;
+    }
+  }
+
+  getPageArray(total: number): number[] {
+    return Array.from({ length: total }, (_, i) => i + 1);
   }
 
   /* ================= CHARTS ================= */
@@ -210,7 +289,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
     this.invoices.forEach(i => {
       const d = new Date(i.date);
-      monthlyData[d.getMonth()] += (i.total || 0);
+      monthlyData[d.getMonth()] += this.getInvoiceAmount(i);
     });
 
     this.salesChart = new Chart("salesChart", {
@@ -236,13 +315,17 @@ export class Dashboard implements OnInit, OnDestroy {
 
   createStockChart(): void {
 
+    const normalCount = this.medicines.filter(
+      m => (m.stock || 0) >= 10 && !this.isExpiringSoon(m.expiry)
+    ).length;
+
     this.stockChart = new Chart("stockChart", {
       type: 'doughnut',
       data: {
         labels: ['Normal','Low','Expiry'],
         datasets: [{
           data: [
-            this.totalMedicines - this.lowStock - this.expirySoon,
+            normalCount,
             this.lowStock,
             this.expirySoon
           ],
@@ -261,12 +344,12 @@ export class Dashboard implements OnInit, OnDestroy {
 
     this.invoices.forEach(inv => {
       (inv.items || []).forEach((item: any) => {
-        map[item.name] = (map[item.name] || 0) + (item.qty || 0);
+        const medicineName = item.name || item.medicine || 'Unknown';
+        map[medicineName] = (map[medicineName] || 0) + (item.qty || 0);
       });
     });
 
-    const sorted: [string, number][] =
-      Object.entries(map) as [string, number][];
+    const sorted: [string, number][] = Object.entries(map) as [string, number][];
 
     const top = sorted
       .sort((a, b) => b[1] - a[1])
