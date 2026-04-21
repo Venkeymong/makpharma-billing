@@ -13,19 +13,22 @@ import { Subscription } from 'rxjs';
 })
 export class CustomerList implements OnInit, OnDestroy {
 
-  customers: any[] = [];
+  /* ================= DATA ================= */
 
+  customers: any[] = [];
   searchText: string = '';
 
   showForm: boolean = false;
-
   editCustomerId: string | null = null;
 
   customer: any = this.getEmptyCustomer();
 
-  // ✅ Pagination
+  /* ================= PAGINATION ================= */
+
   currentPage: number = 1;
   itemsPerPage: number = 5;
+
+  /* ================= SUB ================= */
 
   private sub = new Subscription();
 
@@ -36,11 +39,18 @@ export class CustomerList implements OnInit, OnDestroy {
   ========================================= */
 
   ngOnInit(): void {
+
     this.sub.add(
-      this.customerService.customers$.subscribe(data => {
-        this.customers = data || [];
+      this.customerService.customers$.subscribe({
+        next: (data) => {
+          this.customers = data || [];
+        },
+        error: (err) => {
+          console.error('❌ Customer stream error:', err);
+        }
       })
     );
+
   }
 
   ngOnDestroy(): void {
@@ -70,7 +80,7 @@ export class CustomerList implements OnInit, OnDestroy {
 
   saveCustomer() {
 
-    if (!this.customer.name?.trim()) {
+    if (!this.customer?.name?.trim()) {
       alert('Customer name required');
       return;
     }
@@ -79,23 +89,34 @@ export class CustomerList implements OnInit, OnDestroy {
 
       this.customerService.addCustomer({ ...this.customer }).subscribe({
         next: () => this.resetForm(),
-        error: () => alert('Failed to add customer')
+        error: (err) => {
+          console.error('❌ Add customer failed:', err);
+          alert('Failed to add customer');
+        }
       });
 
     } else {
 
       this.customerService.updateCustomer(this.editCustomerId, { ...this.customer }).subscribe({
         next: () => this.resetForm(),
-        error: () => alert('Failed to update customer')
+        error: (err) => {
+          console.error('❌ Update customer failed:', err);
+          alert('Failed to update customer');
+        }
       });
 
     }
+
   }
 
   editCustomer(customer: any) {
+
+    if (!customer?._id) return;
+
     this.editCustomerId = customer._id;
     this.customer = { ...customer };
     this.showForm = true;
+
   }
 
   deleteCustomer(customer: any) {
@@ -105,10 +126,14 @@ export class CustomerList implements OnInit, OnDestroy {
     if (confirm(`Delete ${customer.name}?`)) {
 
       this.customerService.deleteCustomer(customer._id).subscribe({
-        error: () => alert('Delete failed')
+        error: (err) => {
+          console.error('❌ Delete failed:', err);
+          alert('Delete failed');
+        }
       });
 
     }
+
   }
 
   resetForm() {
@@ -122,6 +147,7 @@ export class CustomerList implements OnInit, OnDestroy {
   ========================================= */
 
   get filteredCustomers() {
+
     const text = this.searchText.toLowerCase();
 
     return this.customers.filter(x =>
@@ -129,6 +155,7 @@ export class CustomerList implements OnInit, OnDestroy {
       x.phone?.includes(text) ||
       x.email?.toLowerCase().includes(text)
     );
+
   }
 
   /* =========================================
@@ -136,12 +163,20 @@ export class CustomerList implements OnInit, OnDestroy {
   ========================================= */
 
   get paginatedCustomers() {
+
     const start = (this.currentPage - 1) * this.itemsPerPage;
+
     return this.filteredCustomers.slice(start, start + this.itemsPerPage);
+
   }
 
   get totalPages() {
-    return Math.max(Math.ceil(this.filteredCustomers.length / this.itemsPerPage), 1);
+
+    return Math.max(
+      Math.ceil(this.filteredCustomers.length / this.itemsPerPage),
+      1
+    );
+
   }
 
   changePage(page: number) {
@@ -154,32 +189,46 @@ export class CustomerList implements OnInit, OnDestroy {
 
   downloadCustomer(customer: any) {
 
-    const data = JSON.stringify(customer, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
+    try {
 
-    const url = window.URL.createObjectURL(blob);
+      const data = JSON.stringify(customer, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${customer.name}.json`;
-    a.click();
+      const url = window.URL.createObjectURL(blob);
 
-    window.URL.revokeObjectURL(url);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${customer.name}.json`;
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+      console.error('❌ Download failed:', err);
+    }
+
   }
 
   downloadAllCustomers() {
 
-    const data = JSON.stringify(this.customers, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
+    try {
 
-    const url = window.URL.createObjectURL(blob);
+      const data = JSON.stringify(this.customers, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `all_customers.json`;
-    a.click();
+      const url = window.URL.createObjectURL(blob);
 
-    window.URL.revokeObjectURL(url);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `all_customers.json`;
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+      console.error('❌ Download all failed:', err);
+    }
+
   }
 
 }

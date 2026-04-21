@@ -19,6 +19,7 @@
   <div class="search-box">
     <input
       type="text"
+      name="searchText"
       placeholder="Search by name, phone or email..."
       [(ngModel)]="searchText"
     />
@@ -33,39 +34,64 @@
 
       <!-- NAME -->
       <div class="form-group">
-        <input type="text" [(ngModel)]="customer.name" required placeholder=" ">
+        <input
+          type="text"
+          name="customerName"
+          [(ngModel)]="customer.name"
+          required
+          placeholder=" "
+        />
         <label>Customer Name</label>
       </div>
 
       <!-- PHONE -->
       <div class="form-group">
-        <input type="text" [(ngModel)]="customer.phone" required placeholder=" ">
+        <input
+          type="text"
+          name="customerPhone"
+          [(ngModel)]="customer.phone"
+          required
+          placeholder=" "
+        />
         <label>Phone Number</label>
       </div>
 
       <!-- EMAIL -->
       <div class="form-group">
-        <input type="email" [(ngModel)]="customer.email" placeholder=" ">
+        <input
+          type="email"
+          name="customerEmail"
+          [(ngModel)]="customer.email"
+          placeholder=" "
+        />
         <label>Email</label>
       </div>
 
       <!-- ADDRESS -->
       <div class="form-group">
-        <input type="text" [(ngModel)]="customer.address" placeholder=" ">
+        <input
+          type="text"
+          name="customerAddress"
+          [(ngModel)]="customer.address"
+          placeholder=" "
+        />
         <label>Address</label>
       </div>
 
       <!-- STATE -->
       <div class="form-group">
-        <select [(ngModel)]="customer.state">
+        <select
+          name="customerState"
+          [(ngModel)]="customer.state"
+        >
           <option *ngFor="let state of [
             'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa',
             'Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala',
             'Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland',
             'Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana',
             'Tripura','Uttar Pradesh','Uttarakhand','West Bengal'
-          ]">
-            {{state}}
+          ]" [ngValue]="state">
+            {{ state }}
           </option>
         </select>
         <label>State</label>
@@ -73,15 +99,19 @@
 
       <!-- GST -->
       <div class="form-group">
-        <input type="text" [(ngModel)]="customer.gst" placeholder=" ">
+        <input
+          type="text"
+          name="customerGst"
+          [(ngModel)]="customer.gst"
+          placeholder=" "
+        />
         <label>GST Number</label>
       </div>
 
     </div>
 
-    <!-- ACTIONS -->
+    <!-- ================= ACTIONS ================= -->
     <div class="form-actions">
-
       <button class="btn btn-primary" (click)="saveCustomer()">
         {{ editCustomerId ? 'Update Customer' : 'Save Customer' }}
       </button>
@@ -89,7 +119,6 @@
       <button class="btn btn-danger" (click)="resetForm()">
         Cancel
       </button>
-
     </div>
 
   </div>
@@ -123,7 +152,6 @@
           <td>{{ c.gst || '-' }}</td>
 
           <td class="actions">
-
             <button class="btn btn-primary btn-sm" (click)="editCustomer(c)">
               Edit
             </button>
@@ -135,7 +163,6 @@
             <button class="btn btn-success btn-sm" (click)="downloadCustomer(c)">
               Download
             </button>
-
           </td>
 
         </tr>
@@ -156,14 +183,14 @@
   <!-- ================= PAGINATION ================= -->
   <div class="pagination" *ngIf="totalPages > 1">
 
-    <button 
+    <button
       class="btn"
       [disabled]="currentPage === 1"
       (click)="changePage(currentPage - 1)">
       Prev
     </button>
 
-    <button 
+    <button
       *ngFor="let page of [].constructor(totalPages); let i = index"
       class="btn"
       [class.active]="currentPage === i + 1"
@@ -171,7 +198,7 @@
       {{ i + 1 }}
     </button>
 
-    <button 
+    <button
       class="btn"
       [disabled]="currentPage === totalPages"
       (click)="changePage(currentPage + 1)">

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, tap, catchError, throwError } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -21,11 +21,25 @@ export class CustomerService {
   }
 
   /* =========================================
+     AUTH HEADER
+  ========================================= */
+
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+
+    return new HttpHeaders({
+      Authorization: `Bearer ${token || ''}`
+    });
+  }
+
+  /* =========================================
      LOAD CUSTOMERS
   ========================================= */
 
   loadCustomers() {
-    this.http.get<any[]>(this.baseUrl).pipe(
+    this.http.get<any[]>(this.baseUrl, {
+      headers: this.getHeaders()
+    }).pipe(
 
       tap((data) => {
         this.customersSubject.next(data || []);
@@ -52,7 +66,9 @@ export class CustomerService {
   ========================================= */
 
   addCustomer(customer: any) {
-    return this.http.post<any>(`${this.baseUrl}/add`, customer).pipe(
+    return this.http.post<any>(`${this.baseUrl}/add`, customer, {
+      headers: this.getHeaders()
+    }).pipe(
 
       tap((newCustomer) => {
         const current = this.getCustomers();
@@ -68,14 +84,15 @@ export class CustomerService {
   }
 
   /* =========================================
-     UPDATE CUSTOMER (ID BASED ✅)
+     UPDATE CUSTOMER
   ========================================= */
 
   updateCustomer(id: string, customer: any) {
-    return this.http.put<any>(`${this.baseUrl}/${id}`, customer).pipe(
+    return this.http.put<any>(`${this.baseUrl}/${id}`, customer, {
+      headers: this.getHeaders()
+    }).pipe(
 
       tap((updatedCustomer) => {
-
         const updated = this.getCustomers().map(c =>
           c._id === id ? { ...c, ...updatedCustomer } : c
         );
@@ -92,16 +109,16 @@ export class CustomerService {
   }
 
   /* =========================================
-     DELETE CUSTOMER (ID BASED ✅)
+     DELETE CUSTOMER
   ========================================= */
 
   deleteCustomer(id: string) {
-    return this.http.delete(`${this.baseUrl}/${id}`).pipe(
+    return this.http.delete(`${this.baseUrl}/${id}`, {
+      headers: this.getHeaders()
+    }).pipe(
 
       tap(() => {
-
         const updated = this.getCustomers().filter(c => c._id !== id);
-
         this.customersSubject.next(updated);
       }),
 
