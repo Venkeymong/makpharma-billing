@@ -57,14 +57,14 @@ customerSchema.index({ phone: 1 });
 
 /* =========================================
    🔥 PRE SAVE (CLEAN DATA)
+   ✅ FIXED (NO next())
 ========================================= */
 
-customerSchema.pre("save", function (next) {
+customerSchema.pre("save", function () {
 
-  this.name = this.name?.trim();
-  this.phone = this.phone?.trim();
+  if (this.name) this.name = this.name.trim();
+  if (this.phone) this.phone = this.phone.trim();
 
-  next();
 });
 
 

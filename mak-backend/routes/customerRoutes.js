@@ -27,7 +27,6 @@ router.post(
   roleMiddleware("admin", "staff"),
   async (req, res, next) => {
     try {
-
       const { name, phone } = req.body;
 
       if (!name || !phone) {
@@ -36,11 +35,12 @@ router.post(
         });
       }
 
-      next();
-
+      return next();
     } catch (err) {
       console.error("❌ ADD CUSTOMER ROUTE ERROR:", err.message);
-      res.status(500).json({ message: "Failed to add customer" });
+      return res.status(500).json({
+        message: "Failed to add customer"
+      });
     }
   },
   addCustomer
@@ -54,10 +54,12 @@ router.get(
   roleMiddleware("admin", "staff"),
   async (req, res, next) => {
     try {
-      next();
+      return next();
     } catch (err) {
       console.error("❌ GET CUSTOMER ROUTE ERROR:", err.message);
-      res.status(500).json({ message: "Failed to fetch customers" });
+      return res.status(500).json({
+        message: "Failed to fetch customers"
+      });
     }
   },
   getCustomers
@@ -71,18 +73,20 @@ router.put(
   roleMiddleware("admin", "staff"),
   async (req, res, next) => {
     try {
-
       const { id } = req.params;
 
       if (!id) {
-        return res.status(400).json({ message: "Customer ID is required" });
+        return res.status(400).json({
+          message: "Customer ID is required"
+        });
       }
 
-      next();
-
+      return next();
     } catch (err) {
       console.error("❌ UPDATE CUSTOMER ROUTE ERROR:", err.message);
-      res.status(500).json({ message: "Failed to update customer" });
+      return res.status(500).json({
+        message: "Failed to update customer"
+      });
     }
   },
   updateCustomer
@@ -96,18 +100,20 @@ router.delete(
   roleMiddleware("admin"),
   async (req, res, next) => {
     try {
-
       const { id } = req.params;
 
       if (!id) {
-        return res.status(400).json({ message: "Customer ID is required" });
+        return res.status(400).json({
+          message: "Customer ID is required"
+        });
       }
 
-      next();
-
+      return next();
     } catch (err) {
       console.error("❌ DELETE CUSTOMER ROUTE ERROR:", err.message);
-      res.status(500).json({ message: "Failed to delete customer" });
+      return res.status(500).json({
+        message: "Failed to delete customer"
+      });
     }
   },
   deleteCustomer
