@@ -92,10 +92,14 @@ export class AuthService {
   // =============================
   // 🚪 LOGOUT
   // =============================
-  logout(): void {
-    this.clearToken();
-    localStorage.removeItem(this.USER_KEY);
-  }
+ logout(): void {
+  this.clearToken();
+  localStorage.removeItem(this.USER_KEY);
+  localStorage.removeItem('redirectUrl');
+  sessionStorage.clear();
+
+  window.location.replace('/login');
+}
 
   // =============================
   // 👤 USER

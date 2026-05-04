@@ -19,133 +19,199 @@ export class InvoiceView implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private salesService: SalesService,
-    private router: Router // 🔥 FIXED
+    private router: Router
   ) {}
 
-  /* ================= INIT ================= */
+ngOnInit() {
 
-  ngOnInit() {
+  const stateInvoice = history.state?.invoice;
 
-    const invoiceNumber = this.route.snapshot.paramMap.get('id');
+  if (stateInvoice) {
+    this.invoice = stateInvoice;
+    return; // 🔥 STOP HERE (VERY IMPORTANT)
+  }
 
-    /* 🔥 FIX: LOAD DATA ON REFRESH */
-    this.salesService.loadInvoices();
+  const invoiceNumber = this.route.snapshot.paramMap.get('id');
 
-    this.sub.add(
-      this.salesService.invoices$.subscribe(data => {
+  this.salesService.loadInvoices();
 
-        if (invoiceNumber && data.length) {
+  this.sub.add(
+    this.salesService.invoices$.subscribe(data => {
 
-          this.invoice = data.find(inv =>
-            inv.invoiceNumber === invoiceNumber
-          );
+      if (invoiceNumber && data.length) {
 
-          if (!this.invoice) {
-            alert("❌ Invoice not found!");
-            this.router.navigate(['/invoices']); // 🔥 FIX
-          }
+        this.invoice = data.find(inv =>
+          inv.invoiceNumber === invoiceNumber
+        );
 
+        if (!this.invoice) {
+          alert("❌ Invoice not found!");
+          this.router.navigate(['/invoices']);
         }
 
-      })
-    );
-  }
+      }
+
+    })
+  );
+}
 
   ngOnDestroy() {
     this.sub.unsubscribe();
   }
 
-  /* ================= CALCULATIONS ================= */
+  /* ================= CALCULATIONS - SAME AS BILLING POS ================= */
 
   getSubtotal(): number {
     if (!this.invoice?.items) return 0;
 
     return this.invoice.items.reduce((sum: number, item: any) => {
-      return sum + (item.qty * item.price);
+      const rate = item.sellingPrice || item.price || 0;
+      return sum + ((item.qty || 0) * rate);
     }, 0);
   }
 
- getRoundOff(): number {
+  getCGST(): number {
+    if (!this.invoice?.items) return 0;
+
+    let total = 0;
+
+    this.invoice.items.forEach((item: any) => {
+      const rate = item.sellingPrice || item.price || 0;
+      const base = (item.qty || 0) * rate;
+      const gstAmount = (base * (item.gst || 0)) / 100;
+      total += gstAmount / 2;
+    });
+
+    return total;
+  }
+
+  getSGST(): number {
+    if (!this.invoice?.items) return 0;
+
+    let total = 0;
+
+    this.invoice.items.forEach((item: any) => {
+      const rate = item.sellingPrice || item.price || 0;
+      const base = (item.qty || 0) * rate;
+      const gstAmount = (base * (item.gst || 0)) / 100;
+      total += gstAmount / 2;
+    });
+
+    return total;
+  }
+
+  getIGST(): number {
+    if (!this.invoice?.items) return 0;
+
+    let total = 0;
+
+    this.invoice.items.forEach((item: any) => {
+      const rate = item.sellingPrice || item.price || 0;
+      const base = (item.qty || 0) * rate;
+      const gstAmount = (base * (item.gst || 0)) / 100;
+      total += gstAmount;
+    });
+
+    return total;
+  }
+
+  getDiscount(): number {
+    return Number(this.invoice?.discountTotal || this.invoice?.discount || 0);
+  }
+
+  getGrandTotal(): number {
+
+  if (this.invoice?.totalAmount) {
+    return Number(this.invoice.totalAmount);
+  }
+
+  if (this.invoice?.total) {
+    return Number(this.invoice.total);
+  }
 
   const subtotal = this.getSubtotal();
 
-  const gst =
-    Number(this.invoice?.cgst || 0) +
-    Number(this.invoice?.sgst || 0) +
-    Number(this.invoice?.igst || 0);
+  const state = this.invoice?.customerState || this.invoice?.customer?.state || 'Tamil Nadu';
 
-  const exactTotal = subtotal + gst;
+  const gst = state === 'Tamil Nadu'
+    ? this.getCGST() + this.getSGST()
+    : this.getIGST();
 
-  /* 🔥 APPLY ROUNDING */
-  const roundedTotal = Math.round(exactTotal);
+  const exactTotal = subtotal + gst - this.getDiscount();
 
-  return Number((roundedTotal - exactTotal).toFixed(2));
+  return Math.round(exactTotal);
 }
 
-  /* ================= BACK BUTTON FIX ================= */
+  getRoundOff(): number {
+    const subtotal = this.getSubtotal();
+
+    const state = this.invoice?.customerState || this.invoice?.customer?.state || 'Tamil Nadu';
+
+    const gst = state === 'Tamil Nadu'
+      ? this.getCGST() + this.getSGST()
+      : this.getIGST();
+
+    const exactTotal = subtotal + gst - this.getDiscount();
+    const roundedTotal = Math.round(exactTotal);
+
+    return Number((roundedTotal - exactTotal).toFixed(2));
+  }
 
   goBack(): void {
-    this.router.navigate(['/invoices']); // 🔥 FIXED
+    this.router.navigate(['/invoices']);
   }
-
-  /* ================= PRINT ================= */
 
   print() {
-
-  if (!this.invoice) {
-    alert("Invoice not loaded");
-    return;
-  }
-
-  const confirmPrint = confirm("Do you want to print this invoice?");
-  if (!confirmPrint) return;
-
-  const logo = window.location.origin + "/assets/makpharma.png";
-
-  // ✅ REBUILD CART (LIKE POS)
-  const cart = (this.invoice.items || []).map((item: any) => ({
-    name: item.medicine || item.name || 'Item',
-    qty: item.qty || 0,
-    price: item.price || 0,
-    sellingPrice: item.sellingPrice || item.price || 0,
-    gst: item.gst || 0
-  }));
-
-  // ✅ CALCULATIONS (EXACT POS LOGIC)
-  let subtotal = 0;
-  let cgstTotal = 0;
-  let sgstTotal = 0;
-  let igstTotal = 0;
-  let discountTotal = 0;
-
-  cart.forEach((item: any) => {
-    const rate = item.sellingPrice || item.price;
-    const base = rate * item.qty;
-    const gstAmount = (base * item.gst) / 100;
-
-    subtotal += base;
-
-    if ((this.invoice.customerState || 'Tamil Nadu') === 'Tamil Nadu') {
-      cgstTotal += gstAmount / 2;
-      sgstTotal += gstAmount / 2;
-    } else {
-      igstTotal += gstAmount;
+    if (!this.invoice) {
+      alert("Invoice not loaded");
+      return;
     }
-  });
 
-  const grandTotal = Math.round(subtotal + cgstTotal + sgstTotal + igstTotal - discountTotal);
+    const confirmPrint = confirm("Do you want to print this invoice?");
+    if (!confirmPrint) return;
 
-  const amountWords = this.numberToWords(grandTotal) + " Only";
+    const logo = window.location.origin + "/assets/makpharma.png";
 
-  const popup = window.open('', '', 'width=1000,height=900');
+    const cart = (this.invoice.items || []).map((item: any) => ({
+      name: item.medicine || item.name || 'Item',
+      qty: item.qty || 0,
+      price: item.price || 0,
+      sellingPrice: item.sellingPrice || item.price || 0,
+      gst: item.gst || 0
+    }));
 
-  if (!popup) {
-    alert("Popup blocked! Please allow popups.");
-    return;
-  }
+    let subtotal = 0;
+    let cgstTotal = 0;
+    let sgstTotal = 0;
+    let igstTotal = 0;
+    const discountTotal = this.getDiscount();
 
-  popup.document.write(`
+    cart.forEach((item: any) => {
+      const rate = item.sellingPrice || item.price;
+      const base = rate * item.qty;
+      const gstAmount = (base * item.gst) / 100;
 
+      subtotal += base;
+
+      if ((this.invoice.customerState || this.invoice.customer?.state || 'Tamil Nadu') === 'Tamil Nadu') {
+        cgstTotal += gstAmount / 2;
+        sgstTotal += gstAmount / 2;
+      } else {
+        igstTotal += gstAmount;
+      }
+    });
+
+    const grandTotal = Math.round(subtotal + cgstTotal + sgstTotal + igstTotal - discountTotal);
+    const amountWords = this.numberToWords(grandTotal) + " Only";
+
+    const popup = window.open('', '', 'width=1000,height=900');
+
+    if (!popup) {
+      alert("Popup blocked! Please allow popups.");
+      return;
+    }
+
+    popup.document.write(`
 <html>
 <head>
 <title>Invoice</title>
@@ -183,24 +249,39 @@ body { margin: 0; padding: 10px; background: #fff; font-family: 'Segoe UI', Aria
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   border-bottom: 2px solid #000;
   padding-bottom: 10px;
+  gap: 12px;
 }
 
 .logo { height: 70px; }
 
-.company { font-size: 14px; line-height: 1.4; }
+.company {
+  font-size: 13px;
+  line-height: 1.5;
+  flex: 1;
+}
 
-.title { font-size: 26px; font-weight: bold; }
+.title {
+  font-size: 26px;
+  font-weight: bold;
+  white-space: nowrap;
+}
 
 .info {
   display: flex;
   justify-content: space-between;
+  gap: 20px;
   margin-top: 10px;
   border-bottom: 1px solid #000;
   padding-bottom: 8px;
   font-size: 13px;
+}
+
+.info-box {
+  width: 48%;
+  line-height: 1.5;
 }
 
 table {
@@ -263,7 +344,7 @@ td.left { text-align: left; }
 </style>
 </head>
 
-<body onload="setTimeout(()=>{window.print();window.close();},300)">
+<body onload="setTimeout(()=>window.print(),700)">
 
 <div class="page">
 
@@ -272,25 +353,30 @@ td.left { text-align: left; }
 <div class="content">
 
 <div class="header">
-  <img src="${logo}" class="logo"/>
+  <img src="${logo}" class="logo" onload="window.imageLoaded=true"/>
   <div class="company">
     <strong>MAK PHARMA</strong><br>
-    Chennai - 600037<br>
+    GSTIN: 33BRVPA8905M1ZA<br>
+    1st Floor, 560, LIG Type, 8th Street, Mogappair Eri Scheme,<br>
+    Mugappair West, Chennai, Tamil Nadu - 600037<br>
     Phone: 9092700152
   </div>
   <div class="title">TAX INVOICE</div>
 </div>
 
 <div class="info">
-  <div>
+  <div class="info-box">
     <strong>Invoice No:</strong> ${this.invoice.invoiceNumber}<br>
-    <strong>Date:</strong> ${new Date(this.invoice.date).toLocaleDateString()}
+    <strong>Date:</strong> ${new Date(this.invoice.date).toLocaleDateString()}<br>
+    <strong>Payment:</strong> ${this.invoice.paymentMethod || this.invoice.payment || 'Cash'}
   </div>
 
-  <div>
+  <div class="info-box">
     <strong>Bill To:</strong><br>
-    ${this.invoice.customerName || this.invoice.customer?.name}<br>
-    ${this.invoice.customerPhone || this.invoice.customer?.phone}
+    ${this.invoice.customerName || this.invoice.customer?.name || ''}<br>
+    ${this.invoice.customerPhone || this.invoice.customer?.phone || ''}<br>
+    ${(this.invoice.customerAddress || this.invoice.customer?.address) ? (this.invoice.customerAddress || this.invoice.customer?.address) + '<br>' : ''}
+    ${this.invoice.customerState || this.invoice.customer?.state || 'Tamil Nadu'}
   </div>
 </div>
 
@@ -320,11 +406,11 @@ ${cart.map((item:any,i:number)=>`
 
 <div class="row">
   <span>Subtotal</span>
-  <span>₹${subtotal.toFixed(2)}</span>
+  <span>₹{{ (invoice.subtotal || getSubtotal()) | number:'1.2-2' }}</span>
 </div>
 
 ${
-  (this.invoice.customerState || 'Tamil Nadu') === 'Tamil Nadu'
+  (this.invoice.customerState || this.invoice.customer?.state || 'Tamil Nadu') === 'Tamil Nadu'
   ? `
   <div class="row"><span>CGST</span><span>₹${cgstTotal.toFixed(2)}</span></div>
   <div class="row"><span>SGST</span><span>₹${sgstTotal.toFixed(2)}</span></div>
@@ -339,9 +425,14 @@ ${
   <span>- ₹${discountTotal.toFixed(2)}</span>
 </div>
 
+<div class="row">
+  <span>Round Off</span>
+  <span>₹${(grandTotal - (subtotal + cgstTotal + sgstTotal + igstTotal - discountTotal)).toFixed(2)}</span>
+</div>
+
 <div class="row grand">
   <span>Grand Total</span>
-  <span>₹${grandTotal.toFixed(2)}</span>
+  <span>₹{{ (invoice.totalAmount || invoice.total || getGrandTotal()) | number:'1.2-2' }}</span>
 </div>
 
 </div>
@@ -361,14 +452,12 @@ ${
 
 </body>
 </html>
-  `);
+    `);
 
-  popup.document.close();
-}
-  /* ================= WORDS ================= */
+    popup.document.close();
+  }
 
   numberToWords(num: number): string {
-
     const ones = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
     "Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
 

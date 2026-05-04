@@ -13,14 +13,10 @@ import { AuthService } from '../../../services/auth';
 })
 export class Profile implements OnInit {
 
-  /* ================= USER DATA ================= */
-
   profile: any = {};
   originalProfile: any = {};
 
   isEditMode: boolean = false;
-
-  /* ================= SECURITY ================= */
 
   adminPassword: string = '';
   systemPassword: string = '';
@@ -36,13 +32,9 @@ export class Profile implements OnInit {
     private router: Router
   ) {}
 
-  /* ================= INIT ================= */
-
   ngOnInit(): void {
     this.loadProfile();
   }
-
-  /* ================= LOAD PROFILE ================= */
 
   loadProfile(): void {
     const user = this.auth.getUser();
@@ -55,8 +47,6 @@ export class Profile implements OnInit {
     this.profile = { ...user };
   }
 
-  /* ================= EDIT MODE ================= */
-
   enableEdit(): void {
     this.isEditMode = true;
     this.originalProfile = { ...this.profile };
@@ -66,8 +56,6 @@ export class Profile implements OnInit {
     this.profile = { ...this.originalProfile };
     this.isEditMode = false;
   }
-
-  /* ================= SAVE PROFILE ================= */
 
   saveProfile(): void {
 
@@ -80,8 +68,6 @@ export class Profile implements OnInit {
     alert("Profile updated successfully!");
   }
 
-  /* ================= ADMIN VERIFY ================= */
-
   verifyAdmin(): void {
 
     if (!this.adminPassword) {
@@ -89,7 +75,6 @@ export class Profile implements OnInit {
       return;
     }
 
-    // 🔥 TEMP (later backend)
     if (this.adminPassword !== "Arun1552") {
       alert("Invalid Admin Password!");
       return;
@@ -99,8 +84,6 @@ export class Profile implements OnInit {
 
     alert("Admin verified successfully!");
   }
-
-  /* ================= PASSWORD STRENGTH ================= */
 
   checkStrength(): void {
 
@@ -119,8 +102,6 @@ export class Profile implements OnInit {
       this.strengthClass = "medium";
     }
   }
-
-  /* ================= SAVE SYSTEM PASSWORD ================= */
 
   saveSystemPassword(): void {
 
@@ -148,8 +129,6 @@ export class Profile implements OnInit {
     this.passwordStrength = '';
   }
 
-  /* ================= PHOTO UPLOAD ================= */
-
   onPhotoChange(event: any): void {
 
     const file = event.target.files[0];
@@ -165,8 +144,6 @@ export class Profile implements OnInit {
     reader.readAsDataURL(file);
   }
 
-  /* ================= BACK NAVIGATION ================= */
-
   goBack(): void {
 
     const el = document.querySelector('.profile-container');
@@ -180,11 +157,12 @@ export class Profile implements OnInit {
     }, 200);
   }
 
-  /* ================= LOGOUT SAFETY ================= */
-
   logout(): void {
+
     this.auth.logout();
-    window.location.href = '/login';
+
+    // 🔥 FIXED (important)
+    window.location.replace('/login');
   }
 
 }

@@ -286,9 +286,11 @@ export class BillingPos implements OnInit {
 
     }).subscribe({
 
-      next: () => {
+     next: (savedInvoice: any) => {
 
         console.log("✅ BILL SAVED SUCCESS");
+        const finalInvoiceNumber = savedInvoice?.invoiceNumber || this.invoiceNumber;
+const finalInvoiceDate = savedInvoice?.date || new Date();
 
         this.cart.forEach(item => {
           const med = this.medicines.find(m => m.name === item.name);
@@ -305,7 +307,7 @@ export class BillingPos implements OnInit {
 
         this.isPrinted = true;
 
-        const popup = window.open('', '', 'width=1000,height=900');
+       const popup = window.open('', '_blank');
 
         if (!popup) {
           alert("Popup blocked! Please allow popups.");
@@ -445,7 +447,7 @@ td.left { text-align: left; }
 </style>
 </head>
 
-<body onload="setTimeout(()=>{window.print();window.close();},300)">
+<body onload="setTimeout(()=>window.print(),700)">
 
 <div class="page">
 
@@ -454,7 +456,7 @@ td.left { text-align: left; }
   <div class="content">
 
     <div class="header">
-      <img src="${logo}" class="logo"/>
+     <img src="${logo}" class="logo" onload="window.imageLoaded=true"/>
       <div class="company">
         <strong>${this.companyName}</strong><br>
         
@@ -467,8 +469,8 @@ td.left { text-align: left; }
 
     <div class="info">
       <div class="info-box">
-        <strong>Invoice No:</strong> ${this.invoiceNumber}<br>
-        <strong>Date:</strong> ${new Date().toLocaleDateString()}
+        <strong>Invoice No:</strong> ${finalInvoiceNumber}<br>
+        <strong>Date:</strong> ${new Date(finalInvoiceDate).toLocaleDateString()}
       </div>
 
       <div class="info-box">
@@ -551,8 +553,16 @@ td.left { text-align: left; }
 
         popup.document.close();
 
+popup.onload = () => {
+  setTimeout(() => {
+    popup.focus();
+    popup.print();
+  }, 500); // 🔥 wait for logo to load
+};
+
         this.cart = [];
-        this.generateInvoiceNumber();
+this.salesService.loadInvoices();
+this.generateInvoiceNumber();
 
         setTimeout(() => {
           alert("✅ Bill generated successfully!");
@@ -569,40 +579,44 @@ td.left { text-align: left; }
 
   }
 
-  async downloadPDF() {
+ async downloadPDF() {
 
-    try {
+  try {
 
-      const element = document.getElementById('invoice-print');
+    const element = document.getElementById('invoice-print');
 
-      if (!element) {
-        alert("Invoice not found");
-        return;
-      }
-
-      const canvas = await html2canvas(element, {
-        scale: 2
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-
-      const pdf = new jsPDF('p', 'mm', 'a4');
-
-      const imgWidth = 210;
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
-      pdf.save(`Invoice-${this.invoiceNumber}.pdf`);
-
-    } catch (error) {
-
-      console.error("PDF Error:", error);
-      alert("PDF failed");
-
+    if (!element) {
+      alert("Invoice not found");
+      return;
     }
 
+    // ✅ FIXED CANVAS DECLARATION
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: "#ffffff"
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    const imgWidth = 210;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+    pdf.save(`Invoice-${this.invoiceNumber}.pdf`);
+
+  } catch (error) {
+
+    console.error("PDF Error:", error);
+    alert("PDF failed");
+
   }
+
+}
 
   numberToWords(num: number): string {
 

@@ -103,12 +103,11 @@ export class Navbar implements OnInit {
 
   /* ================= LOGOUT ================= */
 
-  logout(): void {
+ logout(): void {
 
-    this.auth.logout();
+  this.auth.logout();
 
-    // prevent back navigation
-    window.location.href = '/login';
-  }
-
+  // 🔥 prevents back button completely
+  window.location.replace('/login');
+}
 }

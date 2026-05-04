@@ -223,3 +223,40 @@
   </div>
 
 </div>
+<!-- 🔥 HIDDEN INVOICE FOR PDF DOWNLOAD -->
+<div id="invoice-print" style="position:absolute; left:-9999px; top:0; background:#fff; padding:20px; width:800px;">
+
+  <h2>{{ companyName }}</h2>
+
+  <p><strong>Invoice No:</strong> {{ invoiceNumber }}</p>
+  <p><strong>Date:</strong> {{ currentDate | date:'mediumDate' }}</p>
+
+  <p>
+    <strong>Customer:</strong> {{ customer.name }} <br>
+    {{ customer.phone }} <br>
+    {{ customer.address }} <br>
+    {{ customer.state }}
+  </p>
+
+  <table border="1" width="100%" style="border-collapse: collapse; margin-top:10px;">
+    <tr>
+      <th>#</th>
+      <th>Medicine</th>
+      <th>Qty</th>
+      <th>Price</th>
+      <th>Total</th>
+    </tr>
+
+    <tr *ngFor="let item of cart; let i = index">
+      <td>{{ i + 1 }}</td>
+      <td>{{ item.name }}</td>
+      <td>{{ item.qty }}</td>
+      <td>{{ item.sellingPrice || item.price }}</td>
+      <td>{{ item.qty * (item.sellingPrice || item.price) }}</td>
+    </tr>
+
+  </table>
+
+  <h3 style="margin-top:10px;">Grand Total: ₹{{ grandTotal }}</h3>
+
+</div>
