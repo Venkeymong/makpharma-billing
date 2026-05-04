@@ -406,7 +406,7 @@ ${cart.map((item:any,i:number)=>`
 
 <div class="row">
   <span>Subtotal</span>
-  <span>₹{{ (invoice.subtotal || getSubtotal()) | number:'1.2-2' }}</span>
+  <span><span>₹${subtotal.toFixed(2)}</span></span>
 </div>
 
 ${
@@ -427,7 +427,7 @@ ${
 
 <div class="row">
   <span>Round Off</span>
-  <span>₹${(grandTotal - (subtotal + cgstTotal + sgstTotal + igstTotal - discountTotal)).toFixed(2)}</span>
+  <span><span>₹${grandTotal.toFixed(2)}</span></span>
 </div>
 
 <div class="row grand">
